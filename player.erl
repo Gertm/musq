@@ -32,7 +32,7 @@ player_handler(Socket,State) ->
 	    end;
 	{tcp_closed, Socket} ->
 	    %% save stuff if we need to
-	    %% <insert code>
+	    %% still need to write code for that
 	    io:format("Client disconnected!");
 	{print, Message} ->
 	    gen_tcp:send(Socket,Message)
