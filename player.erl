@@ -1,0 +1,48 @@
+%%% @author Gert M <cel357@gmail.com>
+%%% @copyright (C) 2010, Gert M
+%%% @doc
+%%% The module for the player interactions
+%%% @end
+%%% Created : 26 Apr 2010 by Gert M <cel357@gmail.com>
+
+-module(player).
+-compile(export_all).
+-include("telnetcolors.hrl").
+
+clean_tcp_input(TcpInput) ->
+    Len = erlang:round(bit_size(TcpInput)/8),
+    {Out,_} = split_binary(TcpInput,Len-2),
+    binary_to_list(Out).
+
+player_handler(Socket,State) ->
+    gen_tcp:send(Socket,"#> "),
+    inet:setopts(Socket,[{active,once}]),
+    receive
+	{tcp, Socket, Command} ->
+	    Cmd = clean_tcp_input(Command),
+	    case parse_command(Cmd,State) of
+		{close, Response} ->
+		    gen_tcp:send(Socket,Response);
+		{ok, Response, NewState} ->
+		    ColorRes = ?red(Response),
+		    ?send("You tried to "++ ColorRes ++" without result."),
+		    player_handler(Socket,NewState);
+		_ ->
+		    gen_tcp:send(Socket,"Unrecognized response, call your local deity")
+	    end;
+	{tcp_closed, Socket} ->
+	    %% save stuff if we need to
+	    %% <insert code>
+	    io:format("Client disconnected!");
+	{print, Message} ->
+	    gen_tcp:send(Socket,Message)
+    end,
+    State.
+
+parse_command(Command,State) ->
+    case Command of
+	"quit" ->
+	    {close,"Bye\n\n"};
+	_ ->
+	    {ok, Command, State}
+    end.
