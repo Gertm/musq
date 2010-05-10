@@ -31,7 +31,7 @@
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Starts the server
+%% Creates the room
 %%
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
@@ -112,6 +112,9 @@ handle_info(_Info, State) ->
 %% @spec terminate(Reason, State) -> void()
 %% @end
 %%--------------------------------------------------------------------
+
+%% Need to add code here to inform the exit rooms that this one is no 
+%% longer available.
 terminate(_Reason, _State) ->
     ok.
 
