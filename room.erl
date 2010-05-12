@@ -132,3 +132,5 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+%% need stuff to handle entrance and leaving of rooms.
