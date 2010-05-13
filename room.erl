@@ -71,6 +71,12 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call({load,Name},_From,_State) ->
+%% load the room information from disk
+%% register yourself in the mnesia database
+    {reply,ok,State}.
+
+
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
