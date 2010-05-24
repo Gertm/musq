@@ -15,3 +15,6 @@
 %% add appropriate exits to the rooms
 %% spawn all the rooms needed.
 
+load(Filename) ->
+    
+    Filename.
