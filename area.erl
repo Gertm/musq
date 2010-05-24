@@ -10,3 +10,8 @@
 -module(area).
 -compile(export_all).  %% for now
 
+%% area file = erlang list describing the layout of the rooms.
+%% load area file into dict
+%% add appropriate exits to the rooms
+%% spawn all the rooms needed.
+
