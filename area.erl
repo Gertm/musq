@@ -1,0 +1,12 @@
+%%% @author Gert M <cel357@gmail.com>
+%%% @copyright (C) 2010, Gert M
+%%% @doc
+%%% An area defines a group of rooms.
+%%% This module loads the .area files into the game
+%%% Should be called from the world when that world loads.
+%%% @end
+%%% Created : 24 May 2010 by Gert M <cel357@gmail.com>
+
+-module(area).
+-compile(export_all).  %% for now
+
