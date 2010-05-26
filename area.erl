@@ -16,5 +16,6 @@
 %% spawn all the rooms needed.
 
 load(Filename) ->
-    
-    Filename.
+    {ok,RoomList} = file:consult(Filename),
+    RoomList.
+
