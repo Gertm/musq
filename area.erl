@@ -19,3 +19,5 @@ load(Filename) ->
     {ok,RoomList} = file:consult(Filename),
     RoomList.
 
+%% for testing:
+%% area:load("/home/gert/src/explore/erlang/musq/areas/source.area").
