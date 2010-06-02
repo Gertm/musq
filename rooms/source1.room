@@ -1,14 +1,10 @@
-{"The Source", 
- [{"northwest","source2"},
-  {"north","source3}"},
-  {"northeast","source4"},
-  {"east","source5"},
-  {"southeast","source6"},
-  {"south","source7"},
-  {"southwest","source8"},
-  {"west","source9"}],
- ["This is the source.","Everything begins here."],
-[],
-[],
-[]
+%% This will serve not only as the first room of the first area
+%% but as an example on how to make rooms/areas
+
+{"The Source",  %% The room name
+ [], %% the list of exits. Remember, areas will create adjacent exits automaticly.
+ ["This is the source.","Everything begins here."], %% the description lines
+[], %% the NPC's to spawn here
+[], %% the objects to load
+[]  %% the players who are in this room.
 }.
