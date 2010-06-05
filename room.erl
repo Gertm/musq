@@ -78,10 +78,18 @@ handle_call({load,Name},_From,State) ->
     {reply,ok,State};
 
 handle_call({add_exit,Name,Roomspec},_From,State) ->
-    {reply,ok,State}.
+    Exits = State#room.exits,
+    NewState = State#room{exits=[{Name,Roomspec}|Exits]},
+    {reply,ok,State};
+
+handle_call(show_exits,From,State) ->
+    From ! {exits, State#room.exits};
+
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
+
+
 
 %%--------------------------------------------------------------------
 %% @private
