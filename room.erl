@@ -75,15 +75,16 @@ handle_call({load,Name},_From,State) ->
 %% load the room information from disk
 %% or load the room information from the area defenition.
 %% register yourself in the mnesia database
-    {reply,ok,State};
+    NewState = State#room{name=Name},
+    {reply,{ok,Name},NewState};
 
 handle_call({add_exit,Name,Roomspec},_From,State) ->
     Exits = State#room.exits,
     NewState = State#room{exits=[{Name,Roomspec}|Exits]},
-    {reply,ok,State};
+    {reply,ok,NewState};
 
-handle_call(show_exits,From,State) ->
-    From ! {exits, State#room.exits};
+handle_call({show_exits},From,State) ->
+    {reply,{exits, State#room.exits},State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
