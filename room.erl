@@ -83,12 +83,23 @@ handle_call({add_exit,Name,Roomspec},_From,State) ->
     NewState = State#room{exits=[{Name,Roomspec}|Exits]},
     {reply,ok,NewState};
 
-handle_call({show_exits},From,State) ->
+handle_call({init,RoomFileLoc},_From,State) ->
+    [RoomSpec] = file:consult(RoomFileLoc),
+    {Name,Exits,Desc,Npc,Obj,Players} = RoomSpec,
+    NewState = State#room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players},
+    {reply,ok,NewState};
+
+handle_call({show_exits},_From,State) ->
     {reply,{exits, State#room.exits},State};
+
+handle_call({look},_From,State) ->
+    %% build up the lines for the room description.
+    {reply,{look,[]},State}.
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
+
 
 
 

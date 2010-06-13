@@ -2,7 +2,7 @@
 %% but as an example on how to make rooms/areas
 
 {"The Source",  %% The room name
- [], %% the list of exits. Remember, areas will create adjacent exits automaticly.
+ [{"south","room2"}], %% the list of exits. Remember, areas will create adjacent exits automaticly.
  ["This is the source.","Everything begins here."], %% the description lines
 [], %% the NPC's to spawn here
 [], %% the objects to load
