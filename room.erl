@@ -94,7 +94,7 @@ handle_call({show_exits},_From,State) ->
 
 handle_call({look},_From,State) ->
     %% build up the lines for the room description.
-    {reply,{look,[]},State}.
+    {reply,{look,[]},State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
