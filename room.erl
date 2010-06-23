@@ -72,9 +72,9 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({load,Name},_From,State) ->
-%% load the room information from disk
-%% or load the room information from the area defenition.
-%% register yourself in the mnesia database
+    %% load the room information from disk
+    %% or load the room information from the area defenition.
+    %% register yourself in the mnesia database
     NewState = State#room{name=Name},
     {reply,{ok,Name},NewState};
 
@@ -92,9 +92,15 @@ handle_call({init,RoomFileLoc},_From,State) ->
 handle_call({show_exits},_From,State) ->
     {reply,{exits, State#room.exits},State};
 
+handle_call({enter,SourceDirection},_From,State) ->
+    %% add the player to the state, send player the 'look' information.
+    {reply,ok,State};
+
 handle_call({look},_From,State) ->
     %% build up the lines for the room description.
+    %% best to do this in a seperate function because we're going to need it elsewhere too.
     {reply,{look,[]},State};
+
 handle_call({move,Direction},_From,State) ->
     {reply,ok,State};
 
