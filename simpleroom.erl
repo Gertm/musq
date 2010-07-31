@@ -20,6 +20,16 @@
 	       messages=["room msg 1","room msg 2"]
 	      }).
 
+newroom() ->
+    spawn(?MODULE,init,[]).
+
+getmsg() ->
+    receive
+	X -> X
+    after 1000 ->
+	nothing_received
+    end.	
+
 init() ->
     loop(#room{name="testroom1"}).
 
@@ -33,6 +43,7 @@ loop(State) ->
 	    io:format("~s~n",["looping from enter"]),
 	    loop(NewState);
 	{stop} ->
+	    io:format("~s~n",["Room killed!"]),
 	    {ok,stopped};
 	_ -> ok
     after 15000 ->
@@ -43,9 +54,4 @@ loop(State) ->
 
 room_message(#room{players=P,messages=M}) ->
     Message = lists:nth(random:uniform(length(M)),M),
-    [Player ! Message || Player <- P].
-
-    
-    
-    
-    
+    [ Player ! {roommsg,Message} || Player <- P ].
