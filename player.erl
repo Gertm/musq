@@ -28,7 +28,7 @@ player_handler(Socket,State) ->
 		    ?send("You tried to "++ ColorRes ++" without result."),
 		    player_handler(Socket,NewState);
 		_ ->
-		    gen_tcp:send(Socket,"Unrecognized response, call your local deity")
+		    gen_tcp:send(Socket,"Sorry, that didn't make sense.")
 	    end;
 	{tcp_closed, Socket} ->
 	    %% save stuff if we need to
