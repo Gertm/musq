@@ -13,7 +13,7 @@
 
 -record(room, {name,
 	       exits=[],
-	       desc=[],
+	       desc=["The first desc of the room.","second line in the desc."],
 	       npcs=[],
 	       objects=[],
 	       players=[],
@@ -36,11 +36,9 @@ init() ->
 loop(State) ->
     receive
 	{enter,PlayerPid} ->
-	    Players = State#room.players,
-	    NewPlayers = [PlayerPid|Players],
-	    NewState = State#room{players=NewPlayers},
+	    NewState = add_player_to_room(PlayerPid,State),
 	    PlayerPid ! {ok,State#room.name},
-	    io:format("~s~n",["looping from enter"]),
+	    io:format("~s entered room ~s.~n",[pid_to_list(PlayerPid),pid_to_list(self())]),
 	    loop(NewState);
 	{stop} ->
 	    io:format("~s~n",["Room killed!"]),
@@ -48,10 +46,21 @@ loop(State) ->
 	_ -> ok
     after 15000 ->
 	    room_message(State),
-	    io:format("~s~n",["looping from after"]),
 	    loop(State)
     end.
 
 room_message(#room{players=P,messages=M}) ->
-    Message = lists:nth(random:uniform(length(M)),M),
-    [ Player ! {roommsg,Message} || Player <- P ].
+    case length(P) of
+	0 -> ok; %% why strain the system if there are no players listening anyway?
+	_ -> Message = lists:nth(random:uniform(length(M)),M),
+	     io:format("RoomMsg: ~s -> ~s~n.",[pid_to_list(self()),Message]),
+	     [ Player ! {roommsg,Message} || Player <- P ]
+    end.
+
+add_player_to_room(PlayerPid,RoomState) ->
+    Players = RoomState#room.players,
+    NewPlayers = [PlayerPid|Players],
+    RoomState#room{players=NewPlayers}.
+
+send_room_desc_to_player(PlayerPid,RoomState) ->
+    [ PlayerPid ! {print,X} || X <- RoomState#room.desc ].
