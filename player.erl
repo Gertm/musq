@@ -15,7 +15,7 @@ clean_tcp_input(TcpInput) ->
     binary_to_list(Out).
 
 player_handler(Socket,State) ->
-    gen_tcp:send(Socket,"#> "),
+    gen_tcp:send(Socket,"#> "), %% this macro is also in telnetcolors.hrl
     inet:setopts(Socket,[{active,once}]),
     receive
 	{tcp, Socket, Command} ->
