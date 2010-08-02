@@ -16,13 +16,16 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
+%% helper function
+-export([buddy_process/1]).
 
 -record(room, {name,
 	       exits=[],
 	       desc=[],
 	       npcs=[],
 	       objects=[],
-	       players=[]
+	       players=[],
+	       messages=[]
 	      }).
 
 %%%===================================================================
@@ -55,8 +58,14 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
+    spawn(?MODULE,buddy_process,[self()]),
     {ok, #room{}}.
 
+buddy_process(Pid) ->
+    receive
+    after random:uniform(15000) ->
+	    Pid ! {tick}
+    end.
 %%--------------------------------------------------------------------
 %% @private
 %% @doc
@@ -104,9 +113,19 @@ handle_call({look},_From,State) ->
 handle_call({move,Direction},_From,State) ->
     {reply,ok,State};
 
+handle_call({tick},_From,#room{players=P,messages=M}) ->
+    case length(P) of
+	0 -> ok; %% why strain the system if there are no players listening anyway?
+	_ -> Message = lists:nth(random:uniform(length(M)),M),
+	     io:format("RoomMsg: ~s -> ~s~n.",[pid_to_list(self()),Message]),
+	     [ Player ! {roommsg,Message} || Player <- P ]
+    end;
+
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
+
+
 
 
 

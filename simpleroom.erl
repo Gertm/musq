@@ -12,11 +12,11 @@
 -compile(export_all).
 
 -record(room, {name,
-	       exits=[],
+	       exits=[], %% probably in the form of: {"exitname",Pid} maybe not Pid, but some way of loading the file if needed.
 	       desc=["The first desc of the room.","second line in the desc."],
-	       npcs=[],
+	       npcs=[], %% {"Npc Name",Pid}
 	       objects=[],
-	       players=[],
+	       players=[], %% {"name",Pid}
 	       messages=["room msg 1","room msg 2"]
 	      }).
 
