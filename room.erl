@@ -63,8 +63,11 @@ init([]) ->
 
 buddy_process(Pid) ->
     receive
+	{exit,Reason} ->
+	    exit(Reason)
     after random:uniform(15000) ->
-	    Pid ! {tick}
+	    Pid ! {tick},
+	    buddy_process(Pid)
     end.
 %%--------------------------------------------------------------------
 %% @private
@@ -120,6 +123,9 @@ handle_call({tick},_From,#room{players=P,messages=M}) ->
 	     io:format("RoomMsg: ~s -> ~s~n.",[pid_to_list(self()),Message]),
 	     [ Player ! {roommsg,Message} || Player <- P ]
     end;
+
+handle_call({exit,Reason},_From,_State) ->
+    exit(Reason);
 
 handle_call(_Request, _From, State) ->
     Reply = ok,
