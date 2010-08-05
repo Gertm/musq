@@ -20,15 +20,20 @@
 	       messages=["room msg 1","room msg 2"]
 	      }).
 
+listener() ->
+    register(listener,spawn(?MODULE,getmsg,[])).
+
 newroom() ->
     spawn(?MODULE,init,[]).
 
 getmsg() ->
     receive
-	X -> X
+	stop -> exit("stopping");
+	X -> io:format("listener: ~p~n",[X])
     after 1000 ->
 	nothing_received
-    end.	
+    end,
+    getmsg().
 
 init() ->
     loop(#room{name="testroom1"}).
@@ -43,8 +48,17 @@ loop(State) ->
 	{stop} ->
 	    io:format("~s~n",["Room killed!"]),
 	    {ok,stopped};
+	{init,RoomFileLoc} ->
+	    {ok,[RoomSpec]} = file:consult(RoomFileLoc),
+	    {Name,Exits,Desc,Npc,Obj,Players} = RoomSpec,
+	    NewState = State#room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players},
+	    loop(NewState);
+	{look,From} ->
+	    send_room_desc_to_player(From,State),
+	    loop(State);
 	_ -> ok
     after 15000 ->
+	    io:format("~s~n",["tick of "++pid_to_list(self())]),
 	    room_message(State),
 	    loop(State)
     end.
