@@ -46,3 +46,11 @@ parse_command(Command,State) ->
 	_ ->
 	    {ok, Command, State}
     end.
+
+%% some general stuff should be parsed, nothing more.
+%% basicly this module only needs to accept 'print' events for stuff that needs to be
+%% written to the player's screen
+%% and it needs to accept the incoming stuff from the socket.
+%% from that, the module needs to decide where the message should be sent.
+%% to the room, to another player, an NPC?,.. etc
+%% all other logic should be in other modules
