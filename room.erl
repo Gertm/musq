@@ -63,8 +63,7 @@ init([]) ->
 
 buddy_process(Pid) ->
     receive
-	{exit,Reason} ->
-	    exit(Reason)
+	{exit,Reason} -> exit(Reason)
     after random:uniform(15000) ->
 	    Pid ! {tick},
 	    buddy_process(Pid)
@@ -116,7 +115,7 @@ handle_call({look},_From,State) ->
 handle_call({move,Direction},_From,State) ->
     {reply,ok,State};
 
-handle_call({tick},_From,#room{players=P,messages=M}) ->
+handle_call({tick},_From,#room{players=P,messages=M}) ->  %% for room messages
     case length(P) of
 	0 -> ok; %% why strain the system if there are no players listening anyway?
 	_ -> Message = lists:nth(random:uniform(length(M)),M),
@@ -195,3 +194,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 %% need stuff to handle entrance and leaving of rooms.
+
+%% gen_server:call(Pid, {enter,Direction}). will do the job
+%% this will return a value like any other function would.
