@@ -6,5 +6,6 @@
  ["This is the source.","Everything begins here."], %% the description lines
 [], %% the NPC's to spawn here
 [], %% the objects to load
-[]  %% the players who are in this room.
+[], %% the players who are in this room.
+["You get an eerie feeling","This room seems unfinished, at best."], %% the room messages
 }.
