@@ -61,14 +61,15 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    spawn(?MODULE,buddy_process,[self()]),
+    BuddyPid = spawn(?MODULE,buddy_process,[self()]),
+    io:format("~s ~p~n",["Started buddy process:",BuddyPid]),
     {ok, #room{}}.
 
 buddy_process(Pid) ->
     receive
 	{exit,Reason} -> exit(Reason)
-    after random:uniform(15000) ->
-	    gen_server:call(Pid,tick),
+    after 15000 ->
+	    gen_server:cast(Pid,tick),
 	    buddy_process(Pid)
     end.
 %%--------------------------------------------------------------------
@@ -121,14 +122,6 @@ handle_call({look},_From,State) ->
 handle_call({move,Direction},_From,State) ->
     {reply,ok,State};
 
-handle_call({tick},_From,#room{players=P,messages=M}) ->  %% for room messages
-    case length(P) of
-	0 -> ok; %% why strain the system if there are no players listening anyway?
-	_ -> Message = lists:nth(random:uniform(length(M)),M),
-	     io:format("RoomMsg: ~s -> ~s~n.",[pid_to_list(self()),Message]),
-	     [ Player ! {roommsg,Message} || Player <- P ]
-    end;
-
 handle_call({exit,Reason},_From,_State) ->
     exit(Reason);
 
@@ -146,6 +139,15 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_cast(tick,#room{players=P,messages=M} = State) ->
+    case length(P) of
+	0 -> ok; %% why strain the system if there are no players listening anyway?
+	_ -> Message = lists:nth(random:uniform(length(M)),M),
+	     io:format("RoomMsg: ~s -> ~s~n.",[pid_to_list(self()),Message]),
+	     [ Player ! {roommsg,Message} || Player <- P ]
+    end,
+    {noreply, State};
+
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
