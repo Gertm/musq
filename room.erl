@@ -19,6 +19,9 @@
 %% helper function
 -export([buddy_process/1]).
 
+%% accessor functions
+-export([exits/1,enter/2,leave/2,load/2]).
+
 -record(room, {name,
 	       exits=[],
 	       desc=[],
@@ -65,7 +68,7 @@ buddy_process(Pid) ->
     receive
 	{exit,Reason} -> exit(Reason)
     after random:uniform(15000) ->
-	    Pid ! {tick},
+	    gen_server:call(Pid,tick),
 	    buddy_process(Pid)
     end.
 %%--------------------------------------------------------------------
@@ -95,16 +98,19 @@ handle_call({add_exit,Name,Roomspec},_From,State) ->
     {reply,ok,NewState};
 
 handle_call({init,RoomFileLoc},_From,State) ->
-    [RoomSpec] = file:consult(RoomFileLoc),
-    {Name,Exits,Desc,Npc,Obj,Players} = RoomSpec,
-    NewState = State#room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players},
+    {ok,[RoomSpec]} = file:consult(RoomFileLoc),
+    {Name,Exits,Desc,Npc,Obj,Players,Messages} = RoomSpec,
+    NewState = State#room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages},
     {reply,ok,NewState};
 
-handle_call({show_exits},_From,State) ->
+handle_call(show_exits,_From,State) ->
     {reply,{exits, State#room.exits},State};
 
 handle_call({enter,SourceDirection},_From,State) ->
     %% add the player to the state, send player the 'look' information.
+    {reply,ok,State};
+
+handle_call({leave,ToDirection},From,State) ->
     {reply,ok,State};
 
 handle_call({look},_From,State) ->
@@ -192,3 +198,15 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% gen_server:call(Pid, {enter,Direction}). will do the job
 %% this will return a value like any other function would.
+
+enter(Room,FromDirection) ->
+    gen_server:call(Room,{enter,FromDirection}).
+
+leave(Room,ToDirection) ->
+    gen_server:call(Room,{leave,ToDirection}).
+
+exits(Room) ->
+    gen_server:call(Room,show_exits).
+
+load(Room,RoomFile) ->
+    gen_server:call(Room,{init,RoomFile}).
