@@ -201,6 +201,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% gen_server:call(Pid, {enter,Direction}). will do the job
 %% this will return a value like any other function would.
 
+load(Room,RoomFile) ->
+    gen_server:call(Room,{init,RoomFile}).
+
 enter(Room,FromDirection) ->
     gen_server:call(Room,{enter,FromDirection}).
 
@@ -210,5 +213,3 @@ leave(Room,ToDirection) ->
 exits(Room) ->
     gen_server:call(Room,show_exits).
 
-load(Room,RoomFile) ->
-    gen_server:call(Room,{init,RoomFile}).
