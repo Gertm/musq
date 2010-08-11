@@ -1,11 +1,11 @@
 %% This will serve not only as the first room of the first area
 %% but as an example on how to make rooms/areas
 
-{"The Source",  %% The room name
- [{"south","room2"}], %% the list of exits. Remember, areas will create adjacent exits automaticly.
- ["This is the source.","Everything begins here."], %% the description lines
-[], %% the NPC's to spawn here
-[], %% the objects to load
-[], %% the players who are in this room.
-["You get an eerie feeling","This room seems unfinished, at best."], %% the room messages
+{"The Source",								%% The room name
+ [{"south","room2"}],							%% the list of exits. Remember, areas will create adjacent exits automaticly.
+ ["This is the source.","Everything begins here."],			%% the description lines
+[],									%% the NPC's to spawn here
+[],									%% the objects to load
+[],									%% the players who are in this room.
+["You get an eerie feeling","This room seems unfinished, at best."]	%% the room messages
 }.
