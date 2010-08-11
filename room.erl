@@ -44,6 +44,7 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+%% the ?MODULE here is the name of the gen_server. This needs to be the room ofc.
 
 %%%===================================================================
 %%% gen_server callbacks
