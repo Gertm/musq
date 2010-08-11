@@ -179,7 +179,8 @@ handle_info(_Info, State) ->
 
 %% Need to add code here to inform the exit rooms that this one is no 
 %% longer available.
-terminate(_Reason, _State) ->
+terminate(_Reason, #room{name=Name} = State) ->
+    io:format("Room '~s' is terminated.~n",[Name]),
     ok.
 
 %%--------------------------------------------------------------------
