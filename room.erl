@@ -44,6 +44,7 @@
 %%--------------------------------------------------------------------
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+%% the ?MODULE here is the name of the gen_server. This needs to be the room ofc.
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -178,7 +179,8 @@ handle_info(_Info, State) ->
 
 %% Need to add code here to inform the exit rooms that this one is no 
 %% longer available.
-terminate(_Reason, _State) ->
+terminate(_Reason, #room{name=Name} = State) ->
+    io:format("Room '~s' is terminated.~n",[Name]),
     ok.
 
 %%--------------------------------------------------------------------
