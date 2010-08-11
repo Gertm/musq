@@ -10,6 +10,4 @@
 -compile(export_all).
 
 clean_room_name(RoomName) ->
-    re:replace(RoomName," ","_").
-
-
+    re:replace(RoomName," ","_",[{return,list}]).

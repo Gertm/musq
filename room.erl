@@ -11,16 +11,16 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-	 terminate/2, code_change/3]).
+	 terminate/2, code_change/3,load/1]).
 %% helper function
 -export([buddy_process/1]).
 
 %% accessor functions
--export([exits/1,enter/2,leave/2,load/2]).
+-export([exits/1,enter/2,leave/2]).
 
 -record(room, {name,
 	       exits=[],
@@ -42,9 +42,15 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-%% the ?MODULE here is the name of the gen_server. This needs to be the room ofc.
+
+start_link(RoomFile) ->
+    {ok,[RoomSpec]} = file:consult(RoomFile),
+    {Name,Exits,Desc,Npc,Obj,Players,Messages} = RoomSpec,
+    State = #room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages},
+    gen_server:start_link({local,helpers:clean_room_name(State#room.name)},?MODULE, State, []).
+    
+load(RoomFile) ->  %% does the same, just types faster ;-)
+    start_link(RoomFile).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -61,10 +67,11 @@ start_link() ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
+
+init(RoomState) ->
     BuddyPid = spawn(?MODULE,buddy_process,[self()]),
     io:format("~s ~p~n",["Started buddy process:",BuddyPid]),
-    {ok, #room{}}.
+    {ok,RoomState}.
 
 buddy_process(Pid) ->
     receive
@@ -87,32 +94,27 @@ buddy_process(Pid) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({load,Name},_From,State) ->
-    %% load the room information from disk
-    %% or load the room information from the area defenition.
-    %% register yourself in the mnesia database
-    NewState = State#room{name=Name},
-    {reply,{ok,Name},NewState};
 
 handle_call({add_exit,Name,Roomspec},_From,State) ->
     Exits = State#room.exits,
     NewState = State#room{exits=[{Name,Roomspec}|Exits]},
     {reply,ok,NewState};
 
-handle_call({init,RoomFileLoc},_From,State) ->
+handle_call({reload,RoomFileLoc},_From,State) ->
+    OldPlayers = State#room.players,
     {ok,[RoomSpec]} = file:consult(RoomFileLoc),
-    {Name,Exits,Desc,Npc,Obj,Players,Messages} = RoomSpec,
-    NewState = State#room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages},
+    {Name,Exits,Desc,Npc,Obj,_Players,Messages} = RoomSpec,
+    NewState = State#room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=OldPlayers,messages=Messages},
     {reply,ok,NewState};
 
 handle_call(show_exits,_From,State) ->
     {reply,{exits, State#room.exits},State};
 
-handle_call({enter,SourceDirection},_From,State) ->
+handle_call({enter,_SourceDirection},_From,State) ->
     %% add the player to the state, send player the 'look' information.
-    {reply,ok,State};
+    {reply,{ok,State#room.name},State};
 
-handle_call({leave,ToDirection},From,State) ->
+handle_call({leave,_ToDirection},_From,State) ->
     {reply,ok,State};
 
 handle_call({look},_From,State) ->
@@ -120,7 +122,7 @@ handle_call({look},_From,State) ->
     %% best to do this in a seperate function because we're going to need it elsewhere too.
     {reply,{look,[]},State};
 
-handle_call({move,Direction},_From,State) ->
+handle_call({move,_Direction},_From,State) ->
     {reply,ok,State};
 
 handle_call({exit,Reason},_From,_State) ->
@@ -179,7 +181,7 @@ handle_info(_Info, State) ->
 
 %% Need to add code here to inform the exit rooms that this one is no 
 %% longer available.
-terminate(_Reason, #room{name=Name} = State) ->
+terminate(_Reason, #room{name=Name} = _State) ->
     io:format("Room '~s' is terminated.~n",[Name]),
     ok.
 
@@ -202,9 +204,6 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% gen_server:call(Pid, {enter,Direction}). will do the job
 %% this will return a value like any other function would.
-
-load(Room,RoomFile) ->
-    gen_server:call(Room,{init,RoomFile}).
 
 enter(Room,FromDirection) ->
     gen_server:call(Room,{enter,FromDirection}).
