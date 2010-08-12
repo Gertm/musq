@@ -17,7 +17,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3,load/1]).
 %% helper function
--export([buddy_process/1]).
+-export([buddy_process/2]).
 
 %% accessor functions
 -export([exits/1,enter/2,leave/2]).
@@ -44,13 +44,16 @@
 %%--------------------------------------------------------------------
 
 start_link(RoomFile) ->
-    {ok,[RoomSpec]} = file:consult(RoomFile),
-    {Name,Exits,Desc,Npc,Obj,Players,Messages} = RoomSpec,
-    State = #room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages},
-    gen_server:start_link({local,helpers:clean_room_name(State#room.name)},?MODULE, State, []).
+    State = get_room_state_from_file(RoomFile),
+    gen_server:start_link({local,list_to_atom(State#room.name)},?MODULE, State, []).
     
 load(RoomFile) ->  %% does the same, just types faster ;-)
     start_link(RoomFile).
+
+get_room_state_from_file(RoomFile) ->
+    {ok,[RoomSpec]} = file:consult(RoomFile),
+    {Name,Exits,Desc,Npc,Obj,Players,Messages} = RoomSpec,
+    #room{name=helpers:clean_room_name(Name),exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages}.
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -69,16 +72,18 @@ load(RoomFile) ->  %% does the same, just types faster ;-)
 %%--------------------------------------------------------------------
 
 init(RoomState) ->
-    BuddyPid = spawn(?MODULE,buddy_process,[self()]),
+    BuddyPid = spawn(?MODULE,buddy_process,[self(),15000]),
     io:format("~s ~p~n",["Started buddy process:",BuddyPid]),
     {ok,RoomState}.
 
-buddy_process(Pid) ->
+buddy_process(Pid,Timeout) ->
     receive
-	{exit,Reason} -> exit(Reason)
-    after 15000 ->
+	{exit,Reason} -> exit(Reason);
+	{timeout,NewTimeout} ->
+	    buddy_process(Pid,NewTimeout)
+    after Timeout ->
 	    gen_server:cast(Pid,tick),
-	    buddy_process(Pid)
+	    buddy_process(Pid,Timeout)
     end.
 %%--------------------------------------------------------------------
 %% @private
