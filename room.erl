@@ -31,6 +31,10 @@
 	       messages=[]
 	      }).
 
+%% should we keep area information here, or will the area be the only
+%% one who knows about the rooms. Do rooms need to know what area they
+%% are in, in order to function correctly?
+
 %%%===================================================================
 %%% API
 %%%===================================================================
@@ -84,7 +88,7 @@ buddy_process(Pid,Timeout) ->
     after Timeout ->
 	    gen_server:cast(Pid,tick),
 	    buddy_process(Pid,Timeout)
-    end.
+    end. 
 %%--------------------------------------------------------------------
 %% @private
 %% @doc
