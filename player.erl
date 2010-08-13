@@ -28,7 +28,7 @@ player_handler(Socket,State) ->
 		    ?send("You tried to "++ ColorRes ++" without result."),
 		    player_handler(Socket,NewState);
 		_ ->
-		    gen_tcp:send(Socket,"Sorry, that didn't make sense.")
+		    gen_tcp:send(Socket,"Sorry, that didn't make any sense.")
 	    end;
 	{tcp_closed, Socket} ->
 	    %% save stuff if we need to
@@ -43,10 +43,13 @@ parse_command(Command,State) ->
     case Command of
 	"quit" ->
 	    {close,"Bye\n\n"};
+	"n" -> move("north",State);
 	_ ->
 	    {ok, Command, State}
     end.
 
+move(_Direction,_State) ->
+    ok.
 %% some general stuff should be parsed, nothing more.
 %% basicly this module only needs to accept 'print' events for stuff that needs to be
 %% written to the player's screen
