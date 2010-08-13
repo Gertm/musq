@@ -9,7 +9,12 @@
 %% items carrying
 %% experience
 %% {}
--record(player,{pid, name, room, equipment, items, experience}).
+-record(player,{pid,
+		name, 
+		room, 
+		equipment=[], 
+		items=[], 
+		experience}).
 
 %% record for the rooms.
 -record(room, {name,
