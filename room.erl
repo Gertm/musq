@@ -22,15 +22,7 @@
 %% accessor functions
 -export([exits/1,enter/2,leave/2]).
 
--record(room, {name,
-	       exits=[],
-	       desc=[],
-	       npcs=[],
-	       objects=[],
-	       players=[],
-	       messages=[]
-	      }).
-
+-include("records.hrl").
 %% should we keep area information here, or will the area be the only
 %% one who knows about the rooms. Do rooms need to know what area they
 %% are in, in order to function correctly?

@@ -8,6 +8,7 @@
 -module(player).
 -compile(export_all).
 -include("telnetcolors.hrl").
+-include("records.hrl").
 
 clean_tcp_input(TcpInput) ->
     Len = erlang:round(bit_size(TcpInput)/8),
@@ -57,3 +58,5 @@ move(_Direction,_State) ->
 %% from that, the module needs to decide where the message should be sent.
 %% to the room, to another player, an NPC?,.. etc
 %% all other logic should be in other modules
+
+
