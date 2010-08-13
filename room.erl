@@ -57,7 +57,7 @@ load(RoomFile) ->  %% does the same, just types faster ;-)
 get_room_state_from_file(RoomFile) ->
     {ok,[RoomSpec]} = file:consult(RoomFile),
     {Name,Exits,Desc,Npc,Obj,Players,Messages} = RoomSpec,
-    #room{name=helpers:clean_room_name(Name),exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages}.
+    #room{name=Name,exits=Exits,desc=Desc,npcs=Npc,objects=Obj,players=Players,messages=Messages}.
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -222,4 +222,3 @@ leave(Room,ToDirection) ->
 
 exits(Room) ->
     gen_server:call(Room,show_exits).
-
