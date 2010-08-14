@@ -9,7 +9,7 @@ start_server() ->
     case gen_tcp:listen(?LISTEN_PORT, ?TCP_OPTS) of
 	{ok, Listen} -> spawn(?MODULE, connect, [Listen]),
 			io:format("~p Server Started.~n", [erlang:localtime()]),
-			register(main_server,Listen);
+			register(musq_con_listener,Listen);
 	Error ->
 	    io:format("Error: ~p~n", [Error])
     end.

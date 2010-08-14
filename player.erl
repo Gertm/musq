@@ -5,6 +5,9 @@
 %%% @end
 %%% Created : 26 Apr 2010 by Gert M <cel357@gmail.com>
 
+%% perhaps this module should also become a gen_server
+%% should be easier to work with when things go bad.
+
 -module(player).
 -compile(export_all).
 -include("telnetcolors.hrl").
