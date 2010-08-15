@@ -118,7 +118,7 @@ handle_call({enter,_SourceDirection},_From,State) ->
 handle_call({leave,_ToDirection},_From,State) ->
     {reply,ok,State};
 
-handle_call({look},_From,State) ->
+handle_call(look,_From,State) ->
     %% build up the lines for the room description.
     %% best to do this in a seperate function because we're going to need it elsewhere too.
     {reply,{look,[]},State};
