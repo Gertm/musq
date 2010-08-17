@@ -111,9 +111,12 @@ handle_call({reload,RoomFileLoc},_From,State) ->
 handle_call(show_exits,_From,State) ->
     {reply,{exits, State#room.exits},State};
 
-handle_call({enter,_SourceDirection},_From,State) ->
+handle_call({enter,_SourceDirection},{PlayerPid,_},State) ->
     %% add the player to the state, send player the 'look' information.
-    {reply,{ok,State#room.name},State};
+    io:format("~p~n",[PlayerPid]),
+    OldPlayers = State#room.players,
+    NewState = State#room{players=[PlayerPid|OldPlayers]},
+    {reply,{ok,State#room.desc},NewState};
 
 handle_call({leave,_ToDirection},_From,State) ->
     {reply,ok,State};
