@@ -1,0 +1,14 @@
+* Player module
+** Need to find a better primary key for player
+   Probably the name of the player will do fine
+** Need a way of reloading the player from the db once he's logged in.
+** Login mechanism needs to be written
+** Better way of parsing commands
+
+* Room module
+** Loading of the room and adding itself to the room db.
+** Handling a player moving from one room to the other.
+
+* Area module
+** Define a format for the area. -> array style?
+** Setting up the area, calculating all the exits.
