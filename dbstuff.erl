@@ -8,7 +8,7 @@
 -include("records.hrl").
 
 start() ->
-    mnesia:create_schema([node()]), %% we probably don't need this every time.
+    mnesia:create_schema([node()]), %% we don't need this every time.
     application:start(mnesia).
 
 init() ->
@@ -21,10 +21,8 @@ stop() ->
 
 
 get_player(PlayerPid) ->
-    mnesia
-
-save_player(PlayerPid) ->
     ok.
 
-
+save_player(PlayerPid,Player) ->
+   mnesia:transaction(fun() -> mnesia:write(Player) end).
 

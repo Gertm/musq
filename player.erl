@@ -28,8 +28,7 @@ player_handler(Socket,State) ->
 		{close, Response} ->
 		    gen_tcp:send(Socket,Response);
 		{ok, Response, NewState} ->
-		    ColorRes = ?red(Response),
-		    ?send("You tried to "++ ColorRes ++" without result."),
+		    ?send("You tried to "++ ?red(Response) ++" without result."),
 		    player_handler(Socket,NewState);
 		_ ->
 		    gen_tcp:send(Socket,"Sorry, that didn't make any sense.")
@@ -48,9 +47,22 @@ parse_command(Command,State) ->
 	"quit" ->
 	    {close,"Bye\n\n"};
 	"n" -> move("north",State);
+	"s" -> move("south",State);
+	"w" -> move("west",State);
+	"e" -> move("east",State);
+	"nw" -> move("northwest",State);
+	"ne" -> move("northeast",State);
+	"sw" -> move("southwest",State);
+	"se" -> move("southeast",State);
+	"up" -> move("up",State);
+	"down" -> move("down",State); %% ugh, there needs to be a better way of doing this.
 	_ ->
 	    {ok, Command, State}
     end.
+
+
+save(State) ->
+    dbstuff:save_player(State).
 
 move(_Direction,_State) ->
     ok.

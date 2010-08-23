@@ -9,7 +9,7 @@
 %% items carrying
 %% experience
 %% {}
--record(player,{pid,
+-record(player,{pid,  %% <- this is nonsense when restarting the server. Need a better primary key
 		name, 
 		room, 
 		equipment=[], 
