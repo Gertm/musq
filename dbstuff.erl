@@ -20,8 +20,8 @@ stop() ->
     application:stop(mnesia).
 
 
-get_player(PlayerPid) ->
-    ok.
+get_player(PlayerName) ->
+    mnesia:transaction(fun() -> mnesia:read({player,PlayerName}) end).
 
 save_player(PlayerPid,Player) ->
    mnesia:transaction(fun() -> mnesia:write(Player) end).

@@ -9,15 +9,15 @@
 %% items carrying
 %% experience
 %% {}
--record(player,{pid,  %% <- this is nonsense when restarting the server. Need a better primary key
-		name, 
+-record(player,{name,
+		pid,
 		room, 
 		equipment=[], 
 		items=[], 
 		experience}).
 
 %% record for the rooms.
--record(room, {name,
+-record(room, {name, %% since they are all gen_servers, we can use list_to_atom to get the registered process name.
 	       exits=[],
 	       desc=[],
 	       npcs=[],
@@ -25,3 +25,8 @@
 	       players=[],
 	       messages=[]
 	      }).
+
+-record(area, {name,
+	       rooms=[],
+	       messages=[]}).
+%% going to add more stuff to the area record once we start using them.
