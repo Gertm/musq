@@ -34,7 +34,9 @@ player_handler(Socket,State) ->
 		    gen_tcp:send(Socket,"Sorry, that didn't make any sense.")
 	    end;
 	{tcp_closed, Socket} ->
-	    %% save stuff if we need to
+	    %% question is now, what do we do when the player disconnects in mid-combat?
+	    %% perhaps we should answer that when we've actually implemented combat ;-)
+	    dbstuff:save_player(self(),State),
 	    %% still need to write code for that
 	    io:format("Client disconnected!");
 	{print, Message} ->
