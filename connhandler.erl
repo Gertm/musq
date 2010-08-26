@@ -33,11 +33,11 @@ connect(Listen) ->
 recv_loop(Socket) ->
     io:format("~p",[self()]),
     motd:motd(Socket),
-    gen_tcp:send(Socket, "\r\n\nPlease enter your username: "),
+    gen_tcp:send(Socket, "\r\n\r\nPlease enter your username: "),
     receive
 	{tcp, Socket, Data} ->
 	    io:format("User ~s logging in..",[binary_to_list(Data)]),
-	    gen_tcp:send(Socket, "\nPassword: ");
+	    gen_tcp:send(Socket, "\r\nPassword: ");
 	{tcp_closed, Socket} ->
 	    io:format("~p Client Disconnected.~n", [erlang:localtime()])
     end,
@@ -47,7 +47,7 @@ recv_loop(Socket) ->
 		"quit\n" ->
 		    {exit,"got quit command"};
 		Password ->
-		    gen_tcp:send(Socket,"Password accepted! Sending you to your starting location.\n")
+		    gen_tcp:send(Socket,"Password accepted! Sending you to your starting location.\r\n")
 	    end,
 	    Pid = spawn(player,player_handler,[Socket,[]]),
 	    gen_tcp:controlling_process(Socket,Pid);
