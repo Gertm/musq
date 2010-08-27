@@ -13,59 +13,54 @@
 -include("telnetcolors.hrl").
 -include("records.hrl").
 
-clean_tcp_input(TcpInput) ->
-    Len = erlang:round(bit_size(TcpInput)/8),
-    {Out,_} = split_binary(TcpInput,Len-2),
-    binary_to_list(Out).
-
-player_handler(Socket,State) ->
-    gen_tcp:send(Socket,"#> "), %% this macro is also in telnetcolors.hrl
-    inet:setopts(Socket,[{active,once}]),
-    receive
-	{tcp, Socket, Command} ->
-	    Cmd = clean_tcp_input(Command),
-	    case parse_command(Cmd,State) of
+player_handler(Socket, State) ->
+    gen_tcp:send(Socket, "#> "),
+    case helpers:recv_string(Socket) of
+	{tcp, Socket, Cmd} ->
+	    io:format("Cmnd ~s.~n", [Cmd]),
+	    case parse_command(Cmd, State) of
 		{close, Response} ->
-		    gen_tcp:send(Socket,Response);
+		    gen_tcp:send(Socket, Response);
 		{ok, Response, NewState} ->
 		    ?send("You tried to "++ ?red(Response) ++" without result."),
-		    player_handler(Socket,NewState);
+		    player_handler(Socket, NewState);
 		_ ->
-		    gen_tcp:send(Socket,"Sorry, that didn't make any sense.")
+		    ?send("Sorry, that didn't make any sense.")
 	    end;
 	{tcp_closed, Socket} ->
-	    %% save stuff if we need to
+	    %% question is now, what do we do when the player disconnects in mid-combat?
+	    %% perhaps we should answer that when we've actually implemented combat ;-)
+	    dbstuff:save_player(self(), State);
 	    %% still need to write code for that
-	    io:format("Client disconnected!");
 	{print, Message} ->
-	    gen_tcp:send(Socket,Message)
+	    gen_tcp:send(Socket, Message)
     end,
     State.
 
-parse_command(Command,State) ->
+parse_command(Command, State) ->
     case Command of
 	"quit" ->
-	    {close,"Bye\n\n"};
-	"n" -> move("north",State);
-	"s" -> move("south",State);
-	"w" -> move("west",State);
-	"e" -> move("east",State);
-	"nw" -> move("northwest",State);
-	"ne" -> move("northeast",State);
-	"sw" -> move("southwest",State);
-	"se" -> move("southeast",State);
-	"up" -> move("up",State);
-	"down" -> move("down",State); %% ugh, there needs to be a better way of doing this.
+	    {close, "Bye\n\n"};
+	"n" -> move("north", State);
+	"s" -> move("south", State);
+	"w" -> move("west", State);
+	"e" -> move("east", State);
+	"nw" -> move("northwest", State);
+	"ne" -> move("northeast", State);
+	"sw" -> move("southwest", State);
+	"se" -> move("southeast", State);
+	"up" -> move("up", State);
+	"down" -> move("down", State); %% ugh, there needs to be a better way of doing this.
 	_ ->
 	    {ok, Command, State}
     end.
 
-
 save(State) ->
     dbstuff:save_player(State).
 
-move(_Direction,_State) ->
+move(_Direction, _State) ->
     ok.
+
 %% some general stuff should be parsed, nothing more.
 %% basicly this module only needs to accept 'print' events for stuff that needs to be
 %% written to the player's screen
@@ -73,5 +68,3 @@ move(_Direction,_State) ->
 %% from that, the module needs to decide where the message should be sent.
 %% to the room, to another player, an NPC?,.. etc
 %% all other logic should be in other modules
-
-

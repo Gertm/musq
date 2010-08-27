@@ -1,15 +1,16 @@
 -module(connhandler).
 %% initially got this from http://www.joeandmotorboat.com/2008/11/12/a-simple-concurrent-erlang-tcp-server/
--export([start_server/0, connect/1, recv_loop/1, restart/0]).
+-export([start_server/0, restart/0, connect/1, recv_login/1]).
+-include("telnetcolors.hrl").
 
 -define(LISTEN_PORT, 5701).
--define(TCP_OPTS, [binary, {packet, raw}, {nodelay, true}, {reuseaddr, true}, {active, true}]).
+-define(TCP_OPTS, [binary, {packet, raw}, {nodelay, true}, {reuseaddr, true}, {active, once}]).
 
 start_server() ->
     case gen_tcp:listen(?LISTEN_PORT, ?TCP_OPTS) of
 	{ok, Listen} -> spawn(?MODULE, connect, [Listen]),
 			io:format("~p Server Started.~n", [erlang:localtime()]),
-			register(musq_con_listener,Listen);
+			register(musq_con_listener, Listen);
 	Error ->
 	    io:format("Error: ~p~n", [Error])
     end.
@@ -23,36 +24,30 @@ restart() ->
     end,
     start_server().
 
+recv_login(Socket) ->
+    io:format("~p", [self()]),
+    motd:motd(Socket),
+    gen_tcp:send(Socket, "Please enter your username: "),
+    case helpers:recv_string(Socket) of
+	{tcp, Socket, Username} ->
+	    io:format("User ~s logging in.~n", [Username]),
+	    gen_tcp:send(Socket, "Password: "),
+	    case helpers:recv_string(Socket) of
+		{tcp, Socket, "quit"} ->
+		    {exit, "got quit command"};
+		{tcp, Socket, Password} ->
+		    io:format("Password ~s received.~n", [Password]),
+		    ?send("Password accepted! Sending you to your starting location."),
+		    Pid = spawn(player, player_handler, [Socket, []]),
+		    gen_tcp:controlling_process(Socket, Pid);
+		_ -> {exit, "connection lost"}
+	    end;
+	_ -> {exit, "connection lost"}
+    end.
+
 connect(Listen) ->
-    io:format("Listening for new connections: ~p~n",[self()]),
+    io:format("Listening for new connections: ~p~n", [self()]),
     {ok, Socket} = gen_tcp:accept(Listen),
     inet:setopts(Socket, ?TCP_OPTS),
     spawn(fun() -> connect(Listen) end),
-    recv_loop(Socket).
-
-recv_loop(Socket) ->
-    io:format("~p",[self()]),
-    motd:motd(Socket),
-    gen_tcp:send(Socket, "\r\n\r\nPlease enter your username: "),
-    receive
-	{tcp, Socket, Data} ->
-	    io:format("User ~s logging in..",[binary_to_list(Data)]),
-	    gen_tcp:send(Socket, "\r\nPassword: ");
-	{tcp_closed, Socket} ->
-	    io:format("~p Client Disconnected.~n", [erlang:localtime()])
-    end,
-    receive
-	{tcp, Socket, Pwd} ->
-	    case binary_to_list(Pwd) of
-		"quit\n" ->
-		    {exit,"got quit command"};
-		Password ->
-		    gen_tcp:send(Socket,"Password accepted! Sending you to your starting location.\r\n")
-	    end,
-	    Pid = spawn(player,player_handler,[Socket,[]]),
-	    gen_tcp:controlling_process(Socket,Pid);
-	{tcp_closed,Socket} -> io:format("~p Client Disconnected.~n", [erlang:localtime()])
-    end.
-
-
-
+    recv_login(Socket).
