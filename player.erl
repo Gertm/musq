@@ -17,7 +17,6 @@ player_handler(Socket, State) ->
     gen_tcp:send(Socket, "#> "),
     case helpers:recv_string(Socket) of
 	{tcp, Socket, Cmd} ->
-	    io:format("Cmnd ~s.~n", [Cmd]),
 	    case parse_command(Cmd, State) of
 		{close, Response} ->
 		    gen_tcp:send(Socket, Response);
@@ -58,8 +57,8 @@ parse_command(Command, State) ->
 save(State) ->
     dbstuff:save_player(State).
 
-move(_Direction, _State) ->
-    ok.
+move(Direction, State) ->
+    {ok, "move " ++ Direction, State}.
 
 %% some general stuff should be parsed, nothing more.
 %% basicly this module only needs to accept 'print' events for stuff that needs to be
