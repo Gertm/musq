@@ -10,18 +10,18 @@
 -compile(export_all).
 
 clean_room_name(RoomName) ->
-    re:replace(RoomName," ","_",[{return,list}]).
-
-clean_tcp_input(TcpInput) ->
-    Len = erlang:round(bit_size(TcpInput)/8),
-    {Out,_} = split_binary(TcpInput,Len-2),
-    binary_to_list(Out).
+    re:replace(RoomName," ","_",[{return, list}]).
 
 recv_string(Socket) ->
     inet:setopts(Socket, [{active, once}]),
     receive
 	{tcp, Socket, Data} ->
-	    {tcp, Socket, clean_tcp_input(Data)};
+	    case binary_to_list(Data) of
+		[X|_] when X > 127 -> recv_string(Socket);
+		S ->
+		    {R, _} = lists:split(length(S) - 2, S),
+		    {tcp, Socket, R}
+	    end;
 	{tcp_closed, Socket} ->
 	    io:format("~p Client Disconnected.~n", [erlang:localtime()]),
 	    {tcp_closed, Socket};
