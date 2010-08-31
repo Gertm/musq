@@ -7,6 +7,9 @@
 %%% Created :  6 Aug 2010 by Gert Meulyzer <@G3rtm on Twitter>
 
 -module(musq).
+-export([start/0]).
 
-
-
+start() ->
+    DefaultRoom = simpleroom:newroom(),
+    simpleroom:set_default_room(DefaultRoom),
+    connhandler:start_server().

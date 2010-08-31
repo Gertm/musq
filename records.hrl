@@ -10,7 +10,6 @@
 %% experience
 %% {}
 -record(player,{name,
-		pid,
 		room, 
 		equipment=[], 
 		items=[], 
@@ -18,11 +17,11 @@
 
 %% record for the rooms.
 -record(room, {name, %% since they are all gen_servers, we can use list_to_atom to get the registered process name.
-	       exits=[],
+	       exits=[], %% probably in the form of: {"exitname",Pid} maybe not Pid, but some way of loading the file if needed.
 	       desc=[],
-	       npcs=[],
+	       npcs=[], %% {"Npc Name",Pid}
 	       objects=[],
-	       players=[],
+	       players=[], %% {"name",Pid}
 	       messages=[]
 	      }).
 

@@ -13,52 +13,67 @@
 -include("telnetcolors.hrl").
 -include("records.hrl").
 
-player_handler(Socket, State) ->
+player_handler(Socket, PlayerState) ->
     gen_tcp:send(Socket, "#> "),
     case helpers:recv_string(Socket) of
 	{tcp, Socket, Cmd} ->
-	    case parse_command(Cmd, State) of
+	    case parse_command(Cmd, PlayerState) of
 		{close, Response} ->
 		    gen_tcp:send(Socket, Response);
-		{ok, Response, NewState} ->
-		    ?send("You tried to "++ ?red(Response) ++" without result."),
-		    player_handler(Socket, NewState);
+		{ok, Command, NewPlayerState} ->
+		    ?send("#> You "++ ?green(Command) ++"."),
+		    player_handler(Socket, NewPlayerState);
+		{unknown, Command} ->
+		    ?send("#> You tried to "++ ?red(Command) ++" without result."),
+		    player_handler(Socket, PlayerState);
 		_ ->
-		    ?send("Sorry, that didn't make any sense.")
+		    ?send("#> Sorry, that didn't make any sense."),
+		    player_handler(Socket, PlayerState)
 	    end;
 	{tcp_closed, Socket} ->
 	    %% question is now, what do we do when the player disconnects in mid-combat?
 	    %% perhaps we should answer that when we've actually implemented combat ;-)
-	    dbstuff:save_player(self(), State);
+	    dbstuff:save_player(self(), PlayerState);
 	    %% still need to write code for that
+	{room_entered, RoomPid, RoomName} ->
+	    ?send("You entered room "++ ?green(RoomName) ++"."),
+	    NewPlayerState = PlayerState#player{room=RoomPid},
+	    player_handler(Socket, NewPlayerState);
 	{print, Message} ->
-	    gen_tcp:send(Socket, Message)
+	    ?send(Message),
+	    player_handler(Socket, PlayerState)
     end,
-    State.
+    PlayerState.
 
-parse_command(Command, State) ->
+parse_command(Command, PlayerState) ->
     case Command of
 	"quit" ->
 	    {close, "Bye\n\n"};
-	"n" -> move("north", State);
-	"s" -> move("south", State);
-	"w" -> move("west", State);
-	"e" -> move("east", State);
-	"nw" -> move("northwest", State);
-	"ne" -> move("northeast", State);
-	"sw" -> move("southwest", State);
-	"se" -> move("southeast", State);
-	"up" -> move("up", State);
-	"down" -> move("down", State); %% ugh, there needs to be a better way of doing this.
-	_ ->
-	    {ok, Command, State}
+	"n" -> move("north", PlayerState);
+	"s" -> move("south", PlayerState);
+	"w" -> move("west", PlayerState);
+	"e" -> move("east", PlayerState);
+	"nw" -> move("northwest", PlayerState);
+	"ne" -> move("northeast", PlayerState);
+	"sw" -> move("southwest", PlayerState);
+	"se" -> move("southeast", PlayerState);
+	"up" -> move("up", PlayerState);
+	"down" -> move("down", PlayerState); %% ugh, there needs to be a better way of doing this.
+	"l" -> look(PlayerState);
+	"look" -> look(PlayerState);
+	_ -> {error, Command}
     end.
 
-save(State) ->
-    dbstuff:save_player(State).
+save(PlayerState) ->
+    dbstuff:save_player(PlayerState).
 
-move(Direction, State) ->
-    {ok, "move " ++ Direction, State}.
+move(Direction, PlayerState) ->
+    {unknown, "move " ++ Direction}.
+
+look(PlayerState) ->
+    Room = PlayerState#player.room,
+    Room ! {look, self()},
+    {ok, "look", PlayerState}.
 
 %% some general stuff should be parsed, nothing more.
 %% basicly this module only needs to accept 'print' events for stuff that needs to be

@@ -1,8 +1,8 @@
 -module(connhandler).
 %% initially got this from http://www.joeandmotorboat.com/2008/11/12/a-simple-concurrent-erlang-tcp-server/
 -export([start_server/0, restart/0, connect/1, recv_login/1]).
+-include("records.hrl").
 -include("telnetcolors.hrl").
-
 -define(LISTEN_PORT, 5701).
 -define(TCP_OPTS, [binary, {packet, raw}, {nodelay, true}, {reuseaddr, true}, {active, once}]).
 
@@ -37,9 +37,12 @@ recv_login(Socket) ->
 		    {exit, "got quit command"};
 		{tcp, Socket, Password} ->
 		    io:format("Password ~s received.~n", [Password]),
+		    Player = #player{name=Username},
+		    PlayerPid = spawn(player, player_handler, [Socket, Player]),
+		    gen_tcp:controlling_process(Socket, PlayerPid),
 		    ?send("Password accepted! Sending you to your starting location."),
-		    Pid = spawn(player, player_handler, [Socket, []]),
-		    gen_tcp:controlling_process(Socket, Pid);
+		    RoomPid = simpleroom:get_default_room(),
+		    RoomPid ! {enter, PlayerPid};
 		_ -> {exit, "connection lost"}
 	    end;
 	_ -> {exit, "connection lost"}
