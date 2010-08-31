@@ -4,6 +4,7 @@
 %%% Simple room.
 %%% Going to try and make a room without OTP first, so I fully understand everything that is happening.
 %%% Later this will be ported to a gen_server so we can use all the OTP stuff.
+%%% 31/08/2010: this file will be obsolete very soon. Need to move all functionality to room.erl
 %%% @end
 %%% Created : 28 Jul 2010 by Gert  Meulyzer <@G3rtm on Twitter>
 

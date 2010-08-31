@@ -9,7 +9,9 @@
 -module(musq).
 -export([start/0]).
 
-start() ->
+start() ->  %% this will be very temporary. simpleroom.erl needs to go.
+            %% we're not going to use that anymore since we'll use gen_server
+            %% for al the rooms.
     DefaultRoom = simpleroom:newroom("rooms/source1.room"),
     simpleroom:set_default_room(DefaultRoom),
     connhandler:start_server().
