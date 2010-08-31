@@ -25,8 +25,12 @@ getmsg() ->
     getmsg().
 
 newroom() ->
-    Room = #room{name="testroom1", desc=["The first desc of the room.","second line in the desc."], messages=["room msg 1","room msg 2"]},
-    spawn(?MODULE, loop, [Room]).
+    spawn(?MODULE, loop, [#room{}]).
+
+newroom(RoomFileLoc) ->
+    Room = newroom(),
+    Room ! {init, RoomFileLoc},
+    Room.
 
 set_default_room(RoomPid) ->
     register(?DEFAULTROOM, RoomPid).
@@ -38,8 +42,8 @@ loop(RoomState) ->
     receive
 	{init, RoomFileLoc} ->
 	    {ok, [RoomSpec]} = file:consult(RoomFileLoc),
-	    {Name, Exits, Desc, Npc, Obj, Players} = RoomSpec,
-	    NewRoomState = RoomState#room{name=Name, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, players=Players},
+	    {Name, Exits, Desc, Npc, Obj, Players, Msg} = RoomSpec,
+	    NewRoomState = RoomState#room{name=Name, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, players=Players, messages=Msg},
 	    loop(NewRoomState);
 	{stop} ->
 	    io:format("~s~n", ["Room killed!"]),

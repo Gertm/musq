@@ -49,8 +49,7 @@ player_handler(Socket, PlayerState) ->
 
 parse_command(Command, PlayerState) ->
     case Command of
-	"quit" ->
-	    {close, "Bye\n\n"};
+	"quit" -> {close, "Bye\n\n"};
 	"n" -> move("north", PlayerState);
 	"s" -> move("south", PlayerState);
 	"w" -> move("west", PlayerState);

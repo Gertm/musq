@@ -10,6 +10,6 @@
 -export([start/0]).
 
 start() ->
-    DefaultRoom = simpleroom:newroom(),
+    DefaultRoom = simpleroom:newroom("rooms/source1.room"),
     simpleroom:set_default_room(DefaultRoom),
     connhandler:start_server().
