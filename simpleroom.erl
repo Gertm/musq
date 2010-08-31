@@ -50,6 +50,9 @@ loop(RoomState) ->
 	{look, PlayerPid} ->
 	    look(PlayerPid, RoomState),
 	    loop(RoomState);
+	{move, PlayerPid, Direction} ->
+	    NewRoomState = move(PlayerPid, RoomState, Direction),
+	    loop(NewRoomState);
 	_ -> ok
     after 15000 ->
 	    io:format("~s~n",["tick of "++pid_to_list(self())]),
@@ -75,3 +78,7 @@ enter(PlayerPid, RoomState) ->
 
 look(PlayerPid, RoomState) ->
     [ PlayerPid ! {print, X} || X <- RoomState#room.desc ].
+
+move(PlayerPid, RoomState, Direction) ->
+    PlayerPid ! {room_failed, "move "++Direction},
+    RoomState.

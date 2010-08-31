@@ -20,8 +20,7 @@ player_handler(Socket, PlayerState) ->
 	    case parse_command(Cmd, PlayerState) of
 		{close, Response} ->
 		    gen_tcp:send(Socket, Response);
-		{ok, Command, NewPlayerState} ->
-		    ?send("#> You "++ ?green(Command) ++"."),
+		{ok, NewPlayerState} ->
 		    player_handler(Socket, NewPlayerState);
 		{unknown, Command} ->
 		    ?send("#> You tried to "++ ?red(Command) ++" without result."),
@@ -39,6 +38,9 @@ player_handler(Socket, PlayerState) ->
 	    ?send("You entered room "++ ?green(RoomName) ++"."),
 	    NewPlayerState = PlayerState#player{room=RoomPid},
 	    player_handler(Socket, NewPlayerState);
+	{room_failed, Command} ->
+	    ?send("You tried to "++ ?red(Command) ++" without result."),
+	    player_handler(Socket, PlayerState);
 	{print, Message} ->
 	    ?send(Message),
 	    player_handler(Socket, PlayerState)
@@ -68,12 +70,14 @@ save(PlayerState) ->
     dbstuff:save_player(PlayerState).
 
 move(Direction, PlayerState) ->
-    {unknown, "move " ++ Direction}.
+    Room = PlayerState#player.room,
+    Room ! {move, self(), Direction},
+    {ok, PlayerState}.
 
 look(PlayerState) ->
     Room = PlayerState#player.room,
     Room ! {look, self()},
-    {ok, "look", PlayerState}.
+    {ok, PlayerState}.
 
 %% some general stuff should be parsed, nothing more.
 %% basicly this module only needs to accept 'print' events for stuff that needs to be
