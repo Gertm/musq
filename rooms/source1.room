@@ -1,13 +1,14 @@
 %% This will serve not only as the first room of the first area
 %% but as an example on how to make rooms/areas
 
-{"source1",								%% The room name -> used internally.
- [{"south","room2"}],							%% the list of exits. Remember, areas will create adjacent exits automaticly.
- ["Centre of the source",
-  "This is the source.",
-  "Everything begins here."],			%% the description lines
+{"source1",	%% The room name -> used internally.
+ [],		%% the list of exits. Remember, areas will create adjacent exits automaticly.
+ ["Control Room",
+  "You are standing in the main room of the outpost.",
+  "It looks like the bridge of a spaceship. None of the big screens on the walls are working.",
+  "This place must have been left here for decades. "],			%% the description lines
 [],									%% the NPC's to spawn here
 [],									%% the objects to load
 [],									%% the players who are in this room.
-["You get an eerie feeling","This room seems unfinished, at best."]	%% the room messages
+["You get an eerie feeling","It's so quiet, you can hear the dust fall."]	%% the room messages
 }.
