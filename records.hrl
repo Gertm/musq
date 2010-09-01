@@ -16,7 +16,7 @@
 		experience}).
 
 %% record for the rooms.
--record(room, {name, %% since they are all gen_servers, we can use list_to_atom to get the registered process name.
+-record(room, {name, %% maybe we should extend later to make this store the PID too.
 	       exits=[], %% a list of atoms, corresponding directly to the registered processes with the same name.
 	       desc=[],
 	       npcs=[], %% {"Npc Name",Pid}
