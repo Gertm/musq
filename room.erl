@@ -20,7 +20,7 @@
 -export([buddy_process/2, load/1]).
 
 %% call/cast wrappers
--export([enter/2, get_exits/1, leave/2, look/1, move/2]).
+-export([enter/2, get_exits/1, leave/2, look/1, move/2,save/1,get_name/1]).
 
 -include("records.hrl").
 
@@ -134,6 +134,13 @@ handle_call({move, _Direction}, _From, State) ->
 handle_call({exit, Reason}, _From, _State) ->
     exit(Reason);
 
+handle_call(save_to_db, _From, State) ->
+    dbstuff:save_room(State),
+    {reply,ok,State};
+
+handle_call(get_name, _From, State) ->
+    {reply, State#room.name, State};
+
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -228,3 +235,9 @@ look(Room) ->
 
 move(Room, Direction) ->
     gen_server:call(Room, {move, Direction}).
+
+save(Room) ->
+    gen_server:call(Room, save_to_db).
+
+get_name(Room) ->
+    gen_server:call(Room, get_name).
