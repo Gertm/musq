@@ -13,70 +13,72 @@
 -include("telnetcolors.hrl").
 -include("records.hrl").
 
-player_handler(Socket, PlayerState) ->
+player_handler(Socket, State) ->
     gen_tcp:send(Socket, "#> "),
     case helpers:recv_string(Socket) of
 	{tcp, Socket, Cmd} ->
-	    case parse_command(Cmd, PlayerState) of
+	    case parse_command(Cmd, State) of
+		ok ->
+		    ?send("#> Sorry, that does nothing."),
+		    player_handler(Socket, State);
+		{look, Desc} ->
+		    [ ?send("#> "++DescLine) || DescLine <- Desc ],
+		    player_handler(Socket, State);
+		{unknown, _Command} ->
+		    ?send("#> Sorry, that didn't make any sense."),
+		    player_handler(Socket, State);
 		{close, Response} ->
 		    gen_tcp:send(Socket, Response);
-		{ok, NewPlayerState} ->
-		    player_handler(Socket, NewPlayerState);
-		{unknown, Command} ->
-		    ?send("#> You tried to "++ ?red(Command) ++" without result."),
-		    player_handler(Socket, PlayerState);
-		_ ->
-		    ?send("#> Sorry, that didn't make any sense."),
-		    player_handler(Socket, PlayerState)
+		Other ->
+		    io:format("player_handler/recv_string/parse_command: ~p~n", [Other])
 	    end;
 	{tcp_closed, Socket} ->
 	    %% question is now, what do we do when the player disconnects in mid-combat?
 	    %% perhaps we should answer that when we've actually implemented combat ;-)
-	    dbstuff:save_player(self(), PlayerState);
-	    %% still need to write code for that
-	{room_entered, RoomPid, RoomName} ->
-	    ?send("You entered room "++ ?green(RoomName) ++"."),
-	    NewPlayerState = PlayerState#player{room=RoomPid},
-	    player_handler(Socket, NewPlayerState);
-	{room_failed, Command} ->
-	    ?send("You tried to "++ ?red(Command) ++" without result."),
-	    player_handler(Socket, PlayerState);
-	{print, Message} ->
-	    ?send(Message),
-	    player_handler(Socket, PlayerState)
+	    dbstuff:save_player(self(), State); %% > still need to write code for that
+	%% temporary
+	enter_default_room ->
+	    DefaultRoom = source1,
+	    room:enter(DefaultRoom, "space"),
+	    NewState = State#player{room=DefaultRoom},
+	    gen_tcp:send(Socket, "You've entered the default room.\r\n"),
+	    player_handler(Socket, NewState);
+	{roommsg, Message} ->
+	    gen_tcp:send(Socket, Message++"\r\n"),
+	    player_handler(Socket, State);
+	Other ->
+	    io:format("player_handler/recv_string: ~p~n", [Other])
     end,
-    PlayerState.
+    State.
 
-parse_command(Command, PlayerState) ->
+parse_command(Command, State) ->
     case Command of
 	"quit" -> {close, "Bye\n\n"};
-	"n" -> move("north", PlayerState);
-	"s" -> move("south", PlayerState);
-	"w" -> move("west", PlayerState);
-	"e" -> move("east", PlayerState);
-	"nw" -> move("northwest", PlayerState);
-	"ne" -> move("northeast", PlayerState);
-	"sw" -> move("southwest", PlayerState);
-	"se" -> move("southeast", PlayerState);
-	"up" -> move("up", PlayerState);
-	"down" -> move("down", PlayerState); %% ugh, there needs to be a better way of doing this.
-	"l" -> look(PlayerState);
-	"look" -> look(PlayerState);
-	_ -> {error, Command}
+	"n" -> move("north", State);
+	"s" -> move("south", State);
+	"w" -> move("west", State);
+	"e" -> move("east", State);
+	"nw" -> move("northwest", State);
+	"ne" -> move("northeast", State);
+	"sw" -> move("southwest", State);
+	"se" -> move("southeast", State);
+	"up" -> move("up", State);
+	"down" -> move("down", State); %% ugh, there needs to be a better way of doing this.
+	"l" -> look(State);
+	"look" -> look(State);
+	_ -> {unknown, Command}
     end.
 
-save(PlayerState) ->
-    dbstuff:save_player(PlayerState).
+save(State) ->
+    dbstuff:save_player(State).
 
-move(Direction, PlayerState) ->
-    Room = PlayerState#player.room,
-    Room ! {move, self(), Direction},
-    {ok, PlayerState}.
+move(Direction, State) ->
+    Room = State#player.room,
+    room:move(Room, Direction).
 
-look(PlayerState) ->
-    Room = PlayerState#player.room,
-    Room ! {look, self()},
-    {ok, PlayerState}.
+look(State) ->
+    Room = State#player.room,
+    room:look(Room).
 
 %% some general stuff should be parsed, nothing more.
 %% basicly this module only needs to accept 'print' events for stuff that needs to be

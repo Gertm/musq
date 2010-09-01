@@ -10,6 +10,9 @@
 -export([start/0]).
 
 start() ->
-    DefaultRoom = simpleroom:newroom("rooms/source1.room"),
-    simpleroom:set_default_room(DefaultRoom),
-    connhandler:start_server().
+    %% temporary stuff
+    case room:start_link("rooms/source1.room") of
+	{ok, _RoomPid} ->
+            connhandler:start_server();
+	Error -> Error
+    end.

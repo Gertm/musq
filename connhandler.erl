@@ -1,6 +1,9 @@
 -module(connhandler).
 %% initially got this from http://www.joeandmotorboat.com/2008/11/12/a-simple-concurrent-erlang-tcp-server/
--export([start_server/0, restart/0, connect/1, recv_login/1]).
+%% interface
+-export([start_server/0, stop_server/0, restart_server/0]).
+%% helpers
+-export([connect/1, recv_login/1]).
 -include("records.hrl").
 -include("telnetcolors.hrl").
 -define(LISTEN_PORT, 5701).
@@ -10,19 +13,25 @@ start_server() ->
     case gen_tcp:listen(?LISTEN_PORT, ?TCP_OPTS) of
 	{ok, Listen} -> spawn(?MODULE, connect, [Listen]),
 			io:format("~p Server Started.~n", [erlang:localtime()]),
-			register(musq_con_listener, Listen);
+			register(?MODULE, Listen);
 	Error ->
 	    io:format("Error: ~p~n", [Error])
     end.
 
-restart() ->
-    case whereis(main_server) of
+stop_server() ->
+    case whereis(?MODULE) of
 	undefined ->
 	    not_running;
 	_ ->
-	    main_server ! {'EXIT',self(),"Stop was requested."}
-    end,
-    start_server().
+	    ?MODULE ! {'EXIT', self(), "Stop was requested."},
+	    ok
+    end.
+
+restart_server() ->
+    case stop_server() of
+        ok -> start_server();
+	Other -> Other
+    end.
 
 recv_login(Socket) ->
     io:format("~p", [self()]),
@@ -37,12 +46,12 @@ recv_login(Socket) ->
 		    {exit, "got quit command"};
 		{tcp, Socket, Password} ->
 		    io:format("Password ~s received.~n", [Password]),
+		    ?send("Password accepted! Sending you to your starting location."),
 		    Player = #player{name=Username},
 		    PlayerPid = spawn(player, player_handler, [Socket, Player]),
 		    gen_tcp:controlling_process(Socket, PlayerPid),
-		    ?send("Password accepted! Sending you to your starting location."),
-		    RoomPid = simpleroom:get_default_room(),
-		    RoomPid ! {enter, PlayerPid};
+		    %% temporary
+		    PlayerPid ! enter_default_room;
 		_ -> {exit, "connection lost"}
 	    end;
 	_ -> {exit, "connection lost"}
