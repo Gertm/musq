@@ -15,13 +15,17 @@
 %% add appropriate exits to the rooms
 %% spawn all the rooms needed.
 %% the rooms loaded have the form: {{x,y,z},"roomfile"}
-%% where roomfile is without the extension.
+%% where roomfile is the filename of the room
 
 load(Filename) ->
     {ok,RoomList} = file:consult(Filename),
-    RoomList.
+    [ room:load(X) || {_,X} <- RoomList ],
+    ok.
+
+create_pid_name_pair({ok,Pid}) ->
+    {Pid,room:get_name(Pid)}.
 
 
 %% for testing:
-%% area:load("/home/gert/src/explore/erlang/musq/areas/source.area").
+%% area:load("/home/gert/src/musq/areas/source.area").
 
