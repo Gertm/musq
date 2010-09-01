@@ -12,9 +12,12 @@ start() ->
     application:start(mnesia).
 
 init() ->
-    mnesia:create_tables(player,[{attributes, record_info(fields,player)},
+    mnesia:create_table(player,[{attributes, record_info(fields,player)},
 				 {disc_copies,[node()]},
-				 {type, set}]).
+				{type, set}]),
+    mnesia:create_table(room,[{attributes, record_info(fields,room)},
+				 {disc_copies,[node()]},
+				{type, set}]).
 
 stop() ->
     application:stop(mnesia).
@@ -23,6 +26,11 @@ stop() ->
 get_player(PlayerName) ->
     mnesia:transaction(fun() -> mnesia:read({player,PlayerName}) end).
 
-save_player(PlayerPid,Player) ->
+save_player(_PlayerPid,Player) ->
    mnesia:transaction(fun() -> mnesia:write(Player) end).
 
+get_room(RoomName) ->
+    mnesia:transaction(fun() -> mnesia:read({room,RoomName}) end).
+
+save_room(RoomState) ->
+    mnesia:transaction(fun() -> mnesia:write(RoomState) end).
