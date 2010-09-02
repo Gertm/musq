@@ -9,11 +9,11 @@
 -compile(export_all).
 -include_lib("eunit/include/eunit.hrl").
 
-clean_room_name(RoomName) ->
-    re:replace(RoomName," ","_",[{return, list}]).
+clean_name(Name) ->
+    re:replace(Name," ","_",[{return, list}]).
 
-clean_room_name_test_() ->
-    [?_assert(clean_room_name("test 1") =:= "test_1")].
+clean_name_test_() ->
+    [?_assert(clean_name("test 1") =:= "test_1")].
 
 recv_string(Socket) ->
     inet:setopts(Socket, [{active, once}]),

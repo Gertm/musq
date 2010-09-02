@@ -47,11 +47,10 @@ recv_login(Socket) ->
 		{tcp, Socket, Password} ->
 		    io:format("Password ~s received.~n", [Password]),
 		    ?send("Password accepted! Sending you to your starting location."),
-		    Player = #player{name=Username},
-		    PlayerPid = spawn(player, player_handler, [Socket, Player]),
-		    gen_tcp:controlling_process(Socket, PlayerPid),
-		    %% temporary
-		    PlayerPid ! enter_default_room;
+		    case player:start_link([Socket, Username]) of
+			{ok, _PlayerPid} -> ok;
+			_ -> {exit, "problem starting player gen_server"}
+		    end;
 		_ -> {exit, "connection lost"}
 	    end;
 	_ -> {exit, "connection lost"}

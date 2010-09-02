@@ -10,7 +10,7 @@
 
 -behaviour(gen_server).
 
-%% (gen_server) API
+%% API
 -export([start_link/1]).
 
 %% gen_server callbacks
@@ -20,7 +20,7 @@
 -export([buddy_process/2, load/1]).
 
 %% call/cast wrappers
--export([enter/2, get_exits/1, leave/2, look/1, move/2,save/1,get_name/1]).
+-export([enter/2, get_exits/1, leave/2, look/1, move/2, save/1, get_name/1]).
 
 -include("records.hrl").
 
@@ -42,7 +42,7 @@
 
 start_link(RoomFile) ->
     State = get_room_state_from_file(RoomFile),
-    gen_server:start_link({local, list_to_atom(State#room.name)}, ?MODULE, State, []).
+    gen_server:start_link({local, list_to_atom("room_"++helpers:clean_name(State#room.name))}, ?MODULE, State, []).
 
 load(RoomFile) ->  %% does the same, just types faster ;-)
     start_link(RoomFile).
@@ -69,8 +69,8 @@ get_room_state_from_file(RoomFile) ->
 %%--------------------------------------------------------------------
 
 init(RoomState) ->
-    BuddyPid = spawn(?MODULE, buddy_process, [self(), 15000]),
-    io:format("~s ~p~n", ["Started buddy process:", BuddyPid]),
+    BuddyPid = spawn(tickbuddy, loop, [self(), 15000]),
+    io:format("~p started buddy process ~p~n", [self(), BuddyPid]),
     {ok, RoomState}.
 
 buddy_process(Pid, Timeout) ->
@@ -114,7 +114,7 @@ handle_call(get_exits, _From, State) ->
 
 handle_call({enter, _SourceDirection}, {PlayerPid, _}, State) ->
     %% add the player to the state, send player the 'look' information.
-    io:format("~p~n", [PlayerPid]),
+    io:format("~p entered room~n", [PlayerPid]),
     OldPlayers = State#room.players,
     NewState = State#room{players=[PlayerPid|OldPlayers]},
     {reply, {ok, State#room.desc}, NewState};
@@ -161,7 +161,7 @@ handle_cast(tick, #room{players=P, messages=M} = State) ->
 	0 -> ok; %% why strain the system if there are no players listening anyway?
 	_ -> Message = lists:nth(random:uniform(length(M)), M),
 	     io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]),
-	     [ Player ! {roommsg, Message} || Player <- P ]
+	     [ gen_server:cast(Player, {roommsg, Message}) || Player <- P ]
     end,
     {noreply, State};
 

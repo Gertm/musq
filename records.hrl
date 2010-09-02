@@ -13,7 +13,8 @@
 		room, 
 		equipment=[], 
 		items=[], 
-		experience}).
+		experience,
+		socket}).
 
 %% record for the rooms.
 -record(room, {name, %% maybe we should extend later to make this store the PID too.
