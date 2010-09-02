@@ -19,11 +19,15 @@
 
 load(Filename) ->
     {ok,RoomList} = file:consult(Filename),
-    [ room:load(X) || {_,X} <- RoomList ],
-    ok.
+    PosPidPairs = [ {Pos,just_the_pid(room:load(X))} || {Pos, X} <- RoomList ],
+    
 
-create_pid_name_pair({ok,Pid}) ->
-    {Pid,room:get_name(Pid)}.
+just_the_pid({ok, Pid}) ->
+    Pid.
+
+is_exit_of({{X1, Y1, Z1}, Pid1},{{X2, Y2, Z2}, Pid2}) ->
+    ok.
+    
 
 
 %% for testing:
