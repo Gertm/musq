@@ -49,18 +49,18 @@ handle(Socket) ->
 %%%===================================================================
 
 loop(Socket, Pid) ->
-    gen_tcp:send(Socket, "#> "),
+    gen_tcp:send(Socket, ?PROMPT),
     case helpers:recv_string(Socket) of
 	{tcp, Socket, Cmd} ->
 	    case parse_command(Cmd, Pid) of
 		ok ->
-		    ?send("#> Sorry, that does nothing."),
+		    ?send(?PROMPT++"Sorry, that does nothing."),
 		    loop(Socket, Pid);
 		{look, Desc} ->
-		    [ ?send("#> "++DescLine) || DescLine <- Desc ],
+		    [ ?send(?PROMPT++DescLine) || DescLine <- Desc ],
 		    loop(Socket, Pid);
 		{unknown, _Command} ->
-		    ?send("#> Sorry, that didn't make any sense."),
+		    ?send(?PROMPT++"Sorry, that didn't make any sense."),
 		    loop(Socket, Pid);
 		{close, Response} ->
 		    ?send(Response);
@@ -72,7 +72,8 @@ loop(Socket, Pid) ->
 	    %% perhaps we should answer that when we've actually implemented combat ;-)
 	    player:save(Pid);
 	{notification, Message} ->
-	    gen_tcp:send(Socket, Message++"\r\n#> ");
+	    gen_tcp:send(Socket, Message++?NEWLINE),
+	    loop(Socket, Pid);
 	Other ->
 	    io:format("tcp_receive_loop: ~p~n", [Other])
     end.

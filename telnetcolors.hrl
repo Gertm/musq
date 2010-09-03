@@ -38,3 +38,5 @@
 -define(magenta(X),?with_reset(?F_MAGENTA++X)).
 -define(cyan(X),?with_reset(?F_CYAN++X)).
 -define(send(X),gen_tcp:send(Socket,X++?F_DEFAULT++"\r\n")).
+-define(PROMPT, "#> ").
+-define(NEWLINE, "\r\n").
