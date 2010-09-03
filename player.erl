@@ -22,9 +22,11 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
-%% internal helpers
--export([tcp_receive_loop/2, parse_command/2, save/1, look/1,
-	 move/2, handle_notification/2]).
+%% gen_server wrappers
+-export([save/1, look/1, move/2]).
+
+%% internal functions
+-export([handle_notification/2]).
 
 -include("telnetcolors.hrl").
 -include("records.hrl").
@@ -40,22 +42,9 @@
 %% @spec start_link([Socket, Name]) -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link([Socket, Name]) ->
-    State = #player{name=Name, socket=Socket},
-    case gen_server:start_link({local, list_to_atom("player_"++helpers:clean_name(Name))}, ?MODULE, State, []) of
-	{ok, Pid} ->
-	    TcpPid = spawn(?MODULE, tcp_receive_loop, [Socket, Pid]),
-	    case gen_tcp:controlling_process(Socket, TcpPid) of
-		ok -> ok;
-		Other ->
-		    io:format("gen_tcp:controlling_process -> ~p~n", [Other]),
-		    Other
-	    end,
-	    %% temporary
-	    gen_server:call(Pid, enter_default_room),
-	    {ok, Pid};
-	Other -> Other
-    end.
+start_link([Name, ControllerPid]) ->
+    State = #player{name=Name, controllerPid=ControllerPid},
+    gen_server:start_link({local, list_to_atom("player_"++helpers:clean_name(Name))}, ?MODULE, State, []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -177,53 +166,8 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%%===================================================================
-%%% Internal functions
+%%% gen_server wrappers
 %%%===================================================================
-
-tcp_receive_loop(Socket, Pid) ->
-    gen_tcp:send(Socket, "#> "),
-    case helpers:recv_string(Socket) of
-	{tcp, Socket, Cmd} ->
-	    case parse_command(Cmd, Pid) of
-		ok ->
-		    ?send("#> Sorry, that does nothing."),
-		    tcp_receive_loop(Socket, Pid);
-		{look, Desc} ->
-		    [ ?send("#> "++DescLine) || DescLine <- Desc ],
-		    tcp_receive_loop(Socket, Pid);
-		{unknown, _Command} ->
-		    ?send("#> Sorry, that didn't make any sense."),
-		    tcp_receive_loop(Socket, Pid);
-		{close, Response} ->
-		    ?send(Response);
-		Other ->
-		    io:format("tcp_receive_loop/parse_command: ~p~n", [Other])
-	    end;
-	{tcp_closed, Socket} ->
-	    %% question is now, what do we do when the player disconnects in mid-combat?
-	    %% perhaps we should answer that when we've actually implemented combat ;-)
-	    save(Pid);
-	Other ->
-	    io:format("tcp_receive_loop: ~p~n", [Other])
-    end.
-
-parse_command(Command, Pid) ->
-    case Command of
-	"quit" -> {close, "Bye"};
-	"n" -> move("north", Pid);
-	"s" -> move("south", Pid);
-	"w" -> move("west", Pid);
-	"e" -> move("east", Pid);
-	"nw" -> move("northwest", Pid);
-	"ne" -> move("northeast", Pid);
-	"sw" -> move("southwest", Pid);
-	"se" -> move("southeast", Pid);
-	"up" -> move("up", Pid);
-	"down" -> move("down", Pid); %% ugh, there needs to be a better way of doing this.
-	"l" -> look(Pid);
-	"look" -> look(Pid);
-	_ -> {unknown, Command}
-    end.
 
 save(Pid) ->
     gen_server:call(Pid, save).
@@ -234,5 +178,9 @@ move(Direction, Pid) ->
 look(Pid) ->
     gen_server:call(Pid, look).
 
-handle_notification(#player{socket=Socket}, Message) ->
-    gen_tcp:send(Socket, Message++"\r\n#> ").
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+handle_notification(#player{controllerPid=Pid}, Message) ->
+    Pid ! {notification, Message}.
