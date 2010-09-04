@@ -14,6 +14,7 @@
 -export([loop/2, parse_command/2, send_paragraphs/3]).
 
 -include("telnetcolors.hrl").
+-define(WRAPCOLS, 70).
 
 %%%===================================================================
 %%% API
@@ -104,7 +105,7 @@ send_paragraphs(Socket, Paragraphs, Notification) ->
 		       end
 	       end,
     SendParagraph = fun(Paragraph) ->
-			    Lines = helpers:wrap(Paragraph, 80),
+			    Lines = helpers:wrap(Paragraph, ?WRAPCOLS),
 			    helpers:foreachex(SendLine, Lines)
 		    end,
     lists:foreach(SendParagraph, Paragraphs).
