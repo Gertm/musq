@@ -67,3 +67,13 @@ recv_string(Socket) ->
 	    {tcp_closed, Socket};
 	Other -> Other
     end.
+
+%% TODO: Find a better name.
+foreachex(Fun, [First|Rest]) ->
+    Fun(First, true),
+    lists:foreach(fun(Elem) ->
+			  Fun(Elem, false)
+		  end,
+		  Rest);
+foreachex(Fun, []) ->
+    lists:foreach(Fun, []).

@@ -11,7 +11,7 @@
 -export([handle/1]).
 
 %% internal functions
--export([loop/2, parse_command/2]).
+-export([loop/2, parse_command/2, send_paragraphs/3]).
 
 -include("telnetcolors.hrl").
 
@@ -57,7 +57,7 @@ loop(Socket, Pid) ->
 		    ?send(?PROMPT++"Sorry, that does nothing."),
 		    loop(Socket, Pid);
 		{look, Desc} ->
-		    [ ?send(?PROMPT++DescLine) || DescLine <- Desc ],
+		    send_paragraphs(Socket, Desc, false),
 		    loop(Socket, Pid);
 		{unknown, _Command} ->
 		    ?send(?PROMPT++"Sorry, that didn't make any sense."),
@@ -72,7 +72,7 @@ loop(Socket, Pid) ->
 	    %% perhaps we should answer that when we've actually implemented combat ;-)
 	    player:save(Pid);
 	{notification, Message} ->
-	    gen_tcp:send(Socket, Message++?NEWLINE),
+	    send_paragraphs(Socket, [Message], true),
 	    loop(Socket, Pid);
 	Other ->
 	    io:format("tcp_receive_loop: ~p~n", [Other])
@@ -95,3 +95,16 @@ parse_command(Command, Pid) ->
 	"look" -> player:look(Pid);
 	_ -> {unknown, Command}
     end.
+
+send_paragraphs(Socket, Paragraphs, Notification) ->
+    SendLine = fun(Line, FirstLine) ->
+		       case (Notification and FirstLine) of
+			   true -> ?send(Line);
+			   false -> ?send(?PROMPT++Line)
+		       end
+	       end,
+    SendParagraph = fun(Paragraph) ->
+			    Lines = helpers:wrap(Paragraph, 80),
+			    helpers:foreachex(SendLine, Lines)
+		    end,
+    lists:foreach(SendParagraph, Paragraphs).

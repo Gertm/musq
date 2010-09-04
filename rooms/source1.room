@@ -6,9 +6,10 @@
  ["Control Room",
   "You are standing in the main room of the outpost.",
   "It looks like the bridge of a spaceship. None of the big screens on the walls are working.",
-  "This place must have been left here for decades. "],			%% the description lines
+  "This place must have been left here for decades."],			%% the description paragraphs
 [],									%% the NPC's to spawn here
 [],									%% the objects to load
 [],									%% the players who are in this room.
-["You get an eerie feeling","It's so quiet, you can hear the dust fall."]	%% the room messages
+["You get an eerie feeling.",
+ "It's so quiet, you can hear the dust fall."]				%% the room messages
 }.
