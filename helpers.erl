@@ -15,6 +15,9 @@ clean_name(Name) ->
 clean_name_test_() ->
     [?_assert(clean_name("test 1") =:= "test_1")].
 
+room_process_name(Name) ->
+    list_to_atom("room_"++clean_name(Name)).
+
 wrap(String, Columns) ->
     %% string:tokens is built in, so it will be a lot faster.
     Words = string:tokens(String," "),
