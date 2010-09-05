@@ -1,11 +1,11 @@
-%%% @author Gert M <cel357@gmail.com>
+%%% @author Gert M <@G3rtm on Twitter>
 %%% @copyright (C) 2010, Gert M
 %%% @doc
 %%% An area defines a group of rooms.
 %%% This module loads the .area files into the game
 %%% Should be called from the world when that world loads.
 %%% @end
-%%% Created : 24 May 2010 by Gert M <cel357@gmail.com>
+%%% Created : 24 May 2010 by Gert M
 
 -module(area). 
 -compile(export_all).  %% for now
@@ -16,20 +16,14 @@
 %% spawn all the rooms needed.
 %% the rooms loaded have the form: {{x, y, z}, "roomfile"}
 %% where roomfile is the filename of the room
+%% it would be handy if the room filename always has to be
+%% roomname.room  That way it'll be easier to do lookups in the
+%% global process registry. (to know if the room is already spawned
+%% or not.)
 
 load(Filename) ->
-    {ok, RoomList} = file:consult(Filename), 
-    PosPidPairs = [ {Pos, just_the_pid(room:load(X))} || {Pos, X} <- RoomList ], 
+    {ok, RoomList} = file:consult(Filename).
     
-
-just_the_pid({ok, Pid}) ->
-    Pid.
-
-is_exit_of({{X1, Y1, Z1}, Pid1}, {{X2, Y2, Z2}, Pid2}) ->
-    ok.
-    
-some_function(X, Y) ->
-    ok.
 
 %% for testing:
 %% area:load("/home/gert/src/musq/areas/source.area").

@@ -40,3 +40,23 @@
 {8, [{"south", 7},
      {"east" ,9},
      {"southeast", 1}]}.
+{9,[{"west",8},
+    {"southwest",7},
+    {"south",1},
+    {"southeast",3},
+    {"east",2}]}.
+{1,[{"north",9},
+    {"northeast",2},
+    {"east",3},
+    {"southeast",4},
+    {"south",5},
+    {"southwest",6},
+    {"west",7},
+    {"northwest",8}
+   ]}.
+{2,[]}.
+{3,[]}.
+{4,[]}.
+{5,[]}.
+{6,[]}.
+{7,[]}.

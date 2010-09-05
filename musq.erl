@@ -11,6 +11,7 @@
 
 start() ->
     %% temporary stuff
+    dbstuff:start(),
     case room:start_link("rooms/source1.room") of
 	{ok, _RoomPid} ->
             connhandler:start_server();

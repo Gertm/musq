@@ -241,3 +241,4 @@ save(Room) ->
 
 get_name(Room) ->
     gen_server:call(Room, get_name).
+

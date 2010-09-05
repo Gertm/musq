@@ -29,4 +29,7 @@
 -record(area, {name,
 	       rooms=[],
 	       messages=[]}).
+
+-record(namepid, {name,pid}).
+
 %% going to add more stuff to the area record once we start using them.
