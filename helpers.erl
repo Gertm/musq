@@ -16,7 +16,8 @@ clean_name_test_() ->
     [?_assert(clean_name("test 1") =:= "test_1")].
 
 wrap(String, Columns) ->
-    Words = split_words(String, $ ),
+    %% string:tokens is built in, so it will be a lot faster.
+    Words = string:tokens(String," "),
     add_words(Words, [""], Columns).
 
 wrap_test_() ->
@@ -24,16 +25,6 @@ wrap_test_() ->
      ?_assert(wrap("aa bb cc dd", 20) =:= ["aa bb cc dd"]),
      ?_assert(wrap("aa bb cc dd", 8) =:= ["aa bb cc", "dd"]),
      ?_assert(wrap("aa bb cc dd", 4) =:= ["aa", "bb", "cc", "dd"])].
-
-split_words(String, Separator) ->
-    split_words(String, Separator, "", []).
-
-split_words(String, Separator, CurrentWord, Words) ->
-    case String of
-	"" -> lists:reverse([CurrentWord|Words]);
-	[Separator|Rest] -> split_words(Rest, Separator, "", [CurrentWord|Words]);
-	[Char|Rest] -> split_words(Rest, Separator, CurrentWord++[Char], Words)
-    end.
 
 add_words([], Accumulator, _Columns) ->
     lists:reverse(Accumulator);
