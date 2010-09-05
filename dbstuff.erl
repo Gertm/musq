@@ -41,6 +41,7 @@ save_room(RoomState) ->
 %% not sure if we need these next 3 functions, because since a room and a player
 %% are both going to be gen_servers, they will be registered in the global process
 %% database. Also, mnesia is not really meant for simple key-value stuff.
+%% keeping it here as an example for later.
 
 get_pid(Name) ->
     {atomic, Result} = mnesia:transaction(fun() -> mnesia:read({namepid, Name}) end), 
@@ -54,3 +55,7 @@ save_namepidrec(NamePidRecord) ->
 
 save_namepid(Name, Pid) ->
     save_namepidrec(#namepid{name=Name, pid=Pid}).
+
+%% get it from the global registered processes.
+get_room_pid(RoomName) ->
+    whereis(helpers:room_process_name(RoomName)).
