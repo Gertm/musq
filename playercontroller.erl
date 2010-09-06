@@ -55,13 +55,14 @@ loop(Socket, Pid) ->
 	{tcp, Socket, Cmd} ->
 	    case parse_command(Cmd, Pid) of
 		ok ->
-		    ?send(?PROMPT++"Sorry, that does nothing."),
+		    ?send(?PROMPT++?yellow("Sorry, that does nothing.")),
 		    loop(Socket, Pid);
-		{look, Desc} ->
-		    send_paragraphs(Socket, Desc, false),
+		{look, [Title|Desc]} ->
+		    ?send(?cyan(Title)),
+		    send_paragraphs(Socket, Desc, ?F_GREEN),
 		    loop(Socket, Pid);
 		{unknown, _Command} ->
-		    ?send(?PROMPT++"Sorry, that didn't make any sense."),
+		    ?send(?PROMPT++?red("Sorry, that didn't make any sense.")),
 		    loop(Socket, Pid);
 		{close, Response} ->
 		    ?send(Response);
@@ -73,7 +74,7 @@ loop(Socket, Pid) ->
 	    %% perhaps we should answer that when we've actually implemented combat ;-)
 	    player:save(Pid);
 	{notification, Message} ->
-	    send_paragraphs(Socket, [Message], true),
+	    send_paragraphs(Socket, [Message], ?F_GREEN),
 	    loop(Socket, Pid);
 	Other ->
 	    io:format("tcp_receive_loop: ~p~n", [Other])
@@ -97,15 +98,10 @@ parse_command(Command, Pid) ->
 	_ -> {unknown, Command}
     end.
 
-send_paragraphs(Socket, Paragraphs, Notification) ->
-    SendLine = fun(Line, FirstLine) ->
-		       case (Notification and FirstLine) of
-			   true -> ?send(Line);
-			   false -> ?send(?PROMPT++Line)
-		       end
-	       end,
+send_paragraphs(Socket, Paragraphs, Color) ->
+    SendLine = fun(Line) -> ?send(?with_color(Line, Color)) end,
     SendParagraph = fun(Paragraph) ->
 			    Lines = helpers:wrap(Paragraph, ?WRAPCOLS),
-			    helpers:foreachex(SendLine, Lines)
+			    lists:foreach(SendLine, Lines)
 		    end,
     lists:foreach(SendParagraph, Paragraphs).
