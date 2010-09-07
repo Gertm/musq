@@ -22,8 +22,24 @@
 %% or not.)
 
 load(Filename) ->
-    {ok, RoomList} = file:consult(Filename).
+    {ok, [RoomPaths|_Exits]} = file:consult(Filename), 
+    ensure_rooms_loaded(RoomPaths).
+
+
+ensure_rooms_loaded(RoomPaths) ->
+    lists:map(fun ensure_room_loaded/1, RoomPaths).
+		      
+ensure_room_loaded({RoomRef, RoomPath}) ->
+    RoomName = helpers:room_name_from_filename(RoomPath), 
+    case whereis(RoomName) of
+	undefined ->
+	    {ok, _Pid} = room:load(RoomPath), 
+	    {RoomRef, RoomName};
+	_Pid ->
+	    {RoomRef, RoomName}
+    end.
     
+		      
 
 %% for testing:
 %% area:load("/home/gert/src/musq/areas/source.area").

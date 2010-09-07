@@ -49,8 +49,9 @@ load(RoomFile) ->  %% does the same, just types faster ;-)
 
 get_room_state_from_file(RoomFile) ->
     {ok, [RoomSpec]} = file:consult(RoomFile),
-    {Name, Exits, Desc, Npc, Obj, Players, Messages} = RoomSpec,
-    #room{name=Name, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, players=Players, messages=Messages}.
+    {_Name, Exits, Desc, Npc, Obj, Players, Messages} = RoomSpec,
+    NewName = helpers:room_name_from_filename(RoomFile),
+    #room{name=NewName, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, players=Players, messages=Messages}.
 
 %%%===================================================================
 %%% gen_server callbacks

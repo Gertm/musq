@@ -61,3 +61,6 @@ recv_string(Socket) ->
 	    {tcp_closed, Socket};
 	Other -> Other
     end.
+
+room_name_from_filename(FileName) ->
+    room_process_name(hd(string:tokens(filename:basename(FileName),"."))).
