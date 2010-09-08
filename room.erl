@@ -42,7 +42,7 @@
 
 start_link(RoomFile) ->
     State = get_room_state_from_file(RoomFile),
-    gen_server:start_link({local, helpers:room_process_name(State#room.name)}, ?MODULE, State, []).
+    gen_server:start_link({local, State#room.name}, ?MODULE, State, []).
 
 load(RoomFile) ->  %% does the same, just types faster ;-)
     start_link(RoomFile).
