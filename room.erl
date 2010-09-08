@@ -20,7 +20,7 @@
 -export([buddy_process/2, load/1]).
 
 %% call/cast wrappers
--export([enter/2, get_exits/1, leave/2, look/1, move/2, save/1, get_name/1]).
+-export([enter/2, get_exits/1, leave/2, look/1, move/2, save/1, get_name/1, add_exit/3]).
 
 -include("records.hrl").
 
@@ -230,6 +230,9 @@ leave(Room, ToDirection) ->
 
 get_exits(Room) ->
     gen_server:call(Room, get_exits).
+
+add_exit(Room,Direction,Destination) ->
+    gen_server:call(Room,{add_exit,Direction,Destination}).
 
 look(Room) ->
     gen_server:call(Room, look).
