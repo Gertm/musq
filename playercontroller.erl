@@ -86,16 +86,16 @@ loop(Socket, Pid) ->
 parse_command(Command, Pid) ->
     case Command of
 	"quit" -> {close, "Bye"};
-	"n" -> player:move("north", Pid);
-	"s" -> player:move("south", Pid);
-	"w" -> player:move("west", Pid);
-	"e" -> player:move("east", Pid);
-	"nw" -> player:move("northwest", Pid);
-	"ne" -> player:move("northeast", Pid);
-	"sw" -> player:move("southwest", Pid);
-	"se" -> player:move("southeast", Pid);
-	"up" -> player:move("up", Pid);
-	"down" -> player:move("down", Pid); %% ugh, there needs to be a better way of doing this.
+	"n" -> player:go("north", Pid);
+	"s" -> player:go("south", Pid);
+	"w" -> player:go("west", Pid);
+	"e" -> player:go("east", Pid);
+	"nw" -> player:go("northwest", Pid);
+	"ne" -> player:go("northeast", Pid);
+	"sw" -> player:go("southwest", Pid);
+	"se" -> player:go("southeast", Pid);
+	"up" -> player:go("up", Pid);
+	"down" -> player:go("down", Pid); %% ugh, there needs to be a better way of doing this.
 	"l" -> player:look(Pid);
 	"look" -> player:look(Pid);
 	"map" -> player:map(Pid, 5);
