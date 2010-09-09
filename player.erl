@@ -125,7 +125,7 @@ handle_call(_Request, _From, State) ->
 handle_cast(tick, State) ->
     {noreply, State};
 
-handle_cast({roommsg, Message}, State) ->
+handle_cast({room_msg, Message}, State) ->
     handle_notification(State, Message),
     {noreply, State};
 

@@ -41,16 +41,16 @@
 %%--------------------------------------------------------------------
 
 start_link(RoomFile) ->
-    State = get_room_state_from_file(RoomFile),
+    State = get_room_state_from_file(RoomFile), 
     gen_server:start_link({local, State#room.name}, ?MODULE, State, []).
 
 load(RoomFile) ->  %% does the same, just types faster ;-)
     start_link(RoomFile).
 
 get_room_state_from_file(RoomFile) ->
-    {ok, [RoomSpec]} = file:consult(RoomFile),
-    {_Name, Exits, Desc, Npc, Obj, Players, Messages} = RoomSpec,
-    NewName = helpers:room_name_from_filename(RoomFile),
+    {ok, [RoomSpec]} = file:consult(RoomFile), 
+    {_Name, Exits, Desc, Npc, Obj, Players, Messages} = RoomSpec, 
+    NewName = helpers:room_name_from_filename(RoomFile), 
     #room{name=NewName, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, players=Players, messages=Messages}.
 
 %%%===================================================================
@@ -70,8 +70,8 @@ get_room_state_from_file(RoomFile) ->
 %%--------------------------------------------------------------------
 
 init(RoomState) ->
-    BuddyPid = spawn(tickbuddy, loop, [self(), 15000]),
-    io:format("~p started buddy process ~p~n", [self(), BuddyPid]),
+    BuddyPid = spawn(tickbuddy, loop, [self(), 15000]), 
+    io:format("~p started buddy process ~p~n", [self(), BuddyPid]), 
     {ok, RoomState}.
 
 buddy_process(Pid, Timeout) ->
@@ -80,7 +80,7 @@ buddy_process(Pid, Timeout) ->
 	{timeout, NewTimeout} ->
 	    buddy_process(Pid, NewTimeout)
     after Timeout ->
-	    gen_server:cast(Pid, tick),
+	    gen_server:cast(Pid, tick), 
 	    buddy_process(Pid, Timeout)
     end.
 
@@ -100,14 +100,14 @@ buddy_process(Pid, Timeout) ->
 %%--------------------------------------------------------------------
 
 handle_call({add_exit, Name, Roomspec}, _From, State) ->
-    Exits = State#room.exits,
-    NewState = State#room{exits=[{Name, Roomspec}|Exits]},
+    Exits = State#room.exits, 
+    NewState = State#room{exits=[{Name, Roomspec}|Exits]}, 
     {reply, ok, NewState};
 
 handle_call({reload, RoomFileLoc}, _From, State) ->
-    {ok, [RoomSpec]} = file:consult(RoomFileLoc),
-    {Name, Exits, Desc, Npc, Obj, _Players, Messages} = RoomSpec,
-    NewState = State#room{name=Name, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, messages=Messages},
+    {ok, [RoomSpec]} = file:consult(RoomFileLoc), 
+    {Name, Exits, Desc, Npc, Obj, _Players, Messages} = RoomSpec, 
+    NewState = State#room{name=Name, exits=Exits, desc=Desc, npcs=Npc, objects=Obj, messages=Messages}, 
     {reply, ok, NewState};
 
 handle_call(get_exits, _From, State) ->
@@ -115,9 +115,10 @@ handle_call(get_exits, _From, State) ->
 
 handle_call({enter, _SourceDirection}, {PlayerPid, _}, State) ->
     %% add the player to the state, send player the 'look' information.
-    io:format("~p entered room~n", [PlayerPid]),
-    OldPlayers = State#room.players,
-    NewState = State#room{players=[PlayerPid|OldPlayers]},
+    io:format("~p entered room~n", [PlayerPid]), 
+    OldPlayers = State#room.players, 
+    NewState = State#room{players=[PlayerPid|OldPlayers]}, 
+    
     {reply, {ok, State#room.desc}, NewState};
 
 handle_call({leave, _ToDirection}, _From, State) ->
@@ -126,7 +127,7 @@ handle_call({leave, _ToDirection}, _From, State) ->
 handle_call(look, _From, State) ->
     %% build up the lines for the room description.
     %% best to do this in a separate function because we're going to need it elsewhere too.
-    Desc = State#room.desc,
+    Desc = State#room.desc, 
     {reply, {look, Desc}, State};
 
 handle_call({go, _Direction}, _From, State) ->
@@ -136,19 +137,23 @@ handle_call({exit, Reason}, _From, _State) ->
     exit(Reason);
 
 handle_call(save_to_db, _From, State) ->
-    dbstuff:save_room(State),
-    {reply,ok,State};
+    dbstuff:save_room(State), 
+    {reply, ok, State};
 
 handle_call(get_name, _From, State) ->
     {reply, State#room.name, State};
 
 handle_call({get_map, _Radius}, _From, State) ->
     %% stub
-    Reply = {map, [{0, 0, 0}]},
+    Reply = {map, [{0, 0, 0}]}, 
     {reply, Reply, State};
 
+handle_call({room_msg, _Message}, _From, #room{players=Players} = _State) ->
+%%    [ gen_server:call(P,{}) || P <- Players]
+    ok;
+
 handle_call(_Request, _From, State) ->
-    Reply = ok,
+    Reply = ok, 
     {reply, Reply, State}.
 
 %%--------------------------------------------------------------------
@@ -163,12 +168,13 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast(tick, #room{players=P, messages=M} = State) ->
+    io:format("room message!"), 
     case length(P) of
 	0 -> ok; %% why strain the system if there are no players listening anyway?
-	_ -> Message = lists:nth(random:uniform(length(M)), M),
-	     io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]),
-	     [ gen_server:cast(Player, {roommsg, Message}) || Player <- P ]
-    end,
+	_ -> Message = lists:nth(random:uniform(length(M)), M), 
+	     io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]), 
+	     [ gen_server:cast(Player, {room_msg, Message}) || Player <- P ]
+    end, 
     {noreply, State};
 
 handle_cast(_Msg, State) ->
@@ -203,7 +209,7 @@ handle_info(_Info, State) ->
 %% Need to add code here to inform the exit rooms that this one is no 
 %% longer available.
 terminate(_Reason, #room{name=Name} = _State) ->
-    io:format("Room '~s' is terminated.~n", [Name]),
+    io:format("Room '~s' is terminated.~n", [Name]), 
     ok.
 
 %%--------------------------------------------------------------------
@@ -236,8 +242,8 @@ leave(Room, ToDirection) ->
 get_exits(Room) ->
     gen_server:call(Room, get_exits).
 
-add_exit(Room,Direction,Destination) ->
-    gen_server:call(Room,{add_exit,Direction,Destination}).
+add_exit(Room, Direction, Destination) ->
+    gen_server:call(Room, {add_exit, Direction, Destination}).
 
 look(Room) ->
     gen_server:call(Room, look).
@@ -253,3 +259,9 @@ get_name(Room) ->
 
 get_map(Room, Radius) ->
     gen_server:call(Room, {get_map, Radius}).
+
+%% helper functions for room
+
+room_msg(_RoomPid, _Message) ->
+    ok.
+    
