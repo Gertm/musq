@@ -12,8 +12,8 @@
 start() ->
     %% temporary stuff
     dbstuff:start(),
-    case room:start_link("rooms/source1.room") of
-	{ok, _RoomPid} ->
+    case area:load("areas/source.area") of
+	ok ->
             connhandler:start_server();
-	Error -> Error
+	_ -> error
     end.
