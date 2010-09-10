@@ -23,7 +23,7 @@
 	 terminate/2, code_change/3]).
 
 %% gen_server wrappers
--export([save/1, look/1, go/2, map/2]).
+-export([enter_start_room/2, save/1, look/1, go/2, map/2, room_msg/2]).
 
 %% internal functions
 -export([handle_notification/2]).
@@ -81,12 +81,10 @@ init(State) ->
 %% @end
 %%--------------------------------------------------------------------
 
-%% temporary
-handle_call(enter_default_room, _From, State) ->
-    DefaultRoom = room_source1,
-    room:enter(DefaultRoom, "somewhere"),
-    NewState = State#player{room=DefaultRoom},
-    handle_notification(NewState, "You've entered the default room."),
+handle_call({enter_start_room, RoomPid}, _From, State) ->
+    room:enter(RoomPid, "somewhere"),
+    NewState = State#player{room=RoomPid},
+    handle_notification(NewState, "You've entered the starting room."),
     {reply, ok, NewState};
 
 handle_call(save, _From, State) ->
@@ -174,6 +172,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%% gen_server wrappers
 %%%===================================================================
 
+enter_start_room(Pid, RoomPid) ->
+    gen_server:call(Pid, {enter_start_room, RoomPid}).
+
 save(Pid) ->
     gen_server:call(Pid, save).
 
@@ -185,6 +186,9 @@ look(Pid) ->
 
 map(Pid, Radius) ->
     gen_server:call(Pid, {map, Radius}).
+
+room_msg(Pid, Message) ->
+    gen_server:cast(Pid, {room_msg, Message}).
 
 %%%===================================================================
 %%% Internal functions

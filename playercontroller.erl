@@ -36,7 +36,7 @@ handle(Socket) ->
 			{ok, PlayerPid} ->
 			    %% temporary
 			    ?send("Password accepted! Sending you to your starting location."),
-			    gen_server:call(room_source8, {enter, "somewhere"}),
+			    player:enter_start_room(PlayerPid, room_source8),
 			    loop(Socket, PlayerPid);
 			_ -> {'EXIT', "problem starting player gen_server"}
 		    end;

@@ -17,7 +17,7 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1]).
+-export([buddy_process/2, load/1, room_msg/2]).
 
 %% call/cast wrappers
 -export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3, get_map/2]).
@@ -148,9 +148,9 @@ handle_call({get_map, _Radius}, _From, State) ->
     Reply = {map, [{0, 0, 0}]}, 
     {reply, Reply, State};
 
-handle_call({room_msg, _Message}, _From, #room{players=Players} = _State) ->
-%%    [ gen_server:call(P,{}) || P <- Players]
-    ok;
+handle_call({room_msg, Message}, _From, #room{players=Players} = State) ->
+    [ player:room_msg(P, Message) || P <- Players],
+    {reply, ok, State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok, 
@@ -168,12 +168,17 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast(tick, #room{players=P, messages=M} = State) ->
-    io:format("room message!"), 
+    io:format("room message!~n"), 
     case length(P) of
 	0 -> ok; %% why strain the system if there are no players listening anyway?
-	_ -> Message = lists:nth(random:uniform(length(M)), M), 
-	     io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]), 
-	     [ gen_server:cast(Player, {room_msg, Message}) || Player <- P ]
+	_ ->
+	    case length(M) of
+		0 -> ok; %% no message to send
+		_ ->
+		    Message = lists:nth(random:uniform(length(M)), M),
+		    io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]),
+		    [ player:room_msg(Player, Message) || Player <- P ]
+	    end
     end, 
     {noreply, State};
 
@@ -225,10 +230,8 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%%===================================================================
-%%% Internal functions
+%%% gen_server wrappers
 %%%===================================================================
-
-%% need stuff to handle entrance and leaving of rooms.
 
 %% gen_server:call(Pid, {enter, Direction}). will do the job
 %% this will return a value like any other function would.
@@ -260,8 +263,9 @@ get_name(Room) ->
 get_map(Room, Radius) ->
     gen_server:call(Room, {get_map, Radius}).
 
-%% helper functions for room
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
 
 room_msg(_RoomPid, _Message) ->
     ok.
-    
