@@ -2,3 +2,4 @@ glob:*/\#*\#
 glob:*.beam
 glob:*~
 glob:Mnesia.nonode@nohost
+glob:*.orig

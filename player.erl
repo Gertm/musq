@@ -6,7 +6,7 @@
 %%% Basically this module only needs to accept 'print' events for stuff that needs to be
 %%% written to the player's screen and it needs to accept the incoming stuff from the socket.
 %%% From that, the module needs to decide where the message should be sent
-%%% to the room, to another player, an NPC?,.. etc
+%%% to the room, to another player, an NPC?, .. etc
 %%% all other logic should be in other modules.
 %%% @end
 %%% Created :  2 Sep 2010 by  <Randy Voet <crimson13>>
@@ -19,7 +19,7 @@
 -export([start_link/1]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
 	 terminate/2, code_change/3]).
 
 %% gen_server wrappers
@@ -43,7 +43,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link([Name, ControllerPid]) ->
-    State = #player{name=Name, controllerPid=ControllerPid},
+    State = #player{name=Name, controllerPid=ControllerPid}, 
     gen_server:start_link({local, list_to_atom("player_"++helpers:clean_name(Name))}, ?MODULE, State, []).
 
 %%%===================================================================
@@ -62,8 +62,8 @@ start_link([Name, ControllerPid]) ->
 %% @end
 %%--------------------------------------------------------------------
 init(State) ->
-    BuddyPid = spawn(tickbuddy, loop, [self(), 15000]),
-    io:format("~p started buddy process ~p~n", [self(), BuddyPid]),
+    BuddyPid = spawn(tickbuddy, loop, [self(), 15000]), 
+    io:format("~p started buddy process ~p~n", [self(), BuddyPid]), 
     {ok, State}.
 
 %%--------------------------------------------------------------------
@@ -82,9 +82,9 @@ init(State) ->
 %%--------------------------------------------------------------------
 
 handle_call({enter_start_room, RoomPid}, _From, State) ->
-    room:enter(RoomPid, "somewhere"),
-    NewState = State#player{room=RoomPid},
-    handle_notification(NewState, "You've entered the starting room."),
+    room:enter(RoomPid, "somewhere"), 
+    NewState = State#player{room=RoomPid}, 
+    handle_notification(NewState, "You've entered the starting room."), 
     {reply, ok, NewState};
 
 handle_call(save, _From, State) ->
@@ -92,18 +92,22 @@ handle_call(save, _From, State) ->
     {reply, R, State};
 
 handle_call(look, _From, State) ->
-    Room = State#player.room,
-    Reply = room:look(Room),
+    Room = State#player.room, 
+    Reply = room:look(Room), 
     {reply, Reply, State};
 
 handle_call({go, Direction}, _From, State) ->
-    Room = State#player.room,
-    Reply = room:go(Room, Direction),
-    {reply, Reply, State};
+    Room = State#player.room, 
+    case room:go(Room, Direction) of
+	{newroompid, Pid} ->
+	    {reply, look, State#player{room=Pid}};
+	{error, Message} ->
+	    {reply, {error, Message}, State}
+    end;
 
 handle_call({map, Radius}, _From, State) ->
-    Room = State#player.room,
-    Reply = room:get_map(Room, Radius),
+    Room = State#player.room, 
+    Reply = room:get_map(Room, Radius), 
     {reply, Reply, State};
 
 handle_call(_Request, _From, State) ->
@@ -124,7 +128,7 @@ handle_cast(tick, State) ->
     {noreply, State};
 
 handle_cast({room_msg, Message}, State) ->
-    handle_notification(State, Message),
+    handle_notification(State, Message), 
     {noreply, State};
 
 handle_cast(_Msg, State) ->

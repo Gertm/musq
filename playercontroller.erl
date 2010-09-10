@@ -36,7 +36,7 @@ handle(Socket) ->
 			{ok, PlayerPid} ->
 			    %% temporary
 			    ?send("Password accepted! Sending you to your starting location."),
-			    player:enter_start_room(PlayerPid, room_source8),
+			    player:enter_start_room(PlayerPid, room_source1),
 			    loop(Socket, PlayerPid);
 			_ -> {'EXIT', "problem starting player gen_server"}
 		    end;
@@ -64,6 +64,9 @@ loop(Socket, Pid) ->
 		{map, MapData} ->
 		    send_map(Socket, MapData),
 		    loop(Socket, Pid);
+		{error,Message} ->
+		    ?send(?red(Message)),
+		    loop(Socket,Pid);
 		{unknown, _Command} ->
 		    ?send(?PROMPT++?red("Sorry, that didn't make any sense.")),
 		    loop(Socket, Pid);

@@ -17,7 +17,7 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1, room_msg/2]).
+-export([buddy_process/2, load/1,remove_player/2,add_player/2]).
 
 %% call/cast wrappers
 -export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3, get_map/2]).
@@ -115,11 +115,9 @@ handle_call(get_exits, _From, State) ->
 
 handle_call({enter, _SourceDirection}, {PlayerPid, _}, State) ->
     %% add the player to the state, send player the 'look' information.
-    io:format("~p entered room~n", [PlayerPid]), 
-    OldPlayers = State#room.players, 
-    NewState = State#room{players=[PlayerPid|OldPlayers]}, 
-    
-    {reply, {ok, State#room.desc}, NewState};
+    io:format("~p entered room ~p~n ", [PlayerPid,self()]),
+    NewState = add_player(State,PlayerPid),
+    {reply, {ok, NewState#room.desc}, NewState};
 
 handle_call({leave, _ToDirection}, _From, State) ->
     {reply, ok, State};
@@ -130,8 +128,16 @@ handle_call(look, _From, State) ->
     Desc = State#room.desc, 
     {reply, {look, Desc}, State};
 
-handle_call({go, _Direction}, _From, State) ->
-    {reply, ok, State};
+handle_call({go, Direction}, From, State) ->
+    %% optimize this later, because it's probably slow
+    DirectionDict = dict:from_list(State#room.exits),
+    case dict:find(Direction,DirectionDict) of
+	{ok,Pid} -> 
+	    NewState = remove_player(State,From),
+	    gen_server:call(Pid,{enter,Direction}),
+	    {reply,{newroompid,Pid},NewState};
+	error -> {reply,{error,"You cannot go that way."},State}
+    end;
 
 handle_call({exit, Reason}, _From, _State) ->
     exit(Reason);
@@ -168,7 +174,6 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast(tick, #room{players=P, messages=M} = State) ->
-    io:format("room message!~n"), 
     case length(P) of
 	0 -> ok; %% why strain the system if there are no players listening anyway?
 	_ ->
@@ -176,8 +181,8 @@ handle_cast(tick, #room{players=P, messages=M} = State) ->
 		0 -> ok; %% no message to send
 		_ ->
 		    Message = lists:nth(random:uniform(length(M)), M),
-		    io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]),
-		    [ player:room_msg(Player, Message) || Player <- P ]
+		    %% io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]),
+		    lists:foreach(fun(Player) -> player:room_msg(Player, Message) end,P)
 	    end
     end, 
     {noreply, State};
@@ -267,5 +272,11 @@ get_map(Room, Radius) ->
 %%% Internal functions
 %%%===================================================================
 
-room_msg(_RoomPid, _Message) ->
-    ok.
+add_player(State,PlayerPid) ->
+    OldPlayers = State#room.players, 
+    State#room{players=[PlayerPid|OldPlayers]}.
+    
+remove_player(State,PlayerPid) ->
+    OldPlayers = State#room.players,
+    State#room{players=lists:delete(PlayerPid,OldPlayers)}.
+
