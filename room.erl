@@ -17,10 +17,10 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1,remove_player/2,add_player/2]).
+-export([buddy_process/2, load/1,remove_player/2,add_player/2, get_area_map/2]).
 
 %% call/cast wrappers
--export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3, get_map/2]).
+-export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3]).
 
 -include("records.hrl").
 
@@ -115,7 +115,7 @@ handle_call(get_exits, _From, State) ->
 
 handle_call({enter, _SourceDirection}, {PlayerPid, _}, State) ->
     %% add the player to the state, send player the 'look' information.
-    io:format("~p entered room ~p~n ", [PlayerPid,self()]),
+    io:format("~p entered room ~p~n", [PlayerPid,self()]),
     NewState = add_player(State,PlayerPid),
     {reply, {ok, NewState#room.desc}, NewState};
 
@@ -125,8 +125,9 @@ handle_call({leave, _ToDirection}, _From, State) ->
 handle_call(look, _From, State) ->
     %% build up the lines for the room description.
     %% best to do this in a separate function because we're going to need it elsewhere too.
-    Desc = State#room.desc, 
-    {reply, {look, Desc}, State};
+    Desc = State#room.desc,
+    AreaMap = get_area_map(State, 5), 
+    {reply, {looked, Desc, AreaMap}, State};
 
 handle_call({go, Direction}, From, State) ->
     %% optimize this later, because it's probably slow
@@ -148,15 +149,6 @@ handle_call(save_to_db, _From, State) ->
 
 handle_call(get_name, _From, State) ->
     {reply, State#room.name, State};
-
-handle_call({get_map, _Radius}, _From, State) ->
-    %% stub
-    Reply = {map, [{0, 0, 0}]}, 
-    {reply, Reply, State};
-
-handle_call({room_msg, Message}, _From, #room{players=Players} = State) ->
-    [ player:room_msg(P, Message) || P <- Players],
-    {reply, ok, State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok, 
@@ -265,9 +257,6 @@ save(Room) ->
 get_name(Room) ->
     gen_server:call(Room, get_name).
 
-get_map(Room, Radius) ->
-    gen_server:call(Room, {get_map, Radius}).
-
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -280,3 +269,6 @@ remove_player(State,PlayerPid) ->
     OldPlayers = State#room.players,
     State#room{players=lists:delete(PlayerPid,OldPlayers)}.
 
+get_area_map(_Room, _Radius) ->
+    %% stub
+    [{0, 0, 0}].

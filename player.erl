@@ -23,7 +23,7 @@
 	 terminate/2, code_change/3]).
 
 %% gen_server wrappers
--export([enter_start_room/2, save/1, look/1, go/2, map/2, room_msg/2]).
+-export([enter_start_room/2, save/1, look/1, go/2, room_msg/2]).
 
 %% internal functions
 -export([handle_notification/2]).
@@ -106,11 +106,6 @@ handle_call({go, Direction}, _From, State) ->
 	    {reply, {error, Message}, State}
     end;
 
-handle_call({map, Radius}, _From, State) ->
-    Room = State#player.room, 
-    Reply = room:get_map(Room, Radius), 
-    {reply, Reply, State};
-
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
@@ -188,9 +183,6 @@ go(Direction, Pid) ->
 
 look(Pid) ->
     gen_server:call(Pid, look).
-
-map(Pid, Radius) ->
-    gen_server:call(Pid, {map, Radius}).
 
 room_msg(Pid, Message) ->
     gen_server:cast(Pid, {room_msg, Message}).

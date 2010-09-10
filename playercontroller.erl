@@ -11,7 +11,7 @@
 -export([handle/1]).
 
 %% internal functions
--export([loop/2, parse_command/2, send_paragraphs/3, send_map/2]).
+-export([loop/2, parse_command/2, send_paragraphs/3]).
 
 -include("telnetcolors.hrl").
 -define(WRAPCOLS, 70).
@@ -55,14 +55,13 @@ loop(Socket, Pid) ->
 	{tcp, Socket, Cmd} ->
 	    case parse_command(Cmd, Pid) of
 		ok ->
-		    ?send(?PROMPT++?yellow("Sorry, that does nothing.")),
 		    loop(Socket, Pid);
-		{look, [Title|Desc]} ->
+		{looked, [Title|Desc], _AreaMap} ->
 		    ?send(?cyan(Title)),
 		    send_paragraphs(Socket, Desc, ?F_GREEN),
 		    loop(Socket, Pid);
-		{map, MapData} ->
-		    send_map(Socket, MapData),
+		{warning, Message} ->
+		    ?send(?yellow(Message)),
 		    loop(Socket, Pid);
 		{error, Message} ->
 		    ?send(?red(Message)),
@@ -101,7 +100,6 @@ parse_command(Command, Pid) ->
 	"down" -> player:go("down", Pid); %% ugh, there needs to be a better way of doing this.
 	"l" -> player:look(Pid);
 	"look" -> player:look(Pid);
-	"map" -> player:map(Pid, 5);
 	_ -> {unknown, Command}
     end.
 
@@ -112,7 +110,3 @@ send_paragraphs(Socket, Paragraphs, Color) ->
 			    lists:foreach(SendLine, Lines)
 		    end,
     lists:foreach(SendParagraph, Paragraphs).
-
-send_map(_Socket, _MapData) ->
-    %% stub
-    ok.
