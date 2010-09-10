@@ -64,9 +64,9 @@ loop(Socket, Pid) ->
 		{map, MapData} ->
 		    send_map(Socket, MapData),
 		    loop(Socket, Pid);
-		{error,Message} ->
+		{error, Message} ->
 		    ?send(?red(Message)),
-		    loop(Socket,Pid);
+		    loop(Socket, Pid);
 		{unknown, _Command} ->
 		    ?send(?PROMPT++?red("Sorry, that didn't make any sense.")),
 		    loop(Socket, Pid);

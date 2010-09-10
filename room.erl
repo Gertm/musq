@@ -131,12 +131,12 @@ handle_call(look, _From, State) ->
 handle_call({go, Direction}, From, State) ->
     %% optimize this later, because it's probably slow
     DirectionDict = dict:from_list(State#room.exits),
-    case dict:find(Direction,DirectionDict) of
-	{ok,Pid} -> 
-	    NewState = remove_player(State,From),
-	    gen_server:call(Pid,{enter,Direction}),
-	    {reply,{newroompid,Pid},NewState};
-	error -> {reply,{error,"You cannot go that way."},State}
+    case dict:find(Direction, DirectionDict) of
+	{ok, Pid} -> 
+	    NewState = remove_player(State, From),
+	    enter(Pid, Direction),
+	    {reply, {new_room_pid, Pid}, NewState};
+	error -> {reply, {error, "You cannot go that way."}, State}
     end;
 
 handle_call({exit, Reason}, _From, _State) ->

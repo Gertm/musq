@@ -99,8 +99,9 @@ handle_call(look, _From, State) ->
 handle_call({go, Direction}, _From, State) ->
     Room = State#player.room, 
     case room:go(Room, Direction) of
-	{newroompid, Pid} ->
-	    {reply, look, State#player{room=Pid}};
+	{new_room_pid, Pid} ->
+	    Reply = room:look(Pid),
+	    {reply, Reply, State#player{room=Pid}};
 	{error, Message} ->
 	    {reply, {error, Message}, State}
     end;
