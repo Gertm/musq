@@ -17,7 +17,7 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1,remove_player/2,add_player/2, get_area_map/2]).
+-export([buddy_process/2, load/1,remove_player/2,add_player/2, get_area_map/1]).
 
 %% call/cast wrappers
 -export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3]).
@@ -126,7 +126,7 @@ handle_call(look, _From, State) ->
     %% build up the lines for the room description.
     %% best to do this in a separate function because we're going to need it elsewhere too.
     Desc = State#room.desc,
-    AreaMap = get_area_map(State, 5), 
+    AreaMap = get_area_map(State), 
     {reply, {looked, Desc, AreaMap}, State};
 
 handle_call({go, Direction}, From, State) ->
@@ -269,6 +269,7 @@ remove_player(State,PlayerPid) ->
     OldPlayers = State#room.players,
     State#room{players=lists:delete(PlayerPid,OldPlayers)}.
 
-get_area_map(_Room, _Radius) ->
+get_area_map(_Room) ->
     %% stub
+    _Radius = ?AREAMAPRADIUS,
     [{0, 0, 0}].

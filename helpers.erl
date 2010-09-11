@@ -64,3 +64,10 @@ recv_string(Socket) ->
 
 room_name_from_filename(FileName) ->
     room_process_name(hd(string:tokens(filename:basename(FileName),"."))).
+
+render_area_map(_Data, Width, Height) ->
+    EmptyLines = lists:duplicate(Height, string:copies(" ", Width)),
+    EmptyLines.
+
+render_area_map_test_() ->
+    [?_assert(render_area_map([], 3, 3) =:= ["   ", "   ", "   "])].

@@ -11,9 +11,10 @@
 -export([handle/1]).
 
 %% internal functions
--export([loop/2, parse_command/2, send_paragraphs/3]).
+-export([loop/2, parse_command/2, send_paragraphs/3, send_area_map_and_description/3]).
 
 -include("telnetcolors.hrl").
+-include("records.hrl").
 -define(WRAPCOLS, 70).
 
 %%%===================================================================
@@ -56,9 +57,8 @@ loop(Socket, Pid) ->
 	    case parse_command(Cmd, Pid) of
 		ok ->
 		    loop(Socket, Pid);
-		{looked, [Title|Desc], _AreaMap} ->
-		    ?send(?cyan(Title)),
-		    send_paragraphs(Socket, Desc, ?F_GREEN),
+		{looked, Desc, AreaMap} ->
+		    send_area_map_and_description(Socket, AreaMap, Desc),
 		    loop(Socket, Pid);
 		{warning, Message} ->
 		    ?send(?yellow(Message)),
@@ -110,3 +110,22 @@ send_paragraphs(Socket, Paragraphs, Color) ->
 			    lists:foreach(SendLine, Lines)
 		    end,
     lists:foreach(SendParagraph, Paragraphs).
+
+send_area_map_and_description(Socket, AreaMap, [Title|Desc]) ->
+    WrapColumns = ?WRAPCOLS - ?AREAMAPRADIUS - 2,
+    WrappedDesc = lists:append([helpers:wrap(DescLine, WrapColumns) || DescLine <- Desc]),
+    CombinedHeight = max(1 + length(WrappedDesc), ?AREAMAPRADIUS),
+    AreaMapLines = helpers:render_area_map(AreaMap, ?AREAMAPRADIUS, CombinedHeight),
+    SeparatorLines = lists:duplicate(CombinedHeight, "  "),
+    FullDescWithColor = [?with_color(Title, ?F_CYAN)|[?with_color(Line, ?F_GREEN) || Line <- WrappedDesc]],
+    FullDescWithExtraLines = case length(FullDescWithColor) < CombinedHeight of
+				 true ->
+				     NrExtraLines = CombinedHeight - length(FullDescWithColor),
+				     FullDescWithColor++lists:duplicate(NrExtraLines, "");
+				 false -> FullDescWithColor
+			     end,
+    FullText = lists:zip3(AreaMapLines, SeparatorLines, FullDescWithExtraLines),
+    SendLine = fun({MapLine, SepLine, DescLine}) ->
+		       ?send(MapLine++SepLine++DescLine)
+	       end,
+    lists:foreach(SendLine, FullText).
