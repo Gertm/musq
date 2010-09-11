@@ -272,4 +272,4 @@ remove_player(State,PlayerPid) ->
 get_area_map(_Room) ->
     %% stub
     _Radius = ?AREAMAPRADIUS,
-    [{0, 0, 0}].
+    [{0, 0, 0}, {-1, 0, 0}, {-1, 1, 0}, {-2, 1, 0}, {-2, 2, 0}].

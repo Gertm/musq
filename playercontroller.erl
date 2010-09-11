@@ -111,13 +111,14 @@ send_paragraphs(Socket, Paragraphs, Color) ->
 		    end,
     lists:foreach(SendParagraph, Paragraphs).
 
-send_area_map_and_description(Socket, AreaMap, [Title|Desc]) ->
-    WrapColumns = ?WRAPCOLS - ?AREAMAPRADIUS - 2,
+send_area_map_and_description(Socket, Map, [Title|Desc]) ->
+    MapSize = ?AREAMAPRADIUS * 2 + 1,
+    WrapColumns = ?WRAPCOLS - MapSize - 2,
     WrappedDesc = lists:append([helpers:wrap(DescLine, WrapColumns) || DescLine <- Desc]),
-    CombinedHeight = max(1 + length(WrappedDesc), ?AREAMAPRADIUS),
-    AreaMapLines = helpers:render_area_map(AreaMap, ?AREAMAPRADIUS, CombinedHeight),
+    CombinedHeight = max(1 + length(WrappedDesc), MapSize),
+    AreaMapLines = helpers:render_area_map(Map, MapSize, CombinedHeight),
     SeparatorLines = lists:duplicate(CombinedHeight, "  "),
-    FullDescWithColor = [?with_color(Title, ?F_CYAN)|[?with_color(Line, ?F_GREEN) || Line <- WrappedDesc]],
+    FullDescWithColor = [?cyan(Title)|[?green(Line) || Line <- WrappedDesc]],
     FullDescWithExtraLines = case length(FullDescWithColor) < CombinedHeight of
 				 true ->
 				     NrExtraLines = CombinedHeight - length(FullDescWithColor),
