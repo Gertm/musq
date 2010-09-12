@@ -79,7 +79,7 @@ loop(Socket, Pid) ->
 	    %% perhaps we should answer that when we've actually implemented combat ;-)
 	    player:save(Pid);
 	{notification, Message} ->
-	    send_paragraphs(Socket, [Message], ?F_GREEN),
+	    send_paragraphs(Socket, [Message], ?F_WHITE),
 	    loop(Socket, Pid);
 	Other ->
 	    io:format("tcp_receive_loop: ~p~n", [Other])
@@ -118,7 +118,7 @@ send_area_map_and_description(Socket, Map, [Title|Desc]) ->
     CombinedHeight = erlang:max(1 + length(WrappedDesc), MapSize),
     AreaMapLines = helpers:render_area_map(Map, MapSize, CombinedHeight),
     SeparatorLines = lists:duplicate(CombinedHeight, "  "),
-    FullDescWithColor = [?cyan(Title)|[?green(Line) || Line <- WrappedDesc]],
+    FullDescWithColor = [?yellow(Title)|[?blue(Line) || Line <- WrappedDesc]],
     FullDescWithExtraLines = case length(FullDescWithColor) < CombinedHeight of
 				 true ->
 				     NrExtraLines = CombinedHeight - length(FullDescWithColor),
