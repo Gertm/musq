@@ -115,7 +115,7 @@ send_area_map_and_description(Socket, Map, [Title|Desc]) ->
     MapSize = ?AREAMAPRADIUS * 2 + 1,
     WrapColumns = ?WRAPCOLS - MapSize - 2,
     WrappedDesc = lists:append([helpers:wrap(DescLine, WrapColumns) || DescLine <- Desc]),
-    CombinedHeight = max(1 + length(WrappedDesc), MapSize),
+    CombinedHeight = erlang:max(1 + length(WrappedDesc), MapSize),
     AreaMapLines = helpers:render_area_map(Map, MapSize, CombinedHeight),
     SeparatorLines = lists:duplicate(CombinedHeight, "  "),
     FullDescWithColor = [?cyan(Title)|[?green(Line) || Line <- WrappedDesc]],
