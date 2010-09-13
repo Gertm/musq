@@ -68,7 +68,7 @@ render_area_map(Data, Width, Height) ->
 				YReal = YCenter - Y, %% swap Y axis
 				OldLine = lists:nth(YReal, Acc),
 				NewValue = case ((X =:= 0) and (Y =:= 0)) of
-					       true -> ?yellow("*");
+					       true -> "@";
 					       false -> "*"
 					   end,
 				NewLine = replace_string(OldLine, XReal, NewValue),
@@ -86,7 +86,7 @@ render_area_map_test_() ->
 		   "   "]),
      ?_assert(render_area_map([{0, 0, 0}, {-1, 0, 0}, {0, 1, 0}], 3, 3) =:=
 		  [" * ",
-		   "*"++?yellow("*")++" ",
+		   "*@ ",
 		   "   "])].
 
 %%%===================================================================

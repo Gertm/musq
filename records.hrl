@@ -35,4 +35,4 @@
 %% going to add more stuff to the area record once we start using them.
 
 %% TODO: find a better place (configuration.hrl/defines.hrl/options.hrl?)
--define(AREAMAPRADIUS, 3).
+-define(AREAMAPRADIUS, 2).
