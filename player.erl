@@ -106,6 +106,10 @@ handle_call({go, Direction}, _From, State) ->
 	    {reply, {error, Message}, State}
     end;
 
+handle_call({room_talk,PlayerName,Message},_From,State) ->
+    State#player.controllerPid ! {room_talk,PlayerName,Message},
+    {reply, ok, State}.
+
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
@@ -124,7 +128,7 @@ handle_cast(tick, State) ->
     {noreply, State};
 
 handle_cast({room_msg, Message}, State) ->
-    handle_notification(State, Message), 
+    handle_notification(State, Message),
     {noreply, State};
 
 handle_cast(_Msg, State) ->
@@ -186,6 +190,9 @@ look(Pid) ->
 
 room_msg(Pid, Message) ->
     gen_server:cast(Pid, {room_msg, Message}).
+
+room_talk(Pid,PlayerName,Message) ->
+    gen_server:call(Pid,{room_talk,PlayerName,Message}).
 
 %%%===================================================================
 %%% Internal functions

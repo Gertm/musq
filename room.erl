@@ -17,7 +17,7 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1,remove_player/2,add_player/2, get_area_map/1]).
+-export([buddy_process/2, load/1, remove_player/2, add_player/2, get_area_map/1]).
 
 %% call/cast wrappers
 -export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3]).
@@ -115,8 +115,8 @@ handle_call(get_exits, _From, State) ->
 
 handle_call({enter, _SourceDirection}, {PlayerPid, _}, State) ->
     %% add the player to the state, send player the 'look' information.
-    io:format("~p entered room ~p~n", [PlayerPid,self()]),
-    NewState = add_player(State,PlayerPid),
+    io:format("~p entered room ~p~n", [PlayerPid, self()]), 
+    NewState = add_player(State, PlayerPid), 
     {reply, {ok, NewState#room.desc}, NewState};
 
 handle_call({leave, _ToDirection}, _From, State) ->
@@ -125,17 +125,17 @@ handle_call({leave, _ToDirection}, _From, State) ->
 handle_call(look, _From, State) ->
     %% build up the lines for the room description.
     %% best to do this in a separate function because we're going to need it elsewhere too.
-    Desc = State#room.desc,
+    Desc = State#room.desc, 
     AreaMap = get_area_map(State), 
-    {reply, {looked, Desc, AreaMap}, State};
+    {reply, {looked, Desc, State#room.exits, AreaMap}, State};
 
 handle_call({go, Direction}, From, State) ->
     %% optimize this later, because it's probably slow
-    DirectionDict = dict:from_list(State#room.exits),
+    DirectionDict = dict:from_list(State#room.exits), 
     case dict:find(Direction, DirectionDict) of
 	{ok, Pid} -> 
-	    NewState = remove_player(State, From),
-	    enter(Pid, Direction),
+	    NewState = remove_player(State, From), 
+	    enter(Pid, Direction), 
 	    {reply, {new_room_pid, Pid}, NewState};
 	error -> {reply, {error, "You cannot go that way."}, State}
     end;
@@ -172,9 +172,9 @@ handle_cast(tick, #room{players=P, messages=M} = State) ->
 	    case length(M) of
 		0 -> ok; %% no message to send
 		_ ->
-		    Message = lists:nth(random:uniform(length(M)), M),
-		    %% io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]),
-		    lists:foreach(fun(Player) -> player:room_msg(Player, Message) end,P)
+		    Message = lists:nth(random:uniform(length(M)), M), 
+		    %% io:format("RoomMsg: ~s -> ~s.~n", [pid_to_list(self()), Message]), 
+		    lists:foreach(fun(Player) -> player:room_msg(Player, Message) end, P)
 	    end
     end, 
     {noreply, State};
@@ -261,15 +261,15 @@ get_name(Room) ->
 %%% Internal functions
 %%%===================================================================
 
-add_player(State,PlayerPid) ->
+add_player(State, PlayerPid) ->
     OldPlayers = State#room.players, 
     State#room{players=[PlayerPid|OldPlayers]}.
     
-remove_player(State,PlayerPid) ->
-    OldPlayers = State#room.players,
-    State#room{players=lists:delete(PlayerPid,OldPlayers)}.
+remove_player(State, PlayerPid) ->
+    OldPlayers = State#room.players, 
+    State#room{players=lists:delete(PlayerPid, OldPlayers)}.
 
 get_area_map(_Room) ->
     %% stub
-    _Radius = ?AREAMAPRADIUS,
+    _Radius = ?AREAMAPRADIUS, 
     [{0, 0, 0}, {-1, 0, 0}, {-1, 1, 0}, {-2, 1, 0}, {-2, 2, 0}].

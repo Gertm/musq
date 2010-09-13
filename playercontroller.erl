@@ -57,8 +57,10 @@ loop(Socket, Pid) ->
 	    case parse_command(Cmd, Pid) of
 		ok ->
 		    loop(Socket, Pid);
-		{looked, Desc, AreaMap} ->
+		{looked, Desc, Exits, AreaMap} ->
 		    send_area_map_and_description(Socket, AreaMap, Desc),
+		    ExitString = lists:foldl(fun({ExitName,_},Acc) -> Acc ++ " " ++ ExitName ++"," end,"Exits:",Exits),
+		    ?send(?cyan(ExitString)),
 		    loop(Socket, Pid);
 		{warning, Message} ->
 		    ?send(?yellow(Message)),
@@ -66,6 +68,8 @@ loop(Socket, Pid) ->
 		{error, Message} ->
 		    ?send(?red(Message)),
 		    loop(Socket, Pid);
+		{room_talk,PlayerName,Message} ->
+		    ?send(?yellow(PlayerName)++?yellow(" says:")++"'"++Message++"'.");
 		{unknown, _Command} ->
 		    ?send(?PROMPT++?red("Sorry, that didn't make any sense.")),
 		    loop(Socket, Pid);
@@ -100,7 +104,10 @@ parse_command(Command, Pid) ->
 	"down" -> player:go("down", Pid); %% ugh, there needs to be a better way of doing this.
 	"l" -> player:look(Pid);
 	"look" -> player:look(Pid);
-	_ -> {unknown, Command}
+	Other -> 
+%%	    case hd(Other) of
+%%		39 ->
+	    {unknown, Command}
     end.
 
 send_paragraphs(Socket, Paragraphs, Color) ->
@@ -118,7 +125,7 @@ send_area_map_and_description(Socket, Map, [Title|Desc]) ->
     CombinedHeight = erlang:max(1 + length(WrappedDesc), MapSize),
     AreaMapLines = helpers:render_area_map(Map, MapSize, CombinedHeight),
     SeparatorLines = lists:duplicate(CombinedHeight, "  "),
-    FullDescWithColor = [?yellow(Title)|[?blue(Line) || Line <- WrappedDesc]],
+    FullDescWithColor = [?bold(?yellow(Title))|[?blue(Line) || Line <- WrappedDesc]],
     FullDescWithExtraLines = case length(FullDescWithColor) < CombinedHeight of
 				 true ->
 				     NrExtraLines = CombinedHeight - length(FullDescWithColor),
