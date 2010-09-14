@@ -23,7 +23,7 @@
 	 terminate/2, code_change/3]).
 
 %% gen_server wrappers
--export([enter_start_room/2, save/1, look/1, go/2, room_msg/2, room_talk/3]).
+-export([enter_start_room/2, save/1, look/1, go/2, room_msg/2, room_talk/3, talk_in_room/2]).
 
 %% internal functions
 -export([handle_notification/2]).
@@ -100,14 +100,18 @@ handle_call({go, Direction}, _From, State) ->
     Room = State#player.room, 
     case room:go(Room, Direction) of
 	{new_room_pid, Pid} ->
-	    Reply = room:look(Pid),
+	    Reply = room:look(Pid), 
 	    {reply, Reply, State#player{room=Pid}};
 	{error, Message} ->
 	    {reply, {error, Message}, State}
     end;
 
-handle_call({room_talk,PlayerName,Message},_From,State) ->
-    State#player.controllerPid ! {room_talk,PlayerName,Message},
+handle_call({room_talk, PlayerName, Message}, _From, State) ->
+    State#player.controllerPid ! {room_talk, PlayerName, Message}, 
+    {reply, ok, State};
+
+handle_call({talk_in_room, Message}, _From, State) ->
+    room:talk(State#player.room, State#player.name, Message), 
     {reply, ok, State};
 
 handle_call(_Request, _From, State) ->
@@ -128,7 +132,7 @@ handle_cast(tick, State) ->
     {noreply, State};
 
 handle_cast({room_msg, Message}, State) ->
-    handle_notification(State, Message),
+    handle_notification(State, Message), 
     {noreply, State};
 
 handle_cast(_Msg, State) ->
@@ -191,8 +195,11 @@ look(Pid) ->
 room_msg(Pid, Message) ->
     gen_server:cast(Pid, {room_msg, Message}).
 
-room_talk(Pid,PlayerName,Message) ->
+room_talk(Pid, PlayerName, Message) ->
     gen_server:call(Pid, {room_talk, PlayerName, Message}).
+
+talk_in_room(Pid, Message) ->
+    gen_server:call(Pid, {talk_in_room, Message}).
 
 %%%===================================================================
 %%% Internal functions

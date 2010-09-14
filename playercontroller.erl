@@ -105,9 +105,10 @@ parse_command(Command, Pid) ->
 	"l" -> player:look(Pid);
 	"look" -> player:look(Pid);
 	Other -> 
-%%	    case hd(Other) of
-%%		39 ->
-	    {unknown, Command}
+	    case hd(Other) of
+		39 -> player:talk_in_room(Pid,tl(Other));
+		_ -> {unknown, Command}
+	    end
     end.
 
 send_paragraphs(Socket, Paragraphs, Color) ->

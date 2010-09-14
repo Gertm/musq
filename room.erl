@@ -17,10 +17,10 @@
 -export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1, remove_player/2, add_player/2, get_area_map/1]).
+-export([buddy_process/2, load/1, remove_player/2, add_player/2, get_area_map/1,broadcast_roomtalk_to_players/3]).
 
 %% call/cast wrappers
--export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3]).
+-export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3,talk/3]).
 
 -include("records.hrl").
 
@@ -150,6 +150,10 @@ handle_call(save_to_db, _From, State) ->
 handle_call(get_name, _From, State) ->
     {reply, State#room.name, State};
 
+handle_call({talk_in_room,PlayerName,Message},_From,State) ->
+    broadcast_roomtalk_to_players(State,PlayerName,Message),
+    {reply,ok,State};
+
 handle_call(_Request, _From, State) ->
     Reply = ok, 
     {reply, Reply, State}.
@@ -257,6 +261,9 @@ save(Room) ->
 get_name(Room) ->
     gen_server:call(Room, get_name).
 
+talk(Room,PlayerName,Message) ->
+    gen_server:call(Room,{talk_in_room,PlayerName,Message}).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
@@ -273,3 +280,10 @@ get_area_map(_Room) ->
     %% stub
     _Radius = ?AREAMAPRADIUS, 
     [{0, 0, 0}, {-1, 0, 0}, {-1, 1, 0}, {-2, 1, 0}, {-2, 2, 0}].
+
+
+broadcast_roomtalk_to_players(State,PlayerName,Message) ->
+    Players = State#room.players,
+    lists:foreach(fun(Pid) ->
+			     player:room_talk(Pid,PlayerName,Message) end,
+		      Players).
