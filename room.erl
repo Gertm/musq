@@ -70,7 +70,7 @@ get_room_state_from_file(RoomFile) ->
 %%--------------------------------------------------------------------
 
 init(RoomState) ->
-    BuddyPid = spawn(tickbuddy, loop, [self(), 15000]), 
+    BuddyPid = spawn(tickbuddy, loop, [self(), 30000]), 
     io:format("~p started buddy process ~p~n", [self(), BuddyPid]), 
     {ok, RoomState}.
 

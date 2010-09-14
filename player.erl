@@ -23,7 +23,7 @@
 	 terminate/2, code_change/3]).
 
 %% gen_server wrappers
--export([enter_start_room/2, save/1, look/1, go/2, room_msg/2]).
+-export([enter_start_room/2, save/1, look/1, go/2, room_msg/2, room_talk/3]).
 
 %% internal functions
 -export([handle_notification/2]).
@@ -108,7 +108,7 @@ handle_call({go, Direction}, _From, State) ->
 
 handle_call({room_talk,PlayerName,Message},_From,State) ->
     State#player.controllerPid ! {room_talk,PlayerName,Message},
-    {reply, ok, State}.
+    {reply, ok, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -192,7 +192,7 @@ room_msg(Pid, Message) ->
     gen_server:cast(Pid, {room_msg, Message}).
 
 room_talk(Pid,PlayerName,Message) ->
-    gen_server:call(Pid,{room_talk,PlayerName,Message}).
+    gen_server:call(Pid, {room_talk, PlayerName, Message}).
 
 %%%===================================================================
 %%% Internal functions
