@@ -14,13 +14,17 @@
 -export([start_link/1]).
 
 %% gen_server callbacks
--export([init/1, terminate/2, handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
+-export([init/1, terminate/2, handle_call/3, handle_cast/2,
+handle_info/2, code_change/3]).
 
 %% helper function
--export([buddy_process/2, load/1, remove_player/2, add_player/2, get_area_map/1,broadcast_roomtalk_to_players/3]).
+-export([buddy_process/2, load/1, remove_player/2, add_player/2,
+get_area_map/1, get_area_map_recursive/3, get_area_map_room_position/2, get_area_map_rooms_to_process/2,
+broadcast_roomtalk_to_players/3]).
 
 %% call/cast wrappers
--export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1, get_name/1, add_exit/3,talk/3]).
+-export([enter/2, get_exits/1, leave/2, look/1, go/2, save/1,
+get_name/1, add_exit/3,talk/3]).
 
 -include("records.hrl").
 
@@ -276,14 +280,51 @@ remove_player(State, PlayerPid) ->
     OldPlayers = State#room.players, 
     State#room{players=lists:delete(PlayerPid, OldPlayers)}.
 
-get_area_map(_Room) ->
-    %% stub
-    _Radius = ?AREAMAPRADIUS, 
-    [{0, 0, 0}, {-1, 0, 0}, {-1, 1, 0}, {-2, 1, 0}, {-2, 2, 0}].
+get_area_map(State) ->
+    Radius = ?AREAMAPRADIUS,
+    InitialPosition = {0, 0, 0},
+    RoomsToProcess = get_area_map_rooms_to_process(InitialPosition, State#room.exits),
+    ProcessedRooms = [InitialPosition, State#room.name],
+    [Position || {Position, _} <- get_area_map_recursive(Radius, RoomsToProcess, ProcessedRooms)].
 
+get_area_map_recursive(Radius, RoomsToProcess, ProcessedRooms) ->
+    case Radius =:= 0 of
+	true ->
+	    ProcessedRooms;
+	false ->
+	    ProcessRoom = fun({Position, Pid}) ->
+				  case (lists:member(Pid, ProcessedRooms)) of
+				      true ->
+					  [];
+				      false ->
+					  {exits, Exits} = get_exits(Pid),
+					  get_area_map_rooms_to_process(Position, Exits)
+				  end
+			  end,
+	    NewRoomsToProcess = lists:flatten(lists:map(ProcessRoom, RoomsToProcess)),
+	    NewProcessedRooms = RoomsToProcess++ProcessedRooms,
+	    get_area_map_recursive(Radius - 1, NewRoomsToProcess, NewProcessedRooms)
+    end.
 
-broadcast_roomtalk_to_players(State,PlayerName,Message) ->
+get_area_map_room_position({X, Y, Z}, Dir) ->
+    case Dir of
+	"north" -> {X, Y + 1, Z};
+	"south" -> {X, Y - 1, Z};
+	"west" -> {X - 1, Y, Z};
+	"east" -> {X + 1, Y, Z};
+	"northwest" -> {X - 1, Y + 1, Z};
+	"northeast" -> {X + 1, Y + 1, Z};
+	"southeast" -> {X + 1, Y - 1, Z};
+	"southwest" -> {X - 1, Y - 1, Z};
+	"up" -> {X, Y, Z + 1};
+	"down" -> {X, Y, Z - 1}
+    end.
+
+get_area_map_rooms_to_process(Position, Exits) ->
+    [{get_area_map_room_position(Position, Dir), Pid} || {Dir, Pid} <- Exits].
+
+broadcast_roomtalk_to_players(State, PlayerName, Message) ->
     Players = State#room.players,
     lists:foreach(fun(Pid) ->
-			     player:room_talk(Pid,PlayerName,Message) end,
-		      Players).
+			  player:room_talk(Pid, PlayerName, Message) end,
+		  Players).
