@@ -1,0 +1,18 @@
+body
+{
+    margin:0px;
+    padding:0px;
+}
+
+#background_layer0
+{
+    /* in case the browser doesn't support bacground svg files */
+    background-color:rgb(15,0,100);
+    background-image:url('images/mainpage_background_layer0.svg');
+    background-repeat:no-repeat;
+}
+
+#background_layer1
+{
+    background-image:url('images/mainpage_background_layer1.png');
+}
