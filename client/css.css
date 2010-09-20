@@ -2,17 +2,25 @@ body
 {
     margin:0px;
     padding:0px;
+    background-color:#EEEEFF;
+    background-image:url('images/background.png');
+    background-repeat:repeat-x;
 }
 
-#background_layer0
+#content
 {
-}
-
-#background_layer1
-{
+    width:1024px;
+    margin:0px auto;
 }
 
 #maincanvas
 {
-    margin:20px auto;
+}
+
+#footer
+{
+    background-color:#000000;
+    color:#AAAAAA;
+    font-size:0.7em;
+    padding:5px 0px 5px 50px;
 }

@@ -40,8 +40,5 @@ function drawCanvas() {
 }
 
 window.onload = window.onresize = function() {
-    setFullWindow(document.getElementById("background_layer0"), 0);
-    setFullWindow(document.getElementById("background_layer1"), 0);
-    centerWindow(document.getElementById("maincanvas"));
     drawCanvas();
 };
