@@ -1,26 +1,17 @@
-body
-{
-    margin:0px;
-    padding:0px;
-    background-color:#EEEEFF;
-    background-image:url('images/background.png');
-    background-repeat:repeat-x;
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: #000033;
+    background-image: url('images/background.png');
 }
 
-#content
-{
-    width:1024px;
-    margin:0px auto;
+#maincanvas {
 }
 
-#maincanvas
-{
-}
-
-#footer
-{
-    background-color:#000000;
-    color:#AAAAAA;
-    font-size:0.7em;
-    padding:5px 0px 5px 50px;
+#footer {
+    background-color: #000000;
+    color: #AAAAAA;
+    font-size: 0.7em;
+    font-family: "DejaVu Sans Mono", Monospace;
+    padding: 5px 0px 5px 50px;
 }
