@@ -1,78 +1,38 @@
-<script src='/jquery.min.js'></script>
-<script>
-$(document).ready(function(){
-
-var ws;
-
-if ("WebSocket" in window) {
-debug("Horray you have web sockets
-Trying to connect...");
-ws = new WebSocket("ws://localhost:1234/websession");
-
-ws.onopen = function() {
-// Web Socket is connected. You can send data by send() method.
-debug("connected...");
-ws.send("hello from the browser");
-ws.send("more from browser");
-};
-
-run = function() {
-var val=$("#i1").val(); // read the entry
-$("#i1").val("");       // and clear it
-ws.send(val);           // tell erlang
-return true;            // must do this
-};
-
-ws.onmessage = function (evt)
-{
-var data = evt.data;
-var i = data.indexOf("!");
-var tag = data.slice(0,i);
-var val = data.slice(i+1);
-$("#" + tag).html(val);
-};
-
-ws.onclose = function()
-{
-debug(" socket closed");
-};
-} else {
-alert("You have no web sockets");
-};
-
-function debug(str){
-$("#debug").append("<p>" +  str);
-};
-
-
-});
-
-
-
-
-<h1>Interaction experiment</h1>
-
-<h2>Debug</h2>
-<div id="debug"></div>
-
-<fieldset>
-<legend>Clock</legend>
-<div id="clock">I am a clock</div>
-</fieldset>
-
-<fieldset>
-<legend>out</legend>
-<div id="out">Output should appear here</div>
-</fieldset>
-
-<p>Enter something in the entry below,
-the server will reverse the string and send it to the
-out region above</p>
-
-<fieldset>
-<legend>entry</legend>
-<P>Enter: <input id="i1" onchange="run()" size ="42"></p>
-</input>
-</fieldset>
-
-</body>
+<html>
+   <head>
+     <script type="text/javascript">
+         function addStatus(text){
+            var date = new Date();
+            document.getElementById('status').innerHTML = document.getElementById('status').innerHTML
+               + date + ": " + text + "<br>";
+         }
+         function ready(){
+            if ("WebSocket" in window) {
+               // browser supports websockets
+               var ws = new WebSocket("ws://localhost:8080/service");
+               ws.onopen = function() {
+                  // websocket is connected
+                  addStatus("websocket connected!");
+                  // send hello data to server.
+                  ws.send("hello server!");
+                  addStatus("sent message to server: 'hello server'!");
+               };
+               ws.onmessage = function (evt) {
+                  var receivedMsg = evt.data;
+                  addStatus("server sent the following: '" + receivedMsg + "'");
+               };
+               ws.onclose = function() {
+                  // websocket was closed
+                  addStatus("websocket was closed");
+               };
+            } else {
+               // browser does not support websockets
+               addStatus("sorry, your browser does not support websockets.");
+            }
+         }
+      </script>
+   </head>
+   <body onload="ready();">
+      <div id="status"></div>
+   </body>
+</html>
