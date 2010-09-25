@@ -15,7 +15,7 @@
                   addStatus("websocket connected!");
                   // send hello data to server.
                   ws.send("hello server!");
-                  addStatus("sent message to server: 'hello server'!");
+                  addStatus("sent message to server: 'hello server!'");
                };
                ws.onmessage = function (evt) {
                   var receivedMsg = evt.data;
