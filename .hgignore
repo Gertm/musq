@@ -3,3 +3,6 @@ glob:*.beam
 glob:*~
 glob:Mnesia.nonode@nohost
 glob:*.orig
+glob:*.8
+glob:*.6
+glob:server/httpd
