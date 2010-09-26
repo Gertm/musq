@@ -16,6 +16,52 @@ var musq = function() {
 
     //##############################################################################################
 
+    var communication = function() {
+
+	if (window.WebSocket) {
+
+	    var ws = new WebSocket("ws://localhost:8080/service");
+
+	    var onOpen = function() {
+		alert("WebSocket opened.");
+		ws.send("hello");
+	    };
+	    ws.onopen = onOpen;
+
+	    var onClose = function() {
+		alert("WebSocket closed.");
+	    };
+	    ws.onclose = onClose;
+
+	    var onReceive = function(data) {
+		alert("Received " + data);
+	    };
+	    ws.onmessage = function(evt) {
+		onReceive(evt.data);
+	    };
+
+	    function send(data) {
+		ws.send(data);
+	    }
+
+	    return {
+		send: send,
+		onOpen: onOpen,
+		onClose: onClose,
+		onReceive: onReceive
+	    };
+	    
+	} else {
+
+	    alert("Sorry, your browser does not support websockets.");
+	    return {};
+    
+	}
+
+    }();
+
+    //##############################################################################################
+
     var main = function() {
 
 	var resourceBuffer = function() {
