@@ -15,14 +15,26 @@ func data_handler(c *http.Conn, r *http.Request) {
 	http.ServeFile(c, r, path)
 }
 
-func EchoServer(ws *websocket.Conn) {
+func WebSocketHandler(ws *websocket.Conn) {
 	fmt.Print("Websocket activity from "+ ws.Origin  +"!\n")
-	io.Copy(ws, ws); // io.Copy is basicly an infinite loop, so it doesn't close the websocket.
-	// must find a way to keep them open. (pass them around by value?)
+	defer fmt.Print("Done handling websocket from "+ws.Origin+"\n")
+	buf := make([]byte, 1024)
+    for {
+        n, err := ws.Read(buf)
+        if err != nil {
+            break
+        }
+		// should we need a check to see if the message was longer than
+		// 1024 bytes and will therefor need assembly?
+		ws.Write(buf[0:n])
+		io.WriteString(ws, "Got something else to say?\n")
+    }
 }
 
 func main() {
 	http.HandleFunc("/", data_handler)
-	http.Handle("/service", websocket.Handler(EchoServer));
+	http.Handle("/service", websocket.Handler(WebSocketHandler))
 	http.ListenAndServe(":8080", nil)
 }
+
+
