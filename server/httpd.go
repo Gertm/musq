@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"http"
 	"io"
+	"time"
 	"websocket"
 )
+
+func Log(str string) {
+	fmt.Print(time.LocalTime().Format(time.Kitchen)+" - "+str)
+}
 
 // this function serves up the 'client' folder
 func data_handler(c *http.Conn, r *http.Request) {
 	path := "../client/" + r.URL.Path[1:]
 	// just to see what's going on, let's put some debug logging in
-	fmt.Print("Serving file " + path + " to " + r.Host + "\n")
+	Log("Serving file " + path + " to " + r.Host + "\n")
 	http.ServeFile(c, r, path)
 }
 
@@ -20,8 +25,8 @@ func config_handler(c *http.Conn, r *http.Request) {
 }
 
 func WebSocketHandler(ws *websocket.Conn) {
-	fmt.Print("Websocket activity from "+ ws.Origin  +"!\n")
-	defer fmt.Print("Done handling websocket from "+ws.Origin+"\n")
+	Log("Websocket activity from "+ ws.Origin  +"!\n")
+	defer Log("Done handling websocket from "+ws.Origin+"\n")
 	buf := make([]byte, 1024)
     for {
         n, err := ws.Read(buf)
