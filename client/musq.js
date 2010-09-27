@@ -20,7 +20,7 @@ var musq = function() {
 
 	if (window.WebSocket) {
 
-	    var ws = new WebSocket("ws://localhost:8080/service");
+	    var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
 
 	    var onOpen = function() {
 		alert("WebSocket opened.");
