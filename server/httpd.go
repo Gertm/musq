@@ -15,6 +15,11 @@ func data_handler(c *http.Conn, r *http.Request) {
 	http.ServeFile(c, r, path)
 }
 
+func ipaddress_handler(c *http.Conn, r *http.Request) {
+	fmt.Print("Got ip address request")
+	io.WriteString(c, r.Host)
+}
+
 func WebSocketHandler(ws *websocket.Conn) {
 	fmt.Print("Websocket activity from "+ ws.Origin  +"!\n")
 	defer fmt.Print("Done handling websocket from "+ws.Origin+"\n")
@@ -33,6 +38,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 
 func main() {
 	http.HandleFunc("/", data_handler)
+	http.HandleFunc("/ip", ipaddress_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))
 	http.ListenAndServe(":8080", nil)
 }
