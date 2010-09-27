@@ -20,7 +20,7 @@ var musq = function() {
 
 	if (window.WebSocket) {
 
-	    var ws = new WebSocket("ws://localhost:8080/service");
+	    var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
 
 	    var onOpen = function() {
 		alert("WebSocket opened.");
@@ -123,16 +123,13 @@ var musq = function() {
 	    footer.style.left = utils.toPx(0);
 	}
 
-	function drawSvg(cxt, svg, x, y) {
-	}
-
 	function drawCanvas() {
 	    var canvas = document.getElementById("maincanvas");
 	    var cxt = canvas.getContext("2d");
 	    cxt.fillStyle = "#FFFFFF";
 	    cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
-	    //drawSvg(cxt, resourceBuffer.get("human01"), 250, 140);
-	    cxt.drawImage(resourceBuffer.get("human01"), 250, 140);
+	    //cxt.drawImage(resourceBuffer.get("human01"), 250, 140);
+	    cxt.drawSvg("images/faces/human/human01.svg", 100, 200);
 	}
 
 	function onWindowResize() {
@@ -143,7 +140,7 @@ var musq = function() {
 
 	function onWindowLoad() {
 	    //resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
-	    resourceBuffer.addImage("human01", "images/faces/human/human01.svg");
+	    //resourceBuffer.addImage("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
 	    setInterval(drawCanvas, 1000);
 	}
