@@ -15,9 +15,8 @@ func data_handler(c *http.Conn, r *http.Request) {
 	http.ServeFile(c, r, path)
 }
 
-func ipaddress_handler(c *http.Conn, r *http.Request) {
-	fmt.Print("Got ip address request")
-	io.WriteString(c, r.Host)
+func config_handler(c *http.Conn, r *http.Request) {
+	io.WriteString(c, "var musq_websocket_url=\""+r.Host+"\";")
 }
 
 func WebSocketHandler(ws *websocket.Conn) {
@@ -38,7 +37,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 
 func main() {
 	http.HandleFunc("/", data_handler)
-	http.HandleFunc("/ip", ipaddress_handler)
+	http.HandleFunc("/musqconfig.js", config_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))
 	http.ListenAndServe(":8080", nil)
 }
