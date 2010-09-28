@@ -8,8 +8,42 @@ var musq = function() {
 	    return i + "px";
 	}
 
+	function lerp(i1, i2, f) {
+	    return i1 + (i2 - i1) * f;
+	}
+
 	return {
-	    toPx: toPx  
+	    toPx: toPx,
+	    lerp: lerp
+	};
+	
+    }();
+
+    //##############################################################################################
+
+    var data = function() {
+
+	// These are all in 'logical' coordinates, not in UI pixels.
+	var viewPortCenter = {
+	    x: 0.0,
+	    y: 0.0
+	};
+	var playerUiSide = {
+	    x: 0.0,
+	    y: 0.0
+	};
+	var playerLogicSide = {
+	    x: 10.0,
+	    y: 10.0
+	};
+
+	var playerSpeed = 1.0;
+
+	return {
+	    viewPortCenter: viewPortCenter,
+	    playerUiSide: playerUiSide,
+	    playerLogicSide: playerLogicSide,
+	    playerSpeed: playerSpeed
 	};
 	
     }();
@@ -123,13 +157,55 @@ var musq = function() {
 	    footer.style.left = utils.toPx(0);
 	}
 
+	var logicalToVisualFactor = 50.0;
+
+	function logicalToVisual(xy) {
+	    var canvas = document.getElementById("maincanvas");
+	    return {
+		x: Math.round(canvas.width / 2 + xy.x * logicalToVisualFactor),
+		y: Math.round(canvas.height / 2 - xy.y * logicalToVisualFactor)
+	    };
+	}
+
+	function visualToLogic(xy) {
+	    var canvas = document.getElementById("maincanvas");
+	    return {
+		x: (xy.x - canvas.width / 2) / logicalToVisualFactor,
+		y: -(xy.y - canvas.height / 2) / logicalToVisualFactor
+	    };
+	}
+
 	function drawCanvas() {
 	    var canvas = document.getElementById("maincanvas");
 	    var cxt = canvas.getContext("2d");
 	    cxt.fillStyle = "#FFFFFF";
 	    cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
-	    //cxt.drawImage(resourceBuffer.get("human01"), 250, 140);
-	    cxt.drawSvg("images/faces/human/human01.svg", 100, 200);
+	    var playerVisual = logicalToVisual(data.playerUiSide);
+	    cxt.drawSvg("images/faces/human/human01.svg", playerVisual.x, playerVisual.y);
+	}
+
+	function updateUiData() {
+	    // TODO: take fps into account (base on last time this function was called)
+	    var speed  = data.playerSpeed * 1.0;
+	    if (data.playerUiSide.x < data.playerLogicSide.x)
+		data.playerUiSide.x += speed;
+	    if (data.playerUiSide.x > data.playerLogicSide.x)
+		data.playerUiSide.x -= speed;
+	    if (data.playerUiSide.y < data.playerLogicSide.y)
+		data.playerUiSide.y += speed;
+	    if (data.playerUiSide.y > data.playerLogicSide.y)
+		data.playerUiSide.y -= speed;
+	}
+
+	function setRandomPlayerLogicalSide() {
+	    var canvas = document.getElementById("maincanvas");
+	    // TODO: Buffer these after a resize.
+	    var minxy = visualToLogic({ x: 0, y: 0 });
+	    var maxxy = visualToLogic({ x: canvas.width - 1, y: canvas.height - 1 });
+	    data.playerLogicSide = visualToLogic({
+						     x: utils.lerp(minxy.x, maxxy.x, Math.random()),
+						     y: utils.lerp(minxy.y, maxxy.y, Math.random())
+						 });
 	}
 
 	function onWindowResize() {
@@ -140,9 +216,12 @@ var musq = function() {
 
 	function onWindowLoad() {
 	    //resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
-	    //resourceBuffer.addImage("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
-	    setInterval(drawCanvas, 1000);
+	    var fps = 2;
+	    setInterval(updateUiData, 1000 / fps);
+	    setInterval(drawCanvas, 1000 / fps);
+	    setRandomPlayerLogicalSide();
+	    setInterval(setRandomPlayerLogicalSide, 10000);
 	}
 
 	return {
@@ -164,6 +243,10 @@ var musq = function() {
 
 	function runTests() {
 	    test("toPx", (utils.toPx(10) == "10px"));
+	    test("lerp1", (utils.lerp(0.0, 10.0, 0.5) == 5.0));
+	    test("lerp2", (utils.lerp(10.0, 30.0, 0.5) == 20.0));
+	    test("lerp3", (utils.lerp(10.0, 30.0, 0.0) == 10.0));
+	    test("lerp4", (utils.lerp(10.0, 30.0, 1.0) == 30.0));
 	}
 
 	return {
