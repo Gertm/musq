@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"fmt"
+	"fmt"
 	"github.com/mikejs/gomongo/mongo"
 )
 
@@ -15,19 +15,35 @@ type Player struct {
 
 func main() {
 	conn, _ := mongo.Connect("127.0.0.1")
-	collection := conn.GetDB("test").GetCollection("test_collection")
+	collection := conn.GetDB("MUSQ").GetCollection("players")
 
-	doc, _ := mongo.Marshal(map[string]string{
-		"_id": "doc1",
-		"title": "A Mongo Document",
-		"content": "Testing, 1, 2, 3",
-	})
-	collection.Insert(doc)
-	query,_ := mongo.Marshal(map[string]string{"_id": "doc1"})
-	got,_ := collection.FindOne(query)
+	Player1 := Player{X: 0, Y: 0, Name: "Randy", SVG: "human01.svg"}
+	bsonP1, _ := mongo.Marshal(Player1)
+
+	collection.Insert(bsonP1)
 	
-	mongo.Equal(got, doc)
+	fmt.Print("Inserted Player1\n")
 
+	Player2 := Player{X:1, Y:1, Name: "empty", SVG: "bla"}
+	
+	qFindDoc, err := mongo.Marshal(&map[string]string{
+		"Name": "Randy",
+	})
+	if err != nil {
+		fmt.Print(err.String())
+	}
+	bsonP2, err := collection.FindOne(qFindDoc)
+	if err != nil {
+		fmt.Print("something went wrong with the bsonP2\n")
+		fmt.Print(err.String())
+	}
+	if mongo.Equal(bsonP1, bsonP2) {
+		fmt.Print("both objects are the same!\n")
+	}
+	
+	mongo.Unmarshal(bsonP2.Bytes(), &Player2)
+	fmt.Print("Found player in db: "+Player2.Name+" -> "+Player2.SVG)
+	
 	collection.Drop()
 }
 
