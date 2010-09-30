@@ -186,7 +186,8 @@ var musq = function() {
 
 	function updateUiData() {
 	    // TODO: take fps into account (base on last time this function was called)
-	    var speed  = data.playerSpeed * 1.0;
+	    var fps = 30;
+	    var speed  = data.playerSpeed * 1.0 / fps;
 	    if (data.playerUiSide.x < data.playerLogicSide.x)
 		data.playerUiSide.x += speed;
 	    if (data.playerUiSide.x > data.playerLogicSide.x)
@@ -200,8 +201,8 @@ var musq = function() {
 	function setRandomPlayerLogicalSide() {
 	    var canvas = document.getElementById("maincanvas");
 	    // TODO: Buffer these after a resize.
-	    var minxy = visualToLogic({ x: 0, y: 0 });
-	    var maxxy = visualToLogic({ x: canvas.width - 1, y: canvas.height - 1 });
+	    var minxy = { x: 0, y: 0 };
+	    var maxxy = { x: canvas.width - 1, y: canvas.height - 1 };
 	    data.playerLogicSide = visualToLogic({
 						     x: utils.lerp(minxy.x, maxxy.x, Math.random()),
 						     y: utils.lerp(minxy.y, maxxy.y, Math.random())
@@ -217,7 +218,7 @@ var musq = function() {
 	function onWindowLoad() {
 	    //resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
-	    var fps = 2;
+	    var fps = 30;
 	    setInterval(updateUiData, 1000 / fps);
 	    setInterval(drawCanvas, 1000 / fps);
 	    setRandomPlayerLogicalSide();
