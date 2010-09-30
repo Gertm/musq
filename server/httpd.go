@@ -13,14 +13,14 @@ func Log(str string) {
 }
 
 // this function serves up the 'client' folder
-func data_handler(c *http.Conn, r *http.Request) {
+func data_handler(c http.ResponseWriter, r *http.Request) {
 	path := "../client/" + r.URL.Path[1:]
 	// just to see what's going on, let's put some debug logging in
 	Log("Serving file " + path + " to " + r.Host + "\n")
 	http.ServeFile(c, r, path)
 }
 
-func config_handler(c *http.Conn, r *http.Request) {
+func config_handler(c http.ResponseWriter, r *http.Request) {
 	io.WriteString(c, "var musq_websocket_url=\""+r.Host+"\";")
 }
 
