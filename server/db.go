@@ -5,15 +5,8 @@ import (
 	"github.com/mikejs/gomongo/mongo"
 )
 
-type Player struct {
-	Name		 string
-	X			 int
-	Y			 int
-	SVG			 string
-}
 
-
-func main() {
+func test() {
 	conn, _ := mongo.Connect("127.0.0.1")
 	collection := conn.GetDB("MUSQ").GetCollection("players")
 
