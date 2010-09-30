@@ -25,7 +25,8 @@ func main() {
 	fmt.Print("Inserted Player1\n")
 
 	qFindDoc, err := mongo.Marshal(&map[string]string{
-		"name":"Randy",
+		"name":"Randy",  // need to use lower case for 'name' here
+		                 // the mongodb driver will crash if not.
 	})
 
 	if err != nil {
