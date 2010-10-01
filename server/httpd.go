@@ -33,10 +33,8 @@ func WebSocketHandler(ws *websocket.Conn) {
         if err != nil {
             break
         }
-		// should we need a check to see if the message was longer than
-		// 1024 bytes and will therefor need assembly?
+		// parse command and return optional reply
 		ws.Write(buf[0:n])
-		io.WriteString(ws, "Got something else to say?\n")
     }
 }
 
