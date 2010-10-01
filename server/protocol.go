@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"os"
+	"fmt"
 	"json"
 )
 
@@ -10,12 +10,15 @@ type Move struct {
 	Y int
 }
 
-type Command struct {
-	type string
-	
-}
-
 func Decode(json []byte) string {
-	
+	return ""
 }
 
+func testjson() {
+	a := Move{X: 1, Y: 2}
+	b, err := json.Marshal(a)
+	if err!=nil {
+		fmt.Print(err)
+		}
+	fmt.Print(string(b))
+}
