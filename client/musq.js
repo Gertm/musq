@@ -21,32 +21,29 @@ var musq = function() {
 
     //##############################################################################################
 
-    var data = function() {
+    var data = {};
 
-	// These are all in 'logical' coordinates, not in UI pixels.
-	var viewPortCenter = {
-	    x: 0.0,
-	    y: 0.0
-	};
-	var playerUiSide = {
-	    x: 0.0,
-	    y: 0.0
-	};
-	var playerLogicSide = {
-	    x: 10.0,
-	    y: 10.0
-	};
+    // These are all in 'logical' coordinates, not in UI pixels.
+    data.viewPortCenter = {
+	x: 0.0,
+	y: 0.0
+    };
+    data.playerUiSide = {
+	x: 0.0,
+	y: 0.0
+    };
+    data.playerLogicSide = {
+	x: 10.0,
+	y: 10.0
+    };
 
-	var playerSpeed = 1.0;
+    data.playerSpeed = 1.0;
 
-	return {
-	    viewPortCenter: viewPortCenter,
-	    playerUiSide: playerUiSide,
-	    playerLogicSide: playerLogicSide,
-	    playerSpeed: playerSpeed
-	};
-	
-    }();
+    data.now = function() {
+	return (new Date()).getTime();
+    };
+
+    data.lastUpdateTime = data.now();
 
     //##############################################################################################
 
@@ -185,17 +182,17 @@ var musq = function() {
 	}
 
 	function updateUiData() {
-	    // TODO: take fps into account (base on last time this function was called)
-	    var fps = 30;
-	    var speed  = data.playerSpeed * 1.0 / fps;
+	    var newUpdateTime = data.now();
+	    var distance = data.playerSpeed * (newUpdateTime - data.lastUpdateTime) * 0.001;
 	    if (data.playerUiSide.x < data.playerLogicSide.x)
-		data.playerUiSide.x += speed;
+		data.playerUiSide.x += distance;
 	    if (data.playerUiSide.x > data.playerLogicSide.x)
-		data.playerUiSide.x -= speed;
+		data.playerUiSide.x -= distance;
 	    if (data.playerUiSide.y < data.playerLogicSide.y)
-		data.playerUiSide.y += speed;
+		data.playerUiSide.y += distance;
 	    if (data.playerUiSide.y > data.playerLogicSide.y)
-		data.playerUiSide.y -= speed;
+		data.playerUiSide.y -= distance;
+	    data.lastUpdateTime = newUpdateTime;
 	}
 
 	function setRandomPlayerLogicalSide() {
