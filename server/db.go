@@ -5,7 +5,6 @@ import (
 	"github.com/mikejs/gomongo/mongo"
 )
 
-
 func test() {
 	conn, _ := mongo.Connect("127.0.0.1")
 	collection := conn.GetDB("MUSQ").GetCollection("players")

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"json"
+	"strconv"
 )
 
 type Request struct {
@@ -24,6 +25,19 @@ func testjson() {
 	fmt.Print("\n---- End test stuff ----\n")
 }
 
-func (r *Request) Parse() {
+func GetRequestFromJSON(bson []byte) *Request {
+	var req = new(Request)
+	json.Unmarshal(bson, req)
+	return req
+}
 	
+func (r *Request) Dispatch(p *Player) {
+	switch r.Function {
+	case "move":
+		x, _ := strconv.Atoi(r.Params["X"])
+		y, _ := strconv.Atoi(r.Params["Y"])
+		// check whether the player can move *TBI*
+		// if yes, move him
+		p.Move(x,y)
+	}
 }

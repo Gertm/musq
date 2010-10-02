@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	)
+)
 
 type Player struct {
 	Name		 string
@@ -10,9 +10,15 @@ type Player struct {
 	Y			 int
 	SVG			 string
 	PwdHsh       string
+	ReqQueue     [20]Request
 }
 
 func (p *Player) SaveToDB() os.Error {
+	// not going to implement db stuff just yet.
+	// let's first get the rest working.
 	return nil
 }
 
+func (p *Player) Move(x int, y int) os.Error {
+	return nil
+}
