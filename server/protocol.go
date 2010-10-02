@@ -6,23 +6,24 @@ import (
 )
 
 type Request struct {
-	Kind string
-	StrParams map[string]string
-	IntParams map[string]int
+	Function string
+	Params map[string]string
 }
 
 func testjson() {
-	a := Request{"move",nil, map[string]int{"x": 5, "y": 7}}
+	a := Request{"move", map[string]string{"x": "5", "y": "7"}}
 	b, err := json.Marshal(a)
 	if err!=nil {
 		fmt.Print(err)
-		}
+	}
 	fmt.Print(string(b))
 	var c = new(Request)
 	json.Unmarshal(b,c)
+	fmt.Print("\n")
 	fmt.Print(c)
+	fmt.Print("\n---- End test stuff ----\n")
 }
 
-func (r *Request) Handle() {
+func (r *Request) Parse() {
 	
 }
