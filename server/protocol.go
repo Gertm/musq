@@ -10,6 +10,9 @@ type Move struct {
 	Y int
 }
 
+type Empty struct {
+}
+
 func Decode(json []byte) string {
 	return ""
 }
@@ -21,4 +24,7 @@ func testjson() {
 		fmt.Print(err)
 		}
 	fmt.Print(string(b))
+	var c = new(Move)
+	json.Unmarshal(b,c)
+	fmt.Print(c.X)
 }
