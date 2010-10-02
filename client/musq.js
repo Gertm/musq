@@ -23,15 +23,36 @@ var musq = function() {
 
     var vecMath = function() {
 
-	function Vector2d(x, y) {
-	    return {
-		x: x,
-		y: y
+	function vector2d(x, y) {
+	    this.x = x;
+	    this.y = y;
+	    this.length = function() {
+		return Math.sqrt(this.x * this.x + this.y * this.y);	
 	    };
 	}
 
+	function add(v1, v2) {
+	    return new vector2d(v1.x + v2.x, v1.y + v2.y);
+	}
+
+	function subtract(v1, v2) {
+	    return new vector2d(v1.x - v2.x, v1.y - v2.y);
+	}
+
+	function scale(v, s) {
+	    return new vector2d(s * v.x, s * v.y);
+	}
+
+	function normalize(v) {
+	    return scale(v, 1.0 / v.length());
+	};
+
 	return {
-	    Vector2d: Vector2d  
+	    vector2d: vector2d,
+	    add: add,
+	    subtract: subtract,
+	    scale: scale,
+	    normalize: normalize
 	};
 
     }();
@@ -41,9 +62,9 @@ var musq = function() {
     var data = {};
 
     // These are all in 'logical' coordinates, not in UI pixels.
-    data.viewPortCenter = vecMath.Vector2d(0.0, 0.0);
-    data.playerUiSide = vecMath.Vector2d(0.0, 0.0);
-    data.playerLogicSide = vecMath.Vector2d(10.0, 10.0);
+    data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
+    data.playerUiSide = new vecMath.vector2d(0.0, 0.0);
+    data.playerLogicSide = new vecMath.vector2d(10.0, 10.0);
 
     data.playerSpeed = 1.0;
 
@@ -165,7 +186,7 @@ var musq = function() {
 
 	function logicalToVisual(xy) {
 	    var canvas = document.getElementById("maincanvas");
-	    return vecMath.Vector2d(
+	    return new vecMath.vector2d(
 		Math.round(canvas.width / 2 + xy.x * logicalToVisualFactor),
 		Math.round(canvas.height / 2 - xy.y * logicalToVisualFactor)
 	    );
@@ -173,7 +194,7 @@ var musq = function() {
 
 	function visualToLogic(xy) {
 	    var canvas = document.getElementById("maincanvas");
-	    return vecMath.Vector2d(
+	    return new vecMath.vector2d(
 		(xy.x - canvas.width / 2) / logicalToVisualFactor,
 		(xy.y - canvas.height / 2) * -1 / logicalToVisualFactor
 	    );
@@ -199,22 +220,20 @@ var musq = function() {
 	}
 
 	function updateUiData() {
+	    var vm = vecMath;
 	    var newUpdateTime = data.now();
 	    var distance = data.playerSpeed * (newUpdateTime - data.lastUpdateTime) * 0.001;
-	    if (data.playerUiSide.x < data.playerLogicSide.x)
-		data.playerUiSide.x += distance;
-	    if (data.playerUiSide.x > data.playerLogicSide.x)
-		data.playerUiSide.x -= distance;
-	    if (data.playerUiSide.y < data.playerLogicSide.y)
-		data.playerUiSide.y += distance;
-	    if (data.playerUiSide.y > data.playerLogicSide.y)
-		data.playerUiSide.y -= distance;
+	    var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
+	    var vLength = v.length();
+	    if (vLength > 0.01) {
+		data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
+	    }
 	    data.lastUpdateTime = newUpdateTime;
 	}
 
 	function setRandomPlayerLogicalSide() {
 	    var canvas = document.getElementById("maincanvas");
-	    data.playerLogicSide = visualToLogic(vecMath.Vector2d(
+	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(
 						     utils.lerp(0, canvas.width - 1, Math.random()),
 						     utils.lerp(0, canvas.height - 1, Math.random())
 						 ));
@@ -222,7 +241,7 @@ var musq = function() {
 
 	function onCanvasClick(evt) {
 	    var canvas = document.getElementById("maincanvas");
-	    data.playerLogicSide = visualToLogic(vecMath.Vector2d(evt.offsetX, evt.offsetY));
+	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(evt.offsetX, evt.offsetY));
 	}
 
 	function onWindowResize() {
