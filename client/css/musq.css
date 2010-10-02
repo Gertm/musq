@@ -2,7 +2,7 @@ body {
     margin: 0px;
     padding: 0px;
     background-color: #000033;
-    background-image: url('images/background.png');
+    background-image: url('../images/background.png');
 }
 
 #maincanvas {

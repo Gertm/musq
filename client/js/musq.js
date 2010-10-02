@@ -8,13 +8,30 @@ var musq = function() {
 	    return i + "px";
 	}
 
+	function fromPx(s) {
+	    return s.substr(0, s.length - 2);
+	}
+
 	function lerp(i1, i2, f) {
 	    return i1 + (i2 - i1) * f;
 	}
 
+	function onclickOffset(evt, axis, obj) {
+	    // [Randy 02/10/2010] REMARK: offsetX/Y isn't available in FireFox.
+	    var offsetAxis = evt["offset" + axis];
+	    if (offsetAxis)
+		return offsetAxis;
+	    else if (axis == "X")
+		return evt.clientX - fromPx(obj.style.left);	    
+	    else
+		return evt.clientY - fromPx(obj.style.top);	    
+	}
+
 	return {
 	    toPx: toPx,
-	    lerp: lerp
+	    fromPx: fromPx,
+	    lerp: lerp,
+	    onclickOffset: onclickOffset
 	};
 	
     }();
@@ -76,6 +93,14 @@ var musq = function() {
 
     //##############################################################################################
 
+    function log(txt) {
+	var logs = $("#logs");
+	logs.html(logs.html() + "<br>" + txt);
+	logs.dialog("open");
+    }
+
+    //##############################################################################################
+
     var communication = function() {
 
 	if (window.WebSocket) {
@@ -83,18 +108,18 @@ var musq = function() {
 	    var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
 
 	    var onOpen = function() {
-		alert("WebSocket opened.");
+		log("WebSocket opened.");
 		ws.send("hello");
 	    };
 	    ws.onopen = onOpen;
 
 	    var onClose = function() {
-		alert("WebSocket closed.");
+		log("WebSocket closed.");
 	    };
 	    ws.onclose = onClose;
 
 	    var onReceive = function(data) {
-		alert("Received " + data);
+		log("Received " + data);
 	    };
 	    ws.onmessage = function(evt) {
 		onReceive(evt.data);
@@ -113,7 +138,7 @@ var musq = function() {
 	    
 	} else {
 
-	    alert("Sorry, your browser does not support websockets.");
+	    log("Sorry, your browser does not support websockets.");
 	    return {};
     
 	}
@@ -214,7 +239,7 @@ var musq = function() {
 	    cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
 	    cxt.fillStyle = "#FF0000";
 	    var playerLogicalVisual = logicalToVisual(data.playerLogicSide);
-	    cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y -2, 4, 4);
+	    cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
 	    var playerUiVisual = logicalToVisual(data.playerUiSide);
 	    drawSvgAround(cxt, "human01", playerUiVisual);
 	}
@@ -241,7 +266,9 @@ var musq = function() {
 
 	function onCanvasClick(evt) {
 	    var canvas = document.getElementById("maincanvas");
-	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(evt.offsetX, evt.offsetY));
+	    var offsetX = utils.onclickOffset(evt, "X", canvas);
+	    var offsetY = utils.onclickOffset(evt, "Y", canvas);
+	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
 	}
 
 	function onWindowResize() {
@@ -253,6 +280,7 @@ var musq = function() {
 	function onWindowLoad() {
 	    resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
+	    $("#logs").dialog({ autoOpen: false, title: "Logs" });
 	    var fps = 30;
 	    setInterval(updateUiData, 1000 / fps);
 	    setInterval(drawCanvas, 1000 / fps);
@@ -275,12 +303,13 @@ var musq = function() {
 
 	function test(testString, condition) {
 	    if (!condition) {
-		alert("test failed: " + testString + "!");
+		log("test failed: " + testString + "!");
 	    }
 	}
 
 	function runTests() {
 	    test("toPx", (utils.toPx(10) == "10px"));
+	    test("fromPx", (utils.toPx("10px") == "10"));
 	    test("lerp1", (utils.lerp(0.0, 10.0, 0.5) == 5.0));
 	    test("lerp2", (utils.lerp(10.0, 30.0, 0.5) == 20.0));
 	    test("lerp3", (utils.lerp(10.0, 30.0, 0.0) == 10.0));

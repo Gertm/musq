@@ -41,7 +41,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 func main() {
 	testjson()
 	http.HandleFunc("/", data_handler)
-	http.HandleFunc("/musqconfig.js", config_handler)
+	http.HandleFunc("/js/musqconfig.js", config_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))
 	http.ListenAndServe(":8080", nil)
 }
