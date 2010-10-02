@@ -21,21 +21,29 @@ var musq = function() {
 
     //##############################################################################################
 
+    var vecMath = function() {
+
+	function Vector2d(x, y) {
+	    return {
+		x: x,
+		y: y
+	    };
+	}
+
+	return {
+	    Vector2d: Vector2d  
+	};
+
+    }();
+
+    //##############################################################################################
+
     var data = {};
 
     // These are all in 'logical' coordinates, not in UI pixels.
-    data.viewPortCenter = {
-	x: 0.0,
-	y: 0.0
-    };
-    data.playerUiSide = {
-	x: 0.0,
-	y: 0.0
-    };
-    data.playerLogicSide = {
-	x: 10.0,
-	y: 10.0
-    };
+    data.viewPortCenter = vecMath.Vector2d(0.0, 0.0);
+    data.playerUiSide = vecMath.Vector2d(0.0, 0.0);
+    data.playerLogicSide = vecMath.Vector2d(10.0, 10.0);
 
     data.playerSpeed = 1.0;
 
@@ -109,8 +117,7 @@ var musq = function() {
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open("GET", url, false);
 		xmlHttp.send();
-		var xmlDoc = xmlHttp.responseXML;
-		container[key] = xmlDoc;
+		container[key] = xmlHttp.responseText;
 	    }
 
 	    function remove(key) {
@@ -158,18 +165,25 @@ var musq = function() {
 
 	function logicalToVisual(xy) {
 	    var canvas = document.getElementById("maincanvas");
-	    return {
-		x: Math.round(canvas.width / 2 + xy.x * logicalToVisualFactor),
-		y: Math.round(canvas.height / 2 - xy.y * logicalToVisualFactor)
-	    };
+	    return vecMath.Vector2d(
+		Math.round(canvas.width / 2 + xy.x * logicalToVisualFactor),
+		Math.round(canvas.height / 2 - xy.y * logicalToVisualFactor)
+	    );
 	}
 
 	function visualToLogic(xy) {
 	    var canvas = document.getElementById("maincanvas");
-	    return {
-		x: (xy.x - canvas.width / 2) / logicalToVisualFactor,
-		y: -(xy.y - canvas.height / 2) / logicalToVisualFactor
-	    };
+	    return vecMath.Vector2d(
+		(xy.x - canvas.width / 2) / logicalToVisualFactor,
+		(xy.y - canvas.height / 2) * -1 / logicalToVisualFactor
+	    );
+	}
+
+	function drawSvgAround(cxt, key, pt) {
+	    // TODO: Find a way of determining the width/height of a svg.
+	    var svgWidth = 48;
+	    var svgHeight = 48;
+	    cxt.drawSvg(resourceBuffer.get(key), pt.x - svgWidth / 2, pt.y - svgHeight / 2);
 	}
 
 	function drawCanvas() {
@@ -177,8 +191,11 @@ var musq = function() {
 	    var cxt = canvas.getContext("2d");
 	    cxt.fillStyle = "#FFFFFF";
 	    cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
-	    var playerVisual = logicalToVisual(data.playerUiSide);
-	    cxt.drawSvg("images/faces/human/human01.svg", playerVisual.x, playerVisual.y);
+	    cxt.fillStyle = "#FF0000";
+	    var playerLogicalVisual = logicalToVisual(data.playerLogicSide);
+	    cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y -2, 4, 4);
+	    var playerUiVisual = logicalToVisual(data.playerUiSide);
+	    drawSvgAround(cxt, "human01", playerUiVisual);
 	}
 
 	function updateUiData() {
@@ -197,13 +214,10 @@ var musq = function() {
 
 	function setRandomPlayerLogicalSide() {
 	    var canvas = document.getElementById("maincanvas");
-	    // TODO: Buffer these after a resize.
-	    var minxy = { x: 0, y: 0 };
-	    var maxxy = { x: canvas.width - 1, y: canvas.height - 1 };
-	    data.playerLogicSide = visualToLogic({
-						     x: utils.lerp(minxy.x, maxxy.x, Math.random()),
-						     y: utils.lerp(minxy.y, maxxy.y, Math.random())
-						 });
+	    data.playerLogicSide = visualToLogic(vecMath.Vector2d(
+						     utils.lerp(0, canvas.width - 1, Math.random()),
+						     utils.lerp(0, canvas.height - 1, Math.random())
+						 ));
 	}
 
 	function onWindowResize() {
@@ -213,7 +227,7 @@ var musq = function() {
 	}
 
 	function onWindowLoad() {
-	    //resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
+	    resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
 	    var fps = 30;
 	    setInterval(updateUiData, 1000 / fps);
