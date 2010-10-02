@@ -220,6 +220,11 @@ var musq = function() {
 						 ));
 	}
 
+	function onCanvasClick(evt) {
+	    var canvas = document.getElementById("maincanvas");
+	    data.playerLogicSide = visualToLogic(vecMath.Vector2d(evt.offsetX, evt.offsetY));
+	}
+
 	function onWindowResize() {
 	    positionCanvas();
 	    positionFooter();
@@ -234,6 +239,8 @@ var musq = function() {
 	    setInterval(drawCanvas, 1000 / fps);
 	    setRandomPlayerLogicalSide();
 	    setInterval(setRandomPlayerLogicalSide, 10000);
+	    var canvas = document.getElementById("maincanvas");
+	    canvas.onclick = onCanvasClick;
 	}
 
 	return {
