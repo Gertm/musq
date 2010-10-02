@@ -5,26 +5,24 @@ import (
 	"json"
 )
 
-type Move struct {
-	X int
-	Y int
-}
-
-type Empty struct {
-}
-
-func Decode(json []byte) string {
-	return ""
+type Request struct {
+	Kind string
+	StrParams map[string]string
+	IntParams map[string]int
 }
 
 func testjson() {
-	a := Move{X: 1, Y: 2}
+	a := Request{"move",nil, map[string]int{"x": 5, "y": 7}}
 	b, err := json.Marshal(a)
 	if err!=nil {
 		fmt.Print(err)
 		}
 	fmt.Print(string(b))
-	var c = new(Move)
+	var c = new(Request)
 	json.Unmarshal(b,c)
-	fmt.Print(c.X)
+	fmt.Print(c)
+}
+
+func (r *Request) Handle() {
+	
 }
