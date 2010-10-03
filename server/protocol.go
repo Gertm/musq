@@ -27,7 +27,10 @@ func testjson() {
 
 func GetRequestFromJSON(bson []byte) *Request {
 	var req = new(Request)
-	json.Unmarshal(bson, req)
+	err := json.Unmarshal(bson, req)
+	if err != nil {
+		panic(err)
+	}
 	return req
 }
 	
