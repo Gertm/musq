@@ -125,8 +125,8 @@ var musq = function() {
 		onReceive(evt.data);
 	    };
 
-	    function send(data) {
-		ws.send(data);
+	    function send(obj) {
+		ws.send(JSON.stringify(obj));
 	    }
 
 	    return {
@@ -269,6 +269,13 @@ var musq = function() {
 	    var offsetX = utils.onclickOffset(evt, "X", canvas);
 	    var offsetY = utils.onclickOffset(evt, "Y", canvas);
 	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
+	    communication.send({
+				   "function": "move",
+				   "params": {
+				       "x": data.playerLogicSide.x,
+				       "y": data.playerLogicSide.y
+				   }
+			       });
 	}
 
 	function onWindowResize() {
