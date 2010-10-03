@@ -10,7 +10,7 @@ type Player struct {
 	Y			 int
 	SVG			 string
 	PwdHsh       string
-	ReqQueue     [20]Request
+	ReqQueue     [20]JsonRequest
 }
 
 func (p *Player) SaveToDB() os.Error {

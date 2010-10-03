@@ -6,27 +6,41 @@ import (
 	"strconv"
 )
 
-type Request struct {
+type JsonRequest struct {
 	Function string
 	Params map[string]string
 }
 
+type Request struct {
+	request JsonRequest
+	responseChan chan Response
+}
+
+type Response struct {
+}
+
+var requestChan = make(chan JsonRequest)
+
+func hub() {
+	
+}
+
 func testjson() {
-	a := Request{"move", map[string]string{"x": "5", "y": "7"}}
+	a := JsonRequest{"move", map[string]string{"x": "5", "y": "7"}}
 	b, err := json.Marshal(a)
 	if err!=nil {
 		fmt.Print(err)
 	}
 	fmt.Print(string(b))
-	var c = new(Request)
+	var c = new(JsonRequest)
 	json.Unmarshal(b,c)
 	fmt.Print("\n")
 	fmt.Print(c)
 	fmt.Print("\n---- End test stuff ----\n")
 }
 
-func GetRequestFromJSON(bson []byte) *Request {
-	var req = new(Request)
+func GetRequestFromJSON(bson []byte) *JsonRequest {
+	var req = new(JsonRequest)
 	err := json.Unmarshal(bson, req)
 	if err != nil {
 		panic(err)
@@ -34,7 +48,7 @@ func GetRequestFromJSON(bson []byte) *Request {
 	return req
 }
 	
-func (r *Request) Dispatch(p *Player) {
+func (r *JsonRequest) Dispatch(p *Player) {
 	switch r.Function {
 	case "move":
 		x, _ := strconv.Atoi(r.Params["X"])
