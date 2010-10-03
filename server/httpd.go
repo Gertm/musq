@@ -35,7 +35,7 @@ func WebSocketHandler(ws *websocket.Conn) {
         }
 		// parse command and return optional reply
 		// but let's see what's going on with the websocket first ;-)
-		fmt.Print(string(buf[0:n])+"\n")
+		fmt.Printf("Sending: %s\n",buf[0:n])
 		ws.Write(buf[0:n])
     }
 }
