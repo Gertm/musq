@@ -34,6 +34,8 @@ func WebSocketHandler(ws *websocket.Conn) {
             break
         }
 		// parse command and return optional reply
+		// but let's see what's going on with the websocket first ;-)
+		fmt.Print(string(buf[0:n])+"\n")
 		ws.Write(buf[0:n])
     }
 }
