@@ -12,21 +12,10 @@ type JsonRequest struct {
 }
 
 type Request struct {
-	request JsonRequest
-	responseChan chan Response
+	rawBytes []byte
+	responseChan chan []byte
 }
 
-type Response struct {
-	Type string
-	Params map[string]string
-}
-
-var requestChan = make(chan JsonRequest)
-
-func hub() {
-	connections := make(map[*websockets.Conn]string)
-	
-}
 
 func testjson() {
 	a := JsonRequest{"move", map[string]string{"x": "5", "y": "7"}}

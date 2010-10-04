@@ -13,6 +13,7 @@ type Player struct {
 	ReqQueue     [20]JsonRequest
 }
 
+
 func (p *Player) SaveToDB() os.Error {
 	// not going to implement db stuff just yet.
 	// let's first get the rest working.
@@ -21,4 +22,9 @@ func (p *Player) SaveToDB() os.Error {
 
 func (p *Player) Move(x int, y int) os.Error {
 	return nil
+}
+
+
+func PlayerHandler(replyChan chan []byte) {
+	
 }

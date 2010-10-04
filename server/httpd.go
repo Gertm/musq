@@ -27,15 +27,18 @@ func config_handler(c http.ResponseWriter, r *http.Request) {
 func WebSocketHandler(ws *websocket.Conn) {
 	Log("Websocket activity from "+ ws.Origin  +"!\n")
 	defer Log("Done handling websocket from "+ws.Origin+"\n")
+	// this should simply relay the requests to the player goroutine
+	// and do nothing but that. The logic for the player needs to be
+	// somewhere else. (player.go//PlayerHandler)
 	buf := make([]byte, 1024)
     for {
         n, err := ws.Read(buf)
         if err != nil {
             break
         }
-		// parse command and return optional reply
-		// but let's see what's going on with the websocket first ;-)
-		fmt.Printf("Sending: %s\n",buf[0:n])
+		// var replyChan = make(chan []byte)
+		// newReq := Request{ rawBytes: buf[0:n], responseChan: replyChan }
+		// reply := <-replyChan
 		ws.Write(buf[0:n])
     }
 }
