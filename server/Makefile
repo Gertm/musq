@@ -5,7 +5,6 @@ GOFILES=\
 	player.go\
 	db.go\
 	httpd.go\
-	protocol.go\
 	tile.go\
 	playingfield.go\
 

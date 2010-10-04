@@ -36,15 +36,15 @@ func WebSocketHandler(ws *websocket.Conn) {
         if err != nil {
             break
         }
-		// var replyChan = make(chan []byte)
+		var reqChan = make(chan Request)
 		// newReq := Request{ rawBytes: buf[0:n], responseChan: replyChan }
+		playerChan <- buf[0:n]
 		// reply := <-replyChan
 		ws.Write(buf[0:n])
     }
 }
 
 func main() {
-	testjson()
 	http.HandleFunc("/", data_handler)
 	http.HandleFunc("/js/musqconfig.js", config_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))
