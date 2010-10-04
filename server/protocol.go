@@ -17,11 +17,14 @@ type Request struct {
 }
 
 type Response struct {
+	Type string
+	Params map[string]string
 }
 
 var requestChan = make(chan JsonRequest)
 
 func hub() {
+	connections := make(map[*websockets.Conn]string)
 	
 }
 
