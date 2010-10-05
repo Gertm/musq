@@ -206,7 +206,7 @@ var musq = function() {
 	    footer.style.left = utils.toPx(0);
 	}
 
-	var logicalToVisualFactor = 50.0;
+	var logicalToVisualFactor = 100.0;
 
 	function logicalToVisual(xy) {
 	    var canvas = document.getElementById("maincanvas");
@@ -219,8 +219,8 @@ var musq = function() {
 	function visualToLogic(xy) {
 	    var canvas = document.getElementById("maincanvas");
 	    return new vecMath.vector2d(
-		(xy.x - canvas.width / 2) / logicalToVisualFactor,
-		(xy.y - canvas.height / 2) * -1 / logicalToVisualFactor
+		Math.round((xy.x - canvas.width / 2) / logicalToVisualFactor),
+		Math.round((xy.y - canvas.height / 2) * -1 / logicalToVisualFactor)
 	    );
 	}
 
@@ -255,14 +255,6 @@ var musq = function() {
 	    data.lastUpdateTime = newUpdateTime;
 	}
 
-	function setRandomPlayerLogicalSide() {
-	    var canvas = document.getElementById("maincanvas");
-	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(
-						     utils.lerp(0, canvas.width - 1, Math.random()),
-						     utils.lerp(0, canvas.height - 1, Math.random())
-						 ));
-	}
-
 	function onCanvasClick(evt) {
 	    var canvas = document.getElementById("maincanvas");
 	    var offsetX = utils.onclickOffset(evt, "X", canvas);
@@ -289,8 +281,6 @@ var musq = function() {
 	    var fps = 30;
 	    setInterval(updateUiData, 1000 / fps);
 	    setInterval(drawCanvas, 1000 / fps);
-	    setRandomPlayerLogicalSide();
-	    setInterval(setRandomPlayerLogicalSide, 10000);
 	    var canvas = document.getElementById("maincanvas");
 	    canvas.onclick = onCanvasClick;
 	}
