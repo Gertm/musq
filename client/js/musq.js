@@ -253,7 +253,7 @@ var musq = function() {
 	    var distance = data.playerSpeed * (newUpdateTime - data.lastUpdateTime) * 0.001;
 	    var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
 	    var vLength = v.length();
-	    if (vLength > 0.01) {
+	    if (vLength > 0.001) {
 		data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
 	    }
 	    data.lastUpdateTime = newUpdateTime;
@@ -287,6 +287,13 @@ var musq = function() {
 	    setInterval(drawCanvas, 1000 / fps);
 	    var canvas = document.getElementById("maincanvas");
 	    canvas.onclick = onCanvasClick;
+	    communication.send({
+				   "function": "login",
+				   "params": {
+				       "username": "Randy",
+				       "password": ""
+				   }
+			       });
 	}
 
 	return {
