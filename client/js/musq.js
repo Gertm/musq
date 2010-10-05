@@ -81,7 +81,7 @@ var musq = function() {
     // These are all in 'logical' coordinates, not in UI pixels.
     data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
     data.playerUiSide = new vecMath.vector2d(0.0, 0.0);
-    data.playerLogicSide = new vecMath.vector2d(10.0, 10.0);
+    data.playerLogicSide = new vecMath.vector2d(0.0, 0.0);
 
     data.playerSpeed = 1.0;
 
@@ -94,9 +94,8 @@ var musq = function() {
     //##############################################################################################
 
     function log(txt) {
-	var logs = $("#logs");
-	logs.html(logs.html() + "<br>" + txt);
-	logs.dialog("open");
+	if (console.log)
+	    console.log("MUSQ: " + txt);
     }
 
     //##############################################################################################
@@ -107,22 +106,29 @@ var musq = function() {
 
 	    var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
 
-	    var onOpen = function() {
+	    ws.onopen = function() {
 		log("WebSocket opened.");
-		ws.send("hello");
 	    };
-	    ws.onopen = onOpen;
 
-	    var onClose = function() {
+	    ws.onclose = function() {
 		log("WebSocket closed.");
 	    };
-	    ws.onclose = onClose;
 
-	    var onReceive = function(data) {
-		log("Received " + data);
-	    };
 	    ws.onmessage = function(evt) {
-		onReceive(evt.data);
+		log("Received " + evt.data + ".");
+		var json = JSON.parse(evt.data);
+		if (!json) {
+		    log("Unable to parse as JSON.");
+		    return;
+		}
+		if (!json.Function) {
+		    log("JSON has unexpected format.");
+		    return;
+		}
+		if (json.Function == "move") {
+		    data.playerLogicSide = new vecMath.vector2d(parseInt(json.Params.x), parseInt(json.Params.y));
+		    return;
+		}
 	    };
 
 	    function send(obj) {
@@ -130,10 +136,7 @@ var musq = function() {
 	    }
 
 	    return {
-		send: send,
-		onOpen: onOpen,
-		onClose: onClose,
-		onReceive: onReceive
+		send: send
 	    };
 	    
 	} else {
@@ -207,7 +210,7 @@ var musq = function() {
 	    footer.style.left = utils.toPx(0);
 	}
 
-	var logicalToVisualFactor = 50.0;
+	var logicalToVisualFactor = 100.0;
 
 	function logicalToVisual(xy) {
 	    var canvas = document.getElementById("maincanvas");
@@ -220,8 +223,8 @@ var musq = function() {
 	function visualToLogic(xy) {
 	    var canvas = document.getElementById("maincanvas");
 	    return new vecMath.vector2d(
-		(xy.x - canvas.width / 2) / logicalToVisualFactor,
-		(xy.y - canvas.height / 2) * -1 / logicalToVisualFactor
+		Math.round((xy.x - canvas.width / 2) / logicalToVisualFactor),
+		Math.round((xy.y - canvas.height / 2) * -1 / logicalToVisualFactor)
 	    );
 	}
 
@@ -250,30 +253,22 @@ var musq = function() {
 	    var distance = data.playerSpeed * (newUpdateTime - data.lastUpdateTime) * 0.001;
 	    var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
 	    var vLength = v.length();
-	    if (vLength > 0.01) {
+	    if (vLength > 0.001) {
 		data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
 	    }
 	    data.lastUpdateTime = newUpdateTime;
-	}
-
-	function setRandomPlayerLogicalSide() {
-	    var canvas = document.getElementById("maincanvas");
-	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(
-						     utils.lerp(0, canvas.width - 1, Math.random()),
-						     utils.lerp(0, canvas.height - 1, Math.random())
-						 ));
 	}
 
 	function onCanvasClick(evt) {
 	    var canvas = document.getElementById("maincanvas");
 	    var offsetX = utils.onclickOffset(evt, "X", canvas);
 	    var offsetY = utils.onclickOffset(evt, "Y", canvas);
-	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
+	    var newPosition = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
 	    communication.send({
 				   "function": "move",
 				   "params": {
-				       "x": ""+data.playerLogicSide.x,
-					   "y": ""+data.playerLogicSide.y
+				       "x": "" + newPosition.x,
+				       "y": "" + newPosition.y
 				   }
 			       });
 	}
@@ -287,14 +282,18 @@ var musq = function() {
 	function onWindowLoad() {
 	    resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
-	    $("#logs").dialog({ autoOpen: false, title: "Logs" });
 	    var fps = 30;
 	    setInterval(updateUiData, 1000 / fps);
 	    setInterval(drawCanvas, 1000 / fps);
-	    setRandomPlayerLogicalSide();
-	    setInterval(setRandomPlayerLogicalSide, 10000);
 	    var canvas = document.getElementById("maincanvas");
 	    canvas.onclick = onCanvasClick;
+	    communication.send({
+				   "function": "login",
+				   "params": {
+				       "username": "Randy",
+				       "password": ""
+				   }
+			       });
 	}
 
 	return {
