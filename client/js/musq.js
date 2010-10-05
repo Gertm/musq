@@ -81,7 +81,7 @@ var musq = function() {
     // These are all in 'logical' coordinates, not in UI pixels.
     data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
     data.playerUiSide = new vecMath.vector2d(0.0, 0.0);
-    data.playerLogicSide = new vecMath.vector2d(10.0, 10.0);
+    data.playerLogicSide = new vecMath.vector2d(0.0, 0.0);
 
     data.playerSpeed = 1.0;
 
@@ -106,22 +106,29 @@ var musq = function() {
 
 	    var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
 
-	    var onOpen = function() {
+	    ws.onopen = function() {
 		log("WebSocket opened.");
-		ws.send("hello");
 	    };
-	    ws.onopen = onOpen;
 
-	    var onClose = function() {
+	    ws.onclose = function() {
 		log("WebSocket closed.");
 	    };
-	    ws.onclose = onClose;
 
-	    var onReceive = function(data) {
-		log("Received " + data);
-	    };
 	    ws.onmessage = function(evt) {
-		onReceive(evt.data);
+		log("Received " + evt.data + ".");
+		var json = JSON.parse(evt.data);
+		if (!json) {
+		    log("Unable to parse as JSON.");
+		    return;
+		}
+		if (!json.Function) {
+		    log("JSON has unexpected format.");
+		    return;
+		}
+		if (json.Function == "move") {
+		    data.playerLogicSide = new vecMath.vector2d(parseInt(json.Params.x), parseInt(json.Params.y));
+		    return;
+		}
 	    };
 
 	    function send(obj) {
@@ -129,10 +136,7 @@ var musq = function() {
 	    }
 
 	    return {
-		send: send,
-		onOpen: onOpen,
-		onClose: onClose,
-		onReceive: onReceive
+		send: send
 	    };
 	    
 	} else {
@@ -259,12 +263,12 @@ var musq = function() {
 	    var canvas = document.getElementById("maincanvas");
 	    var offsetX = utils.onclickOffset(evt, "X", canvas);
 	    var offsetY = utils.onclickOffset(evt, "Y", canvas);
-	    data.playerLogicSide = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
+	    var newPosition = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
 	    communication.send({
 				   "function": "move",
 				   "params": {
-				       "x": "" + data.playerLogicSide.x,
-				       "y": "" + data.playerLogicSide.y
+				       "x": "" + newPosition.x,
+				       "y": "" + newPosition.y
 				   }
 			       });
 	}
