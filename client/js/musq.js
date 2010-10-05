@@ -272,8 +272,8 @@ var musq = function() {
 	    communication.send({
 				   "function": "move",
 				   "params": {
-				       "x": data.playerLogicSide.x,
-				       "y": data.playerLogicSide.y
+				       "x": ""+data.playerLogicSide.x,
+					   "y": ""+data.playerLogicSide.y
 				   }
 			       });
 	}
