@@ -5,6 +5,7 @@ import (
 	"json"
 	"strconv"
 	"fmt"
+	"math"
 )
 
 type Player struct {
@@ -26,17 +27,48 @@ func (p *Player) SaveToDB() os.Error {
 	return nil
 }
 
-func (p *Player) Move(x int, y int) (newX int, newY int) {
-	// calculate the max distance a player can go.
-	p.X = x+1
-	p.Y = y+1
-	return x+1,y+2
+func getDelta(x1, x2 int) float64 {
+	// I really need a unit test for this
+	return float64(x2)-float64(x1)
+}
+
+func distances(x1, y1, x2, y2 int) (A,B,h float64) {
+	A = getDelta(x1,x2)
+	fmt.Printf("DeltaX = %f\n",A)
+	B = getDelta(y1,y2)
+	fmt.Printf("DeltaY = %f\n",B)
+    h = math.Hypot(A,B)
+	fmt.Printf("Distance: %f\n",h)
+	return
+}
+
+func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
+	fmt.Printf("player at %d,%d going to %d,%d\n",x1,y1,x2,y2)
+	A,B,h := distances(x1,y1,x2,y2)
+	
+	if h<=float64(distance) {
+		return x2,y2
+	}
+
+	sinAlpha := math.Sin(A/h)
+	cosAlpha := math.Cos(B/h)
+	newX := int(cosAlpha * float64(distance))
+	newY := int(sinAlpha * float64(distance))
+	
+	return newX,newY
+}
+
+func (p *Player) Move(x int, y int) (int, int) {
+	// setting the max distance to 5 hardcoded for now
+	p.X, p.Y = getXYForDistanceTo(p.X,p.Y,x,y,5)
+	return p.X, p.Y
 }
 
 func getRequestFromJSON(bson []byte) (*Request,os.Error) {
 	var req = new(Request)
 	err := json.Unmarshal(bson, req)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("Woops! That wasn't a valid JSON string!")
 	}
 	return req,err
@@ -52,7 +84,7 @@ func PlayerHandler(p *Player, wsChan chan []byte) {
 			wsChan <- rcvB
 			continue
 		}
-		fmt.Println("Request was valid,... parsing")
+		fmt.Printf("Got function '%s'\n",r.Function)
 		switch r.Function {
 		case "move":
 			HandleMove(p, r, wsChan)
