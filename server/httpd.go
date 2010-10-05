@@ -30,7 +30,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 	// temporary player -- need to have logins later
 	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe"}
 	var wsChan = make(chan []byte)
-	go PlayerHandler(p, wsChan)
+	go PlayerHandler(&p, wsChan)
 
 	buf := make([]byte, 1024)
     for {
@@ -46,6 +46,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 }
 
 func main() {
+	fmt.Println("Starting MUSQ server...")
 	http.HandleFunc("/", data_handler)
 	http.HandleFunc("/js/musqconfig.js", config_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))

@@ -27,6 +27,7 @@ func (p *Player) SaveToDB() os.Error {
 }
 
 func (p *Player) Move(x int, y int) (newX int, newY int) {
+	// calculate the max distance a player can go.
 	p.X = x+1
 	p.Y = y+1
 	return x+1,y+2
@@ -41,7 +42,7 @@ func getRequestFromJSON(bson []byte) (*Request,os.Error) {
 	return req,err
 }
 
-func PlayerHandler(p Player, wsChan chan []byte) {
+func PlayerHandler(p *Player, wsChan chan []byte) {
 	defer fmt.Println("Exiting the playerhandler!")
 	for {
 		rcvB := <-wsChan
@@ -54,20 +55,26 @@ func PlayerHandler(p Player, wsChan chan []byte) {
 		fmt.Println("Request was valid,... parsing")
 		switch r.Function {
 		case "move":
-			fmt.Println("Handling the move...")
-			x, _ := strconv.Atoi(r.Params["x"])
-			y, _ := strconv.Atoi(r.Params["y"])
-			// check whether the player can move *TBI*
-			// if yes, move him
-			p.Move(x,y)
-			rply := Request{"move",map[string]string{"x":strconv.Itoa(p.X),"y":strconv.Itoa(p.Y)}}
-			b, err := json.Marshal(rply)
-			if err != nil {
-				fmt.Println("Couldn't unmarshal the reply")
-				continue
-			}
-			fmt.Printf("Sending %s\n",b)
-			wsChan <- b
+			HandleMove(p, r, wsChan)
 		}
 	}
 }
+
+func HandleMove(p *Player, r *Request, wsChan chan []byte) {
+	fmt.Println("Handling the move...")
+	x, _ := strconv.Atoi(r.Params["x"])
+	y, _ := strconv.Atoi(r.Params["y"])
+	fmt.Printf("X: %d, Y: %d \n", x, y)
+	// check whether the player can move *TBI*
+	// if yes, move him
+	p.Move(x,y)
+	rply := Request{"move",map[string]string{"x":strconv.Itoa(p.X),"y":strconv.Itoa(p.Y)}}
+	b, err := json.Marshal(rply)
+	if err != nil {
+		fmt.Println("Couldn't marshal the reply")
+		return
+	}
+	fmt.Printf("Sending %s\n",b)
+	wsChan <- b
+}
+
