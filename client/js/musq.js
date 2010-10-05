@@ -94,9 +94,8 @@ var musq = function() {
     //##############################################################################################
 
     function log(txt) {
-	var logs = $("#logs");
-	logs.html(logs.html() + "<br>" + txt);
-	logs.dialog("open");
+	if (console.log)
+	    console.log("MUSQ: " + txt);
     }
 
     //##############################################################################################
@@ -272,8 +271,8 @@ var musq = function() {
 	    communication.send({
 				   "function": "move",
 				   "params": {
-				       "x": ""+data.playerLogicSide.x,
-					   "y": ""+data.playerLogicSide.y
+				       "x": "" + data.playerLogicSide.x,
+				       "y": "" + data.playerLogicSide.y
 				   }
 			       });
 	}
@@ -287,7 +286,6 @@ var musq = function() {
 	function onWindowLoad() {
 	    resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
 	    onWindowResize();
-	    $("#logs").dialog({ autoOpen: false, title: "Logs" });
 	    var fps = 30;
 	    setInterval(updateUiData, 1000 / fps);
 	    setInterval(drawCanvas, 1000 / fps);
