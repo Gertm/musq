@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"fmt"
 	"math"
+	"container/vector"
 )
 
 type Player struct {
@@ -26,6 +27,10 @@ func (p *Player) SaveToDB() os.Error {
 	// not going to implement db stuff just yet.
 	// let's get the rest working first.
 	return nil
+}
+
+func (p *Player) AddRequest(r Request) {
+	
 }
 
 func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
