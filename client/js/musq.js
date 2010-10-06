@@ -4,73 +4,73 @@ var musq = function() {
 
     var utils = function() {
 
-	function toPx(i) {
-	    return i + "px";
-	}
-
-	function fromPx(s) {
-	    return s.substr(0, s.length - 2);
-	}
-
-	function lerp(i1, i2, f) {
-	    return i1 + (i2 - i1) * f;
-	}
-
-	function onclickOffset(evt, axis, obj) {
-	    // [Randy 02/10/2010] REMARK: offsetX/Y isn't available in FireFox.
-	    var offsetAxis = evt["offset" + axis];
-	    if (offsetAxis)
-		return offsetAxis;
-	    else if (axis == "X")
-		return evt.clientX - fromPx(obj.style.left);	    
-	    else
-		return evt.clientY - fromPx(obj.style.top);	    
-	}
-
-	return {
-	    toPx: toPx,
-	    fromPx: fromPx,
-	    lerp: lerp,
+		function toPx(i) {
+			return i + "px";
+		}
+		
+		function fromPx(s) {
+			return s.substr(0, s.length - 2);
+		}
+		
+		function lerp(i1, i2, f) {
+			return i1 + (i2 - i1) * f;
+		}
+		
+		function onclickOffset(evt, axis, obj) {
+			// [Randy 02/10/2010] REMARK: offsetX/Y isn't available in FireFox.
+			var offsetAxis = evt["offset" + axis];
+			if (offsetAxis)
+				return offsetAxis;
+			else if (axis == "X")
+			return evt.clientX - fromPx(obj.style.left);	    
+			else
+				return evt.clientY - fromPx(obj.style.top);	    
+		}
+		
+		return {
+			toPx: toPx,
+			fromPx: fromPx,
+			lerp: lerp,
 	    onclickOffset: onclickOffset
-	};
-	
+		};
+		
     }();
 
     //##############################################################################################
-
+	
     var vecMath = function() {
+		
+		function vector2d(x, y) {
+			this.x = x;
+			this.y = y;
+			this.length = function() {
+				return Math.sqrt(this.x * this.x + this.y * this.y);	
+			};
+		}
+		
+		function add(v1, v2) {
+			return new vector2d(v1.x + v2.x, v1.y + v2.y);
+		}
+		
+		function subtract(v1, v2) {
+			return new vector2d(v1.x - v2.x, v1.y - v2.y);
+		}
 
-	function vector2d(x, y) {
-	    this.x = x;
-	    this.y = y;
-	    this.length = function() {
-		return Math.sqrt(this.x * this.x + this.y * this.y);	
-	    };
-	}
-
-	function add(v1, v2) {
-	    return new vector2d(v1.x + v2.x, v1.y + v2.y);
-	}
-
-	function subtract(v1, v2) {
-	    return new vector2d(v1.x - v2.x, v1.y - v2.y);
-	}
-
-	function scale(v, s) {
-	    return new vector2d(s * v.x, s * v.y);
-	}
-
-	function normalize(v) {
-	    return scale(v, 1.0 / v.length());
-	};
-
-	return {
-	    vector2d: vector2d,
-	    add: add,
-	    subtract: subtract,
-	    scale: scale,
-	    normalize: normalize
-	};
+		function scale(v, s) {
+			return new vector2d(s * v.x, s * v.y);
+		}
+		
+		function normalize(v) {
+			return scale(v, 1.0 / v.length());
+		};
+		
+		return {
+			vector2d: vector2d,
+			add: add,
+			subtract: subtract,
+			scale: scale,
+			normalize: normalize
+		};
 
     }();
 
@@ -108,6 +108,13 @@ var musq = function() {
 
 	    ws.onopen = function() {
 		log("WebSocket opened.");
+			ws.send({
+						"function": "login",
+						"params": {
+							"username": "Randy",
+							"password": ""
+						}
+					});
 	    };
 
 	    ws.onclose = function() {
@@ -287,13 +294,6 @@ var musq = function() {
 	    setInterval(drawCanvas, 1000 / fps);
 	    var canvas = document.getElementById("maincanvas");
 	    canvas.onclick = onCanvasClick;
-	    communication.send({
-				   "function": "login",
-				   "params": {
-				       "username": "Randy",
-				       "password": ""
-				   }
-			       });
 	}
 
 	return {
