@@ -111,4 +111,8 @@ func HandleMove(p *Player, r *Request, wsChan chan []byte) {
  when moving, just send a position msg to the client every tick?
  little message queue/stack in the player goroutine
 
+ http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+
+ client moves faster if distance is longer?
+ 
 	*/
