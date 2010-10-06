@@ -243,21 +243,21 @@ var musq = function() {
         function drawCanvas() {
             var canvas = document.getElementById("maincanvas");
             var cxt = canvas.getContext("2d");
-	    var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
-	    var bottomRight = visualToLogic(new vecMath.vector2d(canvas.width - 1, canvas.height - 1));
+            var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
+            var bottomRight = visualToLogic(new vecMath.vector2d(canvas.width - 1, canvas.height - 1));
 
             cxt.fillStyle = "#FFFFFF";
             cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
 
-	    for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
-		for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
-		    var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
-		    var halfTile = logicalToVisualFactor * 0.5;
-		    var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
-		    cxt.strokeStyle = "#AAAAAA";
-		    cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, logicalToVisualFactor, logicalToVisualFactor);
-		}
-	    }
+            for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
+                for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
+                    var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
+                    var halfTile = logicalToVisualFactor * 0.5;
+                    var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
+                    cxt.strokeStyle = "#AAAAAA";
+                    cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, logicalToVisualFactor, logicalToVisualFactor);
+                }
+            }
 
             cxt.fillStyle = "#FF0000";
             var playerLogicalVisual = logicalToVisual(data.playerLogicSide);
@@ -267,22 +267,22 @@ var musq = function() {
             drawSvgAround(cxt, "human01", playerUiVisual);
         }
 
-		function updateUiData() {
-			var vm = vecMath;
-			var newUpdateTime = data.now();
-			// [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
-			var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
-			var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
-			var vLength = v.length();
-			// [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
-			// we seem to get rounding issues (jittering).
-			if (vLength > 0.1) {
-				data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
-			} else {
-				data.playerUiSide = data.playerLogicSide;
-			}
-			data.lastUpdateTime = newUpdateTime;
-		}
+        function updateUiData() {
+            var vm = vecMath;
+            var newUpdateTime = data.now();
+            // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
+            var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
+            var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
+            var vLength = v.length();
+            // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
+            // we seem to get rounding issues (jittering).
+            if (vLength > 0.1) {
+                data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
+            } else {
+                data.playerUiSide = data.playerLogicSide;
+            }
+            data.lastUpdateTime = newUpdateTime;
+        }
 
         function onCanvasClick(evt) {
             var canvas = document.getElementById("maincanvas");
