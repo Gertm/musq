@@ -267,18 +267,22 @@ var musq = function() {
             drawSvgAround(cxt, "human01", playerUiVisual);
         }
 
-        function updateUiData() {
-            var vm = vecMath;
-            var newUpdateTime = data.now();
-	    // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
-            var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
-            var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
-            var vLength = v.length();
-            if (vLength > 0.001) {
-                data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
-            }
-            data.lastUpdateTime = newUpdateTime;
-        }
+		function updateUiData() {
+			var vm = vecMath;
+			var newUpdateTime = data.now();
+			// [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
+			var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
+			var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
+			var vLength = v.length();
+			// [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
+			// we seem to get rounding issues (jittering).
+			if (vLength > 0.1) {
+				data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
+			} else {
+				data.playerUiSide = data.playerLogicSide;
+			}
+			data.lastUpdateTime = newUpdateTime;
+		}
 
         function onCanvasClick(evt) {
             var canvas = document.getElementById("maincanvas");
