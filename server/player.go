@@ -42,12 +42,10 @@ func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
 }
 
 func Round(x float64) int {
-	if (math.Signbit(x)) {
-		x=x-0.5
-	} else {
-		x=x+0.5
+	if math.Signbit(x) {
+		return int(math.Ceil(x-0.5))
 	}
-	return int(math.Floor(x))
+	return int(math.Floor(x+0.5))
 }
 
 func (p *Player) Move(x int, y int) (int, int) {
