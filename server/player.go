@@ -27,40 +27,31 @@ func (p *Player) SaveToDB() os.Error {
 	return nil
 }
 
-func getDelta(x1, x2 int) float64 {
-	// I really need a unit test for this
-	return float64(x2)-float64(x1)
-}
-
-func distances(x1, y1, x2, y2 int) (A,B,h float64) {
-	A = getDelta(x1,x2)
-	fmt.Printf("DeltaX = %f\n",A)
-	B = getDelta(y1,y2)
-	fmt.Printf("DeltaY = %f\n",B)
-    h = math.Hypot(A,B)
-	fmt.Printf("Distance: %f\n",h)
+func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
+	fmt.Printf("player at %d,%d going to %d,%d\n",x1,y1,x2,y2)
+	Xn := x2-x1
+	Yn := y2-y1
+	length := math.Hypot(float64(Xn),float64(Yn))
+	fmt.Printf("length of requested vector: %f\n",length)
+	multiplier := float64(distance)/length
+	fmt.Printf("multiplier: %f\n",multiplier)
+	x = Round(multiplier*float64(Xn)+float64(x1))
+	y = Round(multiplier*float64(Yn)+float64(y1))
+	fmt.Printf("sending player to %d,%d\n",x,y)
 	return
 }
 
-func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
-	fmt.Printf("player at %d,%d going to %d,%d\n",x1,y1,x2,y2)
-	A,B,h := distances(x1,y1,x2,y2)
-	
-	if h<=float64(distance) {
-		return x2,y2
+func Round(x float64) int {
+	if (math.Signbit(x)) {
+		x=x-0.5
+	} else {
+		x=x+0.5
 	}
-
-	sinAlpha := math.Sin(A/h)
-	cosAlpha := math.Cos(B/h)
-	newX := int(cosAlpha * float64(distance))
-	newY := int(sinAlpha * float64(distance))
-	
-	return newX,newY
+	return int(math.Floor(x))
 }
 
 func (p *Player) Move(x int, y int) (int, int) {
-	// setting the max distance to 5 hardcoded for now
-	p.X, p.Y = getXYForDistanceTo(p.X,p.Y,x,y,5)
+	p.X, p.Y = getXYForDistanceTo(p.X,p.Y,x,y,1)
 	return p.X, p.Y
 }
 
