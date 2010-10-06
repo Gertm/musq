@@ -102,3 +102,13 @@ func HandleMove(p *Player, r *Request, wsChan chan []byte) {
 	wsChan <- b
 }
 
+// TODO STUFF
+/*
+ keep a current state for players
+ timeout + receive for the player ticks?
+ Keep a stack of actions to do and pick them off every tick?
+ when a different action is selected, cancel all other moves
+ when moving, just send a position msg to the client every tick?
+ little message queue/stack in the player goroutine
+
+	*/
