@@ -83,8 +83,6 @@ var musq = function() {
     data.playerUiSide = new vecMath.vector2d(0.0, 0.0);
     data.playerLogicSide = new vecMath.vector2d(0.0, 0.0);
 
-    data.playerSpeed = 1.0;
-
     data.now = function() {
         return (new Date()).getTime();
     };
@@ -217,7 +215,7 @@ var musq = function() {
             footer.style.left = utils.toPx(0);
         }
 
-        var logicalToVisualFactor = 50.0;
+        var logicalToVisualFactor = 70.0;
 
         function logicalToVisual(xy) {
             var canvas = document.getElementById("maincanvas");
@@ -237,8 +235,8 @@ var musq = function() {
 
         function drawSvgAround(cxt, key, pt) {
             // TODO: Find a way of determining the width/height of a svg.
-            var svgWidth = 48;
-            var svgHeight = 48;
+            var svgWidth = 64;
+            var svgHeight = 64;
             cxt.drawSvg(resourceBuffer.get(key), pt.x - svgWidth / 2, pt.y - svgHeight / 2);
         }
 
@@ -256,7 +254,7 @@ var musq = function() {
 		    var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
 		    var halfTile = logicalToVisualFactor * 0.5;
 		    var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
-		    cxt.strokeStyle = "#000000";
+		    cxt.strokeStyle = "#AAAAAA";
 		    cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, logicalToVisualFactor, logicalToVisualFactor);
 		}
 	    }
@@ -272,7 +270,8 @@ var musq = function() {
         function updateUiData() {
             var vm = vecMath;
             var newUpdateTime = data.now();
-            var distance = data.playerSpeed * (newUpdateTime - data.lastUpdateTime) * 0.001;
+	    // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
+            var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
             var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
             var vLength = v.length();
             if (vLength > 0.001) {
