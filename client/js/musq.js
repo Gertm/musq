@@ -108,13 +108,13 @@ var musq = function() {
 
 	    ws.onopen = function() {
 		log("WebSocket opened.");
-			ws.send({
-						"function": "login",
-						"params": {
-							"username": "Randy",
-							"password": ""
-						}
-					});
+			ws.send(JSON.stringify({
+									   "function": "login",
+									   "params": {
+										   "username": "Randy",
+										   "password": ""
+									   }
+								   }));
 	    };
 
 	    ws.onclose = function() {
