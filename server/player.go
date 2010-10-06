@@ -14,6 +14,7 @@ type Player struct {
 	Y			 int
 	SVG			 string
 	PwdHsh       string
+	ReqList      []Request
 }
 
 type Request struct {
@@ -72,8 +73,7 @@ func PlayerHandler(p *Player, wsChan chan []byte) {
 		rcvB := <-wsChan
 		r, jsonError := getRequestFromJSON(rcvB)
 		if jsonError != nil {
-			fmt.Println("Skipping this request, but echoing...")
-			wsChan <- rcvB
+			fmt.Println("Skipping this request...")
 			continue
 		}
 		fmt.Printf("Got function '%s'\n",r.Function)

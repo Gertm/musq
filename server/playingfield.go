@@ -16,3 +16,4 @@ func SetTileAt(x int, y int, t *Tile) {
 	index := (x*PF_SIZE) + y
 	PlayingField[index] = *t
 }
+

@@ -6,6 +6,7 @@ GOFILES=\
 	db.go\
 	httpd.go\
 	tile.go\
+	heart.go\
 	playingfield.go\
 
 include $(GOROOT)/src/Make.cmd
