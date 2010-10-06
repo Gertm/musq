@@ -32,6 +32,9 @@ func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
 	Xn := x2-x1
 	Yn := y2-y1
 	length := math.Hypot(float64(Xn),float64(Yn))
+	if length < 0.2 {
+		return x1,y1
+	}
 	fmt.Printf("length of requested vector: %f\n",length)
 	multiplier := float64(distance)/length
 	fmt.Printf("multiplier: %f\n",multiplier)
