@@ -217,7 +217,7 @@ var musq = function() {
             footer.style.left = utils.toPx(0);
         }
 
-        var logicalToVisualFactor = 100.0;
+        var logicalToVisualFactor = 50.0;
 
         function logicalToVisual(xy) {
             var canvas = document.getElementById("maincanvas");
@@ -245,11 +245,26 @@ var musq = function() {
         function drawCanvas() {
             var canvas = document.getElementById("maincanvas");
             var cxt = canvas.getContext("2d");
+	    var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
+	    var bottomRight = visualToLogic(new vecMath.vector2d(canvas.width - 1, canvas.height - 1));
+
             cxt.fillStyle = "#FFFFFF";
             cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
+
+	    for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
+		for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
+		    var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
+		    var halfTile = logicalToVisualFactor * 0.5;
+		    var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
+		    cxt.strokeStyle = "#000000";
+		    cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, logicalToVisualFactor, logicalToVisualFactor);
+		}
+	    }
+
             cxt.fillStyle = "#FF0000";
             var playerLogicalVisual = logicalToVisual(data.playerLogicSide);
             cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
+
             var playerUiVisual = logicalToVisual(data.playerUiSide);
             drawSvgAround(cxt, "human01", playerUiVisual);
         }
