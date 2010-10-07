@@ -106,13 +106,13 @@ var musq = function() {
 
             ws.onopen = function() {
                 log("WebSocket opened.");
-                // ws.send(JSON.stringify({
-                //                            "Function": "login",
-                //                            "Params": {
-                //                                "Username": "Randy",
-                //                                "Password": ""
-                //                            }
-                //                        }));
+                ws.send(JSON.stringify({
+                                           "Function": "login",
+                                           "Params": {
+                                               "Username": "Randy",
+                                               "Password": ""
+                                           }
+                                       }));
             };
 
             ws.onclose = function() {
@@ -128,6 +128,9 @@ var musq = function() {
                 }
                 if (!json.Function) {
                     log("JSON has unexpected format.");
+                    return;
+                }
+                if (json.Function == "login") {
                     return;
                 }
                 if (json.Function == "move") {

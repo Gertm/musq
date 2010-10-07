@@ -97,11 +97,25 @@ func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
 			}
 			fmt.Printf("%s got function '%s'\n",p.Name,r.Function)
 			switch r.Function {
+            case "login":
+				HandleLogin(p, r, wsChan)
 			case "move":
 				HandleMove(p, r, wsChan)
 			}
 		}
 	}
+}
+
+func HandleLogin(p *Player, r *Request, wsChan chan []byte) {
+	fmt.Println("Handling the login...")
+	rply := Request{"login",map[string]string{}}
+	b, err := json.Marshal(rply)
+	if err != nil {
+		fmt.Println("Couldn't marshal the reply")
+		return
+	}
+	fmt.Printf("Sending %s\n",b)
+	wsChan <- b
 }
 
 func HandleMove(p *Player, r *Request, wsChan chan []byte) {
