@@ -104,15 +104,27 @@ var musq = function() {
 
             var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
 
+            function send(obj) {
+                ws.send(JSON.stringify(obj));
+            }
+
+            function sendKeepAliv(obj) {
+                send({
+                         "Function": "keepalive",
+                         "Params": {}
+                     });
+            }
+
             ws.onopen = function() {
                 log("WebSocket opened.");
-                ws.send(JSON.stringify({
-                                           "Function": "login",
-                                           "Params": {
-                                               "Username": "Randy",
-                                               "Password": ""
-                                           }
-                                       }));
+                send({
+                         "Function": "login",
+                         "Params": {
+                             "Username": "Randy",
+                             "Password": ""
+                         }
+                     });
+                setInterval(sendKeepAliv, 10000);  
             };
 
             ws.onclose = function() {
@@ -133,15 +145,14 @@ var musq = function() {
                 if (json.Function == "login") {
                     return;
                 }
+                if (json.Function == "keepalive") {
+                    return;
+                }
                 if (json.Function == "move") {
                     data.playerLogicSide = new vecMath.vector2d(parseInt(json.Params.X), parseInt(json.Params.Y));
                     return;
                 }
             };
-
-            function send(obj) {
-                ws.send(JSON.stringify(obj));
-            }
 
             return {
                 send: send

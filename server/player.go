@@ -99,6 +99,8 @@ func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
 			switch r.Function {
             case "login":
 				HandleLogin(p, r, wsChan)
+            case "keepalive":
+				HandleKeepAlive(p, r, wsChan)
 			case "move":
 				HandleMove(p, r, wsChan)
 			}
@@ -109,6 +111,18 @@ func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
 func HandleLogin(p *Player, r *Request, wsChan chan []byte) {
 	fmt.Println("Handling the login...")
 	rply := Request{"login",map[string]string{}}
+	b, err := json.Marshal(rply)
+	if err != nil {
+		fmt.Println("Couldn't marshal the reply")
+		return
+	}
+	fmt.Printf("Sending %s\n",b)
+	wsChan <- b
+}
+
+func HandleKeepAlive(p *Player, r *Request, wsChan chan []byte) {
+	fmt.Println("Handling the keepalive...")
+	rply := Request{"keepalive",map[string]string{}}
 	b, err := json.Marshal(rply)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")
