@@ -194,42 +194,37 @@ var musq = function() {
         var footerHeight = 20;
 
         function positionCanvas() {
-            var canvas = document.getElementById("maincanvas");
-            var footer = document.getElementById("footer");
             var xPadding = 40;
             var yPadding = 20;
-            canvas.style.position = "fixed";
+            data.canvas.style.position = "fixed";
             var newWidth = window.innerWidth - xPadding * 2;
-            canvas.setAttribute("width", utils.toPx(newWidth));
+            data.canvas.setAttribute("width", utils.toPx(newWidth));
             var newHeight = window.innerHeight - yPadding * 2 - footerHeight;
-            canvas.setAttribute("height", utils.toPx(newHeight));
-            canvas.style.top = utils.toPx(yPadding);
-            canvas.style.left = utils.toPx(xPadding);
+            data.canvas.setAttribute("height", utils.toPx(newHeight));
+            data.canvas.style.top = utils.toPx(yPadding);
+            data.canvas.style.left = utils.toPx(xPadding);
         }
 
         function positionFooter() {
-            var footer = document.getElementById("footer");
-            footer.style.position = "fixed";
-            footer.style.width = utils.toPx(window.innerWidth);
-            footer.style.top = utils.toPx(window.innerHeight - footerHeight);
-            footer.style.left = utils.toPx(0);
+            data.footer.style.position = "fixed";
+            data.footer.style.width = utils.toPx(window.innerWidth);
+            data.footer.style.top = utils.toPx(window.innerHeight - footerHeight);
+            data.footer.style.left = utils.toPx(0);
         }
 
         var logicalToVisualFactor = 70.0;
 
         function logicalToVisual(xy) {
-            var canvas = document.getElementById("maincanvas");
             return new vecMath.vector2d(
-                Math.round(canvas.width / 2 + xy.x * logicalToVisualFactor),
-                Math.round(canvas.height / 2 - xy.y * logicalToVisualFactor)
+                Math.round(data.canvas.width / 2 + xy.x * logicalToVisualFactor),
+                Math.round(data.canvas.height / 2 - xy.y * logicalToVisualFactor)
             );
         }
 
         function visualToLogic(xy) {
-            var canvas = document.getElementById("maincanvas");
             return new vecMath.vector2d(
-                Math.round((xy.x - canvas.width / 2) / logicalToVisualFactor),
-                Math.round((xy.y - canvas.height / 2) * -1 / logicalToVisualFactor)
+                Math.round((xy.x - data.canvas.width / 2) / logicalToVisualFactor),
+                Math.round((xy.y - data.canvas.height / 2) * -1 / logicalToVisualFactor)
             );
         }
 
@@ -241,13 +236,12 @@ var musq = function() {
         }
 
         function drawCanvas() {
-            var canvas = document.getElementById("maincanvas");
-            var cxt = canvas.getContext("2d");
+            var cxt = data.canvas.getContext("2d");
             var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
-            var bottomRight = visualToLogic(new vecMath.vector2d(canvas.width - 1, canvas.height - 1));
+            var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
 
             cxt.fillStyle = "#FFFFFF";
-            cxt.fillRect(0, 0, canvas.width - 1, canvas.height - 1);
+            cxt.fillRect(0, 0, data.canvas.width - 1, data.canvas.height - 1);
 
             for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
                 for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
@@ -285,9 +279,8 @@ var musq = function() {
         }
 
         function onCanvasClick(evt) {
-            var canvas = document.getElementById("maincanvas");
-            var offsetX = utils.onclickOffset(evt, "X", canvas);
-            var offsetY = utils.onclickOffset(evt, "Y", canvas);
+            var offsetX = utils.onclickOffset(evt, "X", data.canvas);
+            var offsetY = utils.onclickOffset(evt, "Y", data.canvas);
             var newPosition = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
             communication.send({
                                    "function": "move",
@@ -305,13 +298,14 @@ var musq = function() {
         }
 
         function onWindowLoad() {
+            data.canvas = document.getElementById("maincanvas");
+            data.footer = document.getElementById("footer");
             resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
             onWindowResize();
             var fps = 30;
             setInterval(updateUiData, 1000 / fps);
             setInterval(drawCanvas, 1000 / fps);
-            var canvas = document.getElementById("maincanvas");
-            canvas.onclick = onCanvasClick;
+            data.canvas.onclick = onCanvasClick;
         }
 
         return {
