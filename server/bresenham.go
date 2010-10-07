@@ -5,12 +5,15 @@ import (
 	"math"
 )
 
-func bresenham(x0, y0, x1, y1 int) {
+type Location struct {
+	x,y int
+}
+
+func bresenham(x0, y0, x1, y1 int) []Location {
+
 	steep := math.Fabs(float64(y1-y0)) > math.Fabs(float64(x1-x0))
 	if steep {
-		fmt.Printf("%d %d %d %d\n",x0,y0,x1,y1)
 		x0,x1,y0,y1 = y0,y1,x0,x1
-		fmt.Printf("%d %d %d %d\n",x0,y0,x1,y1)
 	}
 	if x0 > x1 {
 		x0,y0,x1,y1 = x1,y1,x0,y0
@@ -25,28 +28,23 @@ func bresenham(x0, y0, x1, y1 int) {
 	} else {
 		ystep = -1
 	}
+	straightLength := int(math.Floor(math.Hypot(float64(deltax),float64(deltay))))
+	sliceCounter := 0
+	steps := make([]Location, 2*straightLength)	
 	for x:= x0; x<=x1; x++ {
 		if steep {
-			fmt.Printf("%d, %d\n", x, y)
+			steps[sliceCounter]=Location{x,y}
+			fmt.Printf("-> %d, %d ", x, y)
 		} else {
-			fmt.Printf("%d, %d\n", y, x)
+			steps[sliceCounter]=Location{y,x}
+			fmt.Printf("-> %d, %d ", y, x)
 		}
 		error = error - deltay
 		if error < 0 {
 			y = y+ystep
 			error = error + deltax
 		}
+		sliceCounter++
 	}
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-func bresenham_test() {
-	bresenham(0,0,3,4)
-	bresenham(-2,-4, 5, 7)
+	return steps
 }

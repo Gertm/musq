@@ -4,14 +4,9 @@ import (
 	"fmt"
 	"http"
 	"io"
-	"time"
 	"websocket"
 	"container/vector"
 )
-
-func Log(str string) {
-	fmt.Println(time.LocalTime().Format(time.Kitchen)+" - "+str)
-}
 
 // this function serves up the 'client' folder
 func data_handler(c http.ResponseWriter, r *http.Request) {
@@ -26,8 +21,8 @@ func config_handler(c http.ResponseWriter, r *http.Request) {
 
 func WebSocketHandler(ws *websocket.Conn) {
 	// temporary player -- need to have logins later 
-	var rq vector.StringVector
-	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", rq}
+	var reqs vector.Vector
+	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", reqs}
 	var wsChan = make(chan []byte)
 	var hBeatChan = make(chan bool,1)
 	go PlayerHandler(&p, wsChan, hBeatChan)
@@ -48,7 +43,6 @@ func WebSocketHandler(ws *websocket.Conn) {
 // does the main function really need to be here?
 // this might need to move elsewhere later.
 func main() {
-	bresenham_test()
 	startLogic()
 	fmt.Println("Starting MUSQ server...")
 	http.HandleFunc("/", data_handler)
