@@ -48,6 +48,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 // does the main function really need to be here?
 // this might need to move elsewhere later.
 func main() {
+	bresenham_test()
 	startLogic()
 	fmt.Println("Starting MUSQ server...")
 	http.HandleFunc("/", data_handler)

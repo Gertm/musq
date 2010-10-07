@@ -8,5 +8,6 @@ GOFILES=\
 	tile.go\
 	heart.go\
 	playingfield.go\
+	bresenham.go
 
 include $(GOROOT)/src/Make.cmd
