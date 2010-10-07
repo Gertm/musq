@@ -242,11 +242,15 @@ var musq = function() {
             );
         }
 
-        function drawSvgAround(cxt, key, pt) {
+        function drawSvgAround(cxt, key, x, y) {
             // TODO: Find a way of determining the width/height of a svg.
             var svgWidth = 64;
             var svgHeight = 64;
-            cxt.drawSvg(resourceBuffer.get(key), pt.x - svgWidth / 2, pt.y - svgHeight / 2);
+            cxt.drawSvg(resourceBuffer.get(key), x - svgWidth / 2, y - svgHeight / 2);
+        }
+
+        function drawSvgAt(cxt, key, x, y) {
+            cxt.drawSvg(resourceBuffer.get(key), x, y);
         }
 
         function drawCanvas() {
@@ -254,7 +258,7 @@ var musq = function() {
             var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
             var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
 
-            cxt.fillStyle = "#FFFFFF";
+            cxt.fillStyle = "#88FF88";
             cxt.fillRect(0, 0, data.canvas.width - 1, data.canvas.height - 1);
 
             for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
@@ -272,7 +276,9 @@ var musq = function() {
             cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
 
             var playerUiVisual = logicalToVisual(data.playerUiSide);
-            drawSvgAround(cxt, "human01", playerUiVisual);
+            drawSvgAround(cxt, "entities/player", playerUiVisual.x, playerUiVisual.y);
+
+            drawSvgAt(cxt, "hud/talk", 20, 20);
         }
 
         function updateUiData() {
@@ -314,7 +320,8 @@ var musq = function() {
         function onWindowLoad() {
             data.canvas = document.getElementById("maincanvas");
             data.footer = document.getElementById("footer");
-            resourceBuffer.addXml("human01", "images/faces/human/human01.svg");
+            resourceBuffer.addXml("hud/talk", "images/hud/talk.svg");
+            resourceBuffer.addXml("entities/player", "images/faces/human/human01.svg");
             onWindowResize();
             var fps = 30;
             setInterval(updateUiData, 1000 / fps);
