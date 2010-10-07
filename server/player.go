@@ -15,7 +15,7 @@ type Player struct {
 	Y			 int
 	SVG			 string
 	PwdHsh       string
-	ReqList      []Request
+	ReqList      vector.StringVector
 }
 
 type Request struct {
@@ -27,10 +27,6 @@ func (p *Player) SaveToDB() os.Error {
 	// not going to implement db stuff just yet.
 	// let's get the rest working first.
 	return nil
-}
-
-func (p *Player) AddRequest(r Request) {
-	
 }
 
 func getXYForDistanceTo(x1, y1, x2, y2, distance int) (x, y int) {
@@ -62,6 +58,15 @@ func (p *Player) Move(x int, y int) (int, int) {
 	return p.X, p.Y
 }
 
+func (p *Player) getNextRequest() (*Request,os.Error) {
+	if p.ReqList.Len() > 0 {
+		rString := p.ReqList.Pop()
+		r,err := getRequestFromJSON([]byte(rString))
+		return r,err
+	}
+	return nil, os.NewError("Yarr!")
+}
+
 func getRequestFromJSON(bson []byte) (*Request,os.Error) {
 	var req = new(Request)
 	err := json.Unmarshal(bson, req)
@@ -72,19 +77,29 @@ func getRequestFromJSON(bson []byte) (*Request,os.Error) {
 	return req,err
 }
 
-func PlayerHandler(p *Player, wsChan chan []byte) {
+func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
+	hbSubChan <- subscription{hBeatChan, true}
+	defer func() {
+		hbSubChan <- subscription{hBeatChan, false}
+	}()
+	
 	defer fmt.Println("Exiting the playerhandler!")
+
 	for {
-		rcvB := <-wsChan
-		r, jsonError := getRequestFromJSON(rcvB)
-		if jsonError != nil {
-			fmt.Println("Skipping this request...")
-			continue
-		}
-		fmt.Printf("Got function '%s'\n",r.Function)
-		switch r.Function {
-		case "move":
-			HandleMove(p, r, wsChan)
+		select {
+		case rcvB := <-wsChan:
+			fmt.Println("pushing request to ReqList")
+			p.ReqList.Push(string(rcvB))
+		case <-hBeatChan:  // this should be handled elsewhere so this doesn't get crowded?
+			r,jerr := p.getNextRequest()
+			if jerr!= nil {
+				continue
+			}
+			fmt.Printf("%s got function '%s'\n",p.Name,r.Function)
+			switch r.Function {
+			case "move":
+				HandleMove(p, r, wsChan)
+			}
 		}
 	}
 }

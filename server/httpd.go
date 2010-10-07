@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 	"websocket"
+	"container/vector"
 )
 
 func Log(str string) {
@@ -24,12 +25,13 @@ func config_handler(c http.ResponseWriter, r *http.Request) {
 }
 
 func WebSocketHandler(ws *websocket.Conn) {
-	// temporary player -- need to have logins later
-	var rq = make([]Request,20)
+	// temporary player -- need to have logins later 
+	var rq vector.StringVector
 	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", rq}
 	var wsChan = make(chan []byte)
-	go PlayerHandler(&p, wsChan)
-
+	var hBeatChan = make(chan bool,1)
+	go PlayerHandler(&p, wsChan, hBeatChan)
+	
 	buf := make([]byte, 1024)
     for {
         n, err := ws.Read(buf)
