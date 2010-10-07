@@ -106,13 +106,13 @@ func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
 
 func HandleMove(p *Player, r *Request, wsChan chan []byte) {
 	fmt.Println("Handling the move...")
-	x, _ := strconv.Atoi(r.Params["x"])
-	y, _ := strconv.Atoi(r.Params["y"])
+	x, _ := strconv.Atoi(r.Params["X"])
+	y, _ := strconv.Atoi(r.Params["Y"])
 	fmt.Printf("X: %d, Y: %d \n", x, y)
 	// check whether the player can move *TBI*
 	// if yes, move him
 	p.Move(x,y)
-	rply := Request{"move",map[string]string{"x":strconv.Itoa(p.X),"y":strconv.Itoa(p.Y)}}
+	rply := Request{"move",map[string]string{"X":strconv.Itoa(p.X),"Y":strconv.Itoa(p.Y)}}
 	b, err := json.Marshal(rply)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")

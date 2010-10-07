@@ -107,10 +107,10 @@ var musq = function() {
             ws.onopen = function() {
                 log("WebSocket opened.");
                 // ws.send(JSON.stringify({
-                //                            "function": "login",
-                //                            "params": {
-                //                                "username": "Randy",
-                //                                "password": ""
+                //                            "Function": "login",
+                //                            "Params": {
+                //                                "Username": "Randy",
+                //                                "Password": ""
                 //                            }
                 //                        }));
             };
@@ -131,7 +131,7 @@ var musq = function() {
                     return;
                 }
                 if (json.Function == "move") {
-                    data.playerLogicSide = new vecMath.vector2d(parseInt(json.Params.x), parseInt(json.Params.y));
+                    data.playerLogicSide = new vecMath.vector2d(parseInt(json.Params.X), parseInt(json.Params.Y));
                     return;
                 }
             };
@@ -283,10 +283,10 @@ var musq = function() {
             var offsetY = utils.onclickOffset(evt, "Y", data.canvas);
             var newPosition = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
             communication.send({
-                                   "function": "move",
-                                   "params": {
-                                       "x": "" + newPosition.x,
-                                       "y": "" + newPosition.y
+                                   "Function": "move",
+                                   "Params": {
+                                       "X": "" + newPosition.x,
+                                       "Y": "" + newPosition.y
                                    }
                                });
         }
