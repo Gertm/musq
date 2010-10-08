@@ -24,19 +24,27 @@ func WebSocketHandler(ws *websocket.Conn) {
 	var reqs vector.Vector
 	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", reqs}
 	var wsChan = make(chan []byte)
-	var hBeatChan = make(chan bool, 1)
-	go PlayerHandler(&p, wsChan, hBeatChan)
+	var wsReplyChan = make(chan []byte)
+	go PlayerHandler(&p, wsChan, wsReplyChan)
 
 	buf := make([]byte, 1024)
 	for {
 		n, err := ws.Read(buf)
 		if err != nil {
+			fmt.Println("Exiting wshandler!")
 			break
 		}
 		fmt.Printf("Received: %s\n", buf[0:n])
 		wsChan <- buf[0:n]
-		reply := <-wsChan
-		ws.Write(reply)
+		go func() {
+			for	{
+				if closed(wsReplyChan) {
+					return
+				}
+				reply := <-wsReplyChan
+				ws.Write(reply)
+			}
+		}()
 	}
 }
 

@@ -2,22 +2,30 @@ package main
 
 import (
 	"fmt"
-	"math"
 )
 
 type Location struct {
 	x, y int
 }
 
-func bresenham(x0, y0, x1, y1 int) []Location {
+func (l *Location) Equals(p *Location) bool {
+	if l.x == p.x && l.y == p.y {
+		return true
+	}
+	return false
+}
 
-	steep := math.Fabs(float64(y1-y0)) > math.Fabs(float64(x1-x0))
+func bresenham(x0, y0, x1, y1 int) []Location {
+	steep := abs(y1-y0) > abs(x1-x0)
 	if steep {
-		x0, x1, y0, y1 = y0, y1, x0, x1
+		x0, y0 = y0, x0
+		x1, y1 = y1, x1
 	}
 	if x0 > x1 {
-		x0, y0, x1, y1 = x1, y1, x0, y0
+		x0, x1 = x1, x0
+		y0, y1 = y1, y0
 	}
+ 
 	deltax := x1 - x0
 	deltay := abs(y1 - y0)
 	error := deltax / 2
@@ -28,9 +36,8 @@ func bresenham(x0, y0, x1, y1 int) []Location {
 	} else {
 		ystep = -1
 	}
-	straightLength := int(math.Floor(math.Hypot(float64(deltax), float64(deltay))))
 	sliceCounter := 0
-	steps := make([]Location, 2*straightLength)
+	steps := make([]Location, TileDistance(x0,y0,x1,y1)+1)
 	for x := x0; x <= x1; x++ {
 		if steep {
 			steps[sliceCounter] = Location{x, y}
@@ -46,5 +53,18 @@ func bresenham(x0, y0, x1, y1 int) []Location {
 		}
 		sliceCounter++
 	}
-	return steps
+	fmt.Println(" ")
+
+	if x0 > x1 {
+		fmt.Println("reversing the bresenham steps!")
+		newSteps := make([]Location, len(steps)-1)
+		i:=0
+		for j:=len(steps)-1;j>0;j-- {
+			newSteps[i]=steps[j]
+			i++
+		}
+		return newSteps[1:]
+	}
+	return steps[1:]
+
 }
