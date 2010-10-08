@@ -38,23 +38,28 @@ func (p *Player) AddRequest(r []byte) {
 		return
 	}
 	if req.Function == "move" {
+		fmt.Println("Cancelling all move requests")
 		p.CancelAllRequests()
 		x, _ := strconv.Atoi(req.Params["X"])
 		y, _ := strconv.Atoi(req.Params["Y"])
 		LocList := bresenham(p.X, p.Y, x, y)
 		for i := len(LocList) - 1; i >= 0; i-- {
-			//			p.Requests.Push(LocList[i])   // this needs to be a new request with the tile at LocList[i]
+		//for i := 0; i<len(LocList); i++ {
+			fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
+			p.Requests.Push(Request{Function: "move", Params: map[string]string{"X":strconv.Itoa(LocList[i].x), "Y":strconv.Itoa(LocList[i].y)}})
+			fmt.Print("+")
 		}
 		return
 	}
-	p.Requests.Push(req)
+	fmt.Print("+")
+	p.Requests.Push(*req)
 
 }
 
 func (p *Player) getNextRequest() (*Request, os.Error) {
 	if p.Requests.Len() > 0 {
-		req := p.Requests.Pop().(*Request)
-		return req, nil
+		req := p.Requests.Pop().(Request)
+		return &req, nil
 	}
 	return nil, os.NewError("Yarr!")
 }
@@ -69,40 +74,38 @@ func getRequestFromJSON(bson []byte) (*Request, os.Error) {
 	return req, err
 }
 
-func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
-	hbSubChan <- subscription{hBeatChan, true}
-	defer func() {
-		hbSubChan <- subscription{hBeatChan, false}
-	}()
-
+func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
+	var hBeatChan = make(chan bool, 20)
+	go Heart(p.Name, hBeatChan)
 	defer fmt.Println("Exiting the playerhandler!")
 
 	for {
+		//fmt.Printf("Pending requests for %s: %d\n",p.Name,len(p.Requests))
 		select {
 		case rcvB := <-wsChan:
-			fmt.Println("pushing request to ReqList")
 			p.AddRequest(rcvB)
 		case <-hBeatChan: // this should be handled elsewhere so this doesn't get crowded?
 			r, jerr := p.getNextRequest()
 			if jerr != nil {
 				continue
 			}
-			fmt.Printf("%s got function '%s'\n", p.Name, r.Function)
+			fmt.Print("-")
+			//fmt.Printf("%s got function '%s'\n", p.Name, r.Function)
 			switch r.Function {
 			case "login":
-				HandleLogin(p, r, wsChan)
+				HandleLogin(p, r, wsReplyChan)
 			case "keepalive":
-				HandleKeepAlive(p, r, wsChan)
+				HandleKeepAlive(p, r, wsReplyChan)
 			case "move":
-				HandleMove(p, r, wsChan)
+				HandleMove(p, r, wsReplyChan)
 			case "talk":
-				HandleTalk(p, r, wsChan)
+				HandleTalk(p, r, wsReplyChan)
 			}
 		}
 	}
 }
 
-func HandleLogin(p *Player, r *Request, wsChan chan []byte) {
+func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	fmt.Println("Handling the login...")
 	rply := Request{"login", map[string]string{}}
 	b, err := json.Marshal(rply)
@@ -111,22 +114,20 @@ func HandleLogin(p *Player, r *Request, wsChan chan []byte) {
 		return
 	}
 	fmt.Printf("Sending %s\n", b)
-	wsChan <- b
+	wsReplyChan <- b
 }
 
-func HandleKeepAlive(p *Player, r *Request, wsChan chan []byte) {
-	fmt.Println("Handling the keepalive...")
+func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	rply := Request{"keepalive", map[string]string{}}
 	b, err := json.Marshal(rply)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")
 		return
 	}
-	fmt.Printf("Sending %s\n", b)
-	wsChan <- b
+	wsReplyChan <- b
 }
 
-func HandleMove(p *Player, r *Request, wsChan chan []byte) {
+func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	fmt.Println("Handling the move...")
 	x, _ := strconv.Atoi(r.Params["X"])
 	y, _ := strconv.Atoi(r.Params["Y"])
@@ -137,18 +138,22 @@ func HandleMove(p *Player, r *Request, wsChan chan []byte) {
 	} else {
 		// if not, we're probably in a sequence. Just do this one then
 	}
-	p.Move(x, y)
-	rply := Request{"move", map[string]string{"X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
-	b, err := json.Marshal(rply)
+	b, err := json.Marshal(r)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")
 		return
 	}
 	fmt.Printf("Sending %s\n", b)
-	wsChan <- b
+	ok := wsReplyChan <- b
+	if ok {
+		p.X, p.Y = x, y
+	} else {
+		fmt.Printf("Couldn't send reply over websocket for %s\n",p.Name)
+		p.CancelAllRequests()
+	}
 }
 
-func HandleTalk(p *Player, r *Request, wsChan chan []byte) {
+func HandleTalk(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	fmt.Println("Handling the talk...")
 	message := r.Params["Message"]
 	rply := Request{"talk", map[string]string{"Message": message}}
@@ -158,7 +163,7 @@ func HandleTalk(p *Player, r *Request, wsChan chan []byte) {
 		return
 	}
 	fmt.Printf("Sending %s\n", b)
-	wsChan <- b
+	wsReplyChan <- b
 }
 
 func (p *Player) Move(x int, y int) (int, int) {
