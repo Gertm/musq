@@ -9,11 +9,11 @@ import (
 )
 
 type Player struct {
-	Name    string
-	X       int
-	Y       int
-	SVG     string
-	PwdHsh  string
+	Name     string
+	X        int
+	Y        int
+	SVG      string
+	PwdHsh   string
 	Requests vector.Vector
 }
 
@@ -34,7 +34,7 @@ func (p *Player) CancelAllRequests() {
 
 func (p *Player) AddRequest(r []byte) {
 	req, err := getRequestFromJSON(r)
-	if err!=nil {
+	if err != nil {
 		return
 	}
 	if req.Function == "move" {
@@ -42,13 +42,13 @@ func (p *Player) AddRequest(r []byte) {
 		x, _ := strconv.Atoi(req.Params["X"])
 		y, _ := strconv.Atoi(req.Params["Y"])
 		LocList := bresenham(p.X, p.Y, x, y)
-		for i:=len(LocList)-1;i>=0;i-- {
-//			p.Requests.Push(LocList[i])   // this needs to be a new request with the tile at LocList[i]
+		for i := len(LocList) - 1; i >= 0; i-- {
+			//			p.Requests.Push(LocList[i])   // this needs to be a new request with the tile at LocList[i]
 		}
 		return
 	}
 	p.Requests.Push(req)
-	
+
 }
 
 func (p *Player) getNextRequest() (*Request, os.Error) {
