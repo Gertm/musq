@@ -300,14 +300,14 @@ var musq = function() {
             cxt.drawSvg(resourceBuffer.get(key), x, y);
         }
 
-        function drawCanvas() {
-            var cxt = data.canvas.getContext("2d");
-            var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
-            var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
-
+        function drawBackground(cxt) {
             cxt.fillStyle = "#88FF88";
             cxt.fillRect(0, 0, data.canvas.width - 1, data.canvas.height - 1);
+        }
 
+        function drawGrid(cxt) {
+            var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
+            var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
             for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
                 for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
                     var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
@@ -317,15 +317,30 @@ var musq = function() {
                     cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, data.logicalToVisualFactor, data.logicalToVisualFactor);
                 }
             }
+        }
 
+        function drawMoveTarget(cxt) {
             cxt.fillStyle = "#FF0000";
             var playerLogicalVisual = logicalToVisual(data.playerLogicSide);
             cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
+        }
 
+        function drawPlayer(cxt) {
             var playerUiVisual = logicalToVisual(data.playerUiSide);
             drawSvgAround(cxt, "entities/player", playerUiVisual.x, playerUiVisual.y);
+        }
 
+        function drawHud(cxt) {
             drawSvgAt(cxt, "hud/talk", 20, 20);
+        }
+
+        function drawCanvas() {
+            var cxt = data.canvas.getContext("2d");
+            drawBackground(cxt);
+            drawGrid(cxt);
+            drawMoveTarget(cxt);
+            drawPlayer(cxt);
+            drawHud(cxt);
         }
 
         function updateUiData() {
