@@ -40,7 +40,7 @@ var musq = function() {
             if (s == "") {
                 return s;
             }
-            if (s.charAt(s.length - 1) == '\r') {
+            if (s.charAt(s.length - 1) == '\n') {
                 return s.substr(0, s.length - 1);
             }
             return s;
@@ -422,7 +422,7 @@ var musq = function() {
             test("lerp2", (utils.lerp(10.0, 30.0, 0.5) == 20.0));
             test("lerp3", (utils.lerp(10.0, 30.0, 0.0) == 10.0));
             test("lerp4", (utils.lerp(10.0, 30.0, 1.0) == 30.0));
-            test("removeTrailingEnter", (utils.removeTrailingEnter("test\r") == "test"));
+            test("removeTrailingEnter", (utils.removeTrailingEnter("test\n") == "test"));
         }
 
         return {
