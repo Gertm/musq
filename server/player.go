@@ -53,8 +53,8 @@ func (p *Player) AddRequest(r []byte) {
 
 func (p *Player) getNextRequest() (*Request, os.Error) {
 	if p.Requests.Len() > 0 {
-		req := p.Requests.Pop().(Request)
-		return &req, nil
+		req := p.Requests.Pop().(*Request)
+		return req, nil
 	}
 	return nil, os.NewError("Yarr!")
 }
