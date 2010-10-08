@@ -1,8 +1,6 @@
 package main
 
-import (
-
-)
+import ()
 
 type Tile struct {
 	player Player

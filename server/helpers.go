@@ -4,7 +4,7 @@ import (
 	"math"
 	"fmt"
 	"time"
-	)
+)
 
 func Round(x float64) int {
 	if math.Signbit(x) {
@@ -21,10 +21,10 @@ func abs(x int) int {
 }
 
 func Log(str string) {
-	fmt.Println(time.LocalTime().Format(time.Kitchen)+" - "+str)
+	fmt.Println(time.LocalTime().Format(time.Kitchen) + " - " + str)
 }
 
-func TileDistance(x1,y1,x2,y2 int) int {
+func TileDistance(x1, y1, x2, y2 int) int {
 	// the Chebyshev distance between 2 tiles
 	Xn := x2 - x1
 	Yn := y2 - y1

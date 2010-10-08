@@ -11,7 +11,7 @@ func startLogic() {
 }
 
 type subscription struct {
-	Chan chan bool
+	Chan      chan bool
 	subscribe bool
 }
 
@@ -32,6 +32,6 @@ func hbManager() {
 	fmt.Println("Waiting for subscriptions")
 	for {
 		subscription := <-hbSubChan
-		hb[subscription.Chan] = 0,subscription.subscribe
+		hb[subscription.Chan] = 0, subscription.subscribe
 	}
 }
