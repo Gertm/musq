@@ -95,6 +95,8 @@ func PlayerHandler(p *Player, wsChan chan []byte, hBeatChan chan bool) {
 				HandleKeepAlive(p, r, wsChan)
 			case "move":
 				HandleMove(p, r, wsChan)
+			case "talk":
+				HandleTalk(p, r, wsChan)
 			}
 		}
 	}
@@ -137,6 +139,19 @@ func HandleMove(p *Player, r *Request, wsChan chan []byte) {
 	}
 	p.Move(x, y)
 	rply := Request{"move", map[string]string{"X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
+	b, err := json.Marshal(rply)
+	if err != nil {
+		fmt.Println("Couldn't marshal the reply")
+		return
+	}
+	fmt.Printf("Sending %s\n", b)
+	wsChan <- b
+}
+
+func HandleTalk(p *Player, r *Request, wsChan chan []byte) {
+	fmt.Println("Handling the talk...")
+	message := r.Params["Message"]
+	rply := Request{"talk", map[string]string{"Message": message}}
 	b, err := json.Marshal(rply)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")

@@ -8,6 +8,10 @@ body {
 #maincanvas {
 }
 
+#talkedit {
+    display: none;
+}
+
 #footer {
     background-color: #000000;
     color: #AAAAAA;
