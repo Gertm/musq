@@ -9,7 +9,7 @@ var musq = function() {
         }
 
         function fromPx(s) {
-            return s.substr(0, s.length - 2);
+            return parseInt(s.substr(0, s.length - 2));
         }
 
         function lerp(i1, i2, f) {
@@ -46,13 +46,38 @@ var musq = function() {
             return s;
         }
 
+        function ptInRc(rc, pt) {
+            if (pt.x < rc.x) {
+                return false;
+            }
+            if (pt.x >= rc.x + rc.width) {
+                return false;
+            }
+            if (pt.y < rc.y) {
+                return false;
+            }
+            if (pt.y >= rc.y + rc.height) {
+                return false;
+            }
+            return true;
+        }
+
+        function inherit(instance, baseConstructor) {
+            var base = new baseConstructor();
+            for (var member in base) {
+                instance[member] = base[member];
+            }
+        }
+
         return {
             toPx: toPx,
             fromPx: fromPx,
             lerp: lerp,
             onclickOffset: onclickOffset,
             onkeyKey: onkeyKey,
-            removeTrailingEnter: removeTrailingEnter
+            removeTrailingEnter: removeTrailingEnter,
+            ptInRc: ptInRc,
+            inherit: inherit
         };
 
     }();
@@ -94,6 +119,40 @@ var musq = function() {
         };
 
     }();
+
+    //##############################################################################################
+
+    function hudElement() {
+        this.x = 0;
+        this.y = 0;
+        this.width = 0;
+        this.height = 0;
+        this.draw = function(cxt) {};
+        this.onClick = function() {};
+        this.hitTest = function(pt) {
+            var rc = {
+                x: this.x,
+                y: this.y,
+                width: this.width,
+                height: this.height
+            };
+            return utils.ptInRc(rc, pt);
+        };
+        this.onMouseClick = function(pt) {
+            if (this.hitTest(pt)) {
+                this.onClick();
+                return true;
+            }
+            return false;
+        };
+    }
+
+    function hudSvgElement(svg) {
+        utils.inherit(this, hudElement);
+        this.draw = function(cxt) {
+            cxt.drawSvg(svg, this.x, this.y);
+        };
+    }
 
     //##############################################################################################
 
@@ -267,16 +326,14 @@ var musq = function() {
             data.talking = true;
             data.talkedit.style.display = "block";
             data.talkedit.style.position = "fixed";
-            data.talkedit.style.top = data.canvas.style.top;//utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.height);
+            data.talkedit.style.top = utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.clientHeight);
             data.talkedit.style.left = data.canvas.style.left;
             // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
-            data.talkedit.setAttribute("cols", data.canvas.width / 9);
+            data.talkedit.setAttribute("cols", Math.round(data.canvas.width / 8.2));
             data.talkedit.focus();
         }
 
-        function stopTalking() {
-            data.talking = false;
-            data.talkedit.style.display = "none";
+        function sendTalkMessage() {
             var message = utils.removeTrailingEnter(data.talkedit.value);
             if (message != "") {
                 communication.send({
@@ -287,6 +344,11 @@ var musq = function() {
                                    });
             }
             data.talkedit.value = "";
+        }
+
+        function stopTalking() {
+            data.talking = false;
+            data.talkedit.style.display = "none";
         }
 
         function drawSvgAround(cxt, key, x, y) {
@@ -331,7 +393,7 @@ var musq = function() {
         }
 
         function drawHud(cxt) {
-            drawSvgAt(cxt, "hud/talk", 20, 20);
+            data.hudTalk.draw(cxt);
         }
 
         function drawCanvas() {
@@ -363,7 +425,11 @@ var musq = function() {
         function onCanvasClick(evt) {
             var offsetX = utils.onclickOffset(evt, "X", data.canvas);
             var offsetY = utils.onclickOffset(evt, "Y", data.canvas);
-            var newPosition = visualToLogic(new vecMath.vector2d(offsetX, offsetY));
+            var pt = new vecMath.vector2d(offsetX, offsetY);
+            if (data.hudTalk.onMouseClick(pt)) {
+                return;
+            }
+            var newPosition = visualToLogic(pt);
             communication.send({
                                    "Function": "move",
                                    "Params": {
@@ -377,14 +443,23 @@ var musq = function() {
             var keyunicode = utils.onkeyKey(evt);
             //alert(keyunicode);
             if (keyunicode == 84 /* t */) {
-                if (!data.taking) {
+                if (!data.talking) {
                     startTalking();
                 }
             }
             if (keyunicode == 13 /* enter */) {
                 if (data.talking) {
+                    sendTalkMessage();
                     stopTalking();
                 }
+            }
+        }
+
+        function onHudTalkClick() {
+            if (!data.talking) {
+                startTalking();
+            } else {
+                stopTalking();
             }
         }
 
@@ -393,13 +468,31 @@ var musq = function() {
             positionFooter();
         }
 
+        function preloadResources() {
+            resourceBuffer.addXml("hud/talk", "images/hud/talk.svg");
+            resourceBuffer.addXml("entities/player", "images/faces/human/human01.svg");
+        }
+
+        function buildHud() {
+            data.hudTalk = new hudSvgElement(resourceBuffer.get("hud/talk"));
+            data.hudTalk.width = 24;
+            data.hudTalk.height = 24;
+            data.hudTalk.onClick = onHudTalkClick;
+        }
+
+        function layoutHud() {
+            data.hudTalk.x = 20;
+            data.hudTalk.y = 20;
+        }
+
         function onWindowLoad() {
             data.canvas = document.getElementById("maincanvas");
             data.talkedit = document.getElementById("talkedit");
             data.footer = document.getElementById("footer");
-            resourceBuffer.addXml("hud/talk", "images/hud/talk.svg");
-            resourceBuffer.addXml("entities/player", "images/faces/human/human01.svg");
+            preloadResources();
             layoutPage();
+            buildHud();
+            layoutHud();
             var fps = 30;
             setInterval(updateUiData, 1000 / fps);
             setInterval(drawCanvas, 1000 / fps);
@@ -410,6 +503,7 @@ var musq = function() {
 
         function onWindowResize() {
             layoutPage();
+            layoutHud();
             drawCanvas();
         }
 
@@ -426,18 +520,20 @@ var musq = function() {
 
         function test(testString, condition) {
             if (!condition) {
-                log("test failed: " + testString + "!");
+                alert("test failed: " + testString + "!");
             }
         }
 
         function runTests() {
             test("toPx", (utils.toPx(10) == "10px"));
-            test("fromPx", (utils.fromPx("10px") == "10"));
+            test("fromPx", (utils.fromPx("10px") == 10));
             test("lerp1", (utils.lerp(0.0, 10.0, 0.5) == 5.0));
             test("lerp2", (utils.lerp(10.0, 30.0, 0.5) == 20.0));
             test("lerp3", (utils.lerp(10.0, 30.0, 0.0) == 10.0));
             test("lerp4", (utils.lerp(10.0, 30.0, 1.0) == 30.0));
             test("removeTrailingEnter", (utils.removeTrailingEnter("test\n") == "test"));
+            test("ptInRc1", (utils.ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 60, y: 60 })));
+            test("ptInRc2", (!utils.ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 40, y: 60 })));
         }
 
         return {
