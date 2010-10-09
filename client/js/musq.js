@@ -9,7 +9,7 @@ var musq = function() {
         }
 
         function fromPx(s) {
-            return s.substr(0, s.length - 2);
+            return parseInt(s.substr(0, s.length - 2));
         }
 
         function lerp(i1, i2, f) {
@@ -326,10 +326,10 @@ var musq = function() {
             data.talking = true;
             data.talkedit.style.display = "block";
             data.talkedit.style.position = "fixed";
-            data.talkedit.style.top = data.canvas.style.top;//utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.height);
+            data.talkedit.style.top = utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.clientHeight);
             data.talkedit.style.left = data.canvas.style.left;
             // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
-            data.talkedit.setAttribute("cols", data.canvas.width / 9);
+            data.talkedit.setAttribute("cols", Math.round(data.canvas.width / 8.2));
             data.talkedit.focus();
         }
 
@@ -443,7 +443,7 @@ var musq = function() {
             var keyunicode = utils.onkeyKey(evt);
             //alert(keyunicode);
             if (keyunicode == 84 /* t */) {
-                if (!data.taking) {
+                if (!data.talking) {
                     startTalking();
                 }
             }
@@ -526,7 +526,7 @@ var musq = function() {
 
         function runTests() {
             test("toPx", (utils.toPx(10) == "10px"));
-            test("fromPx", (utils.fromPx("10px") == "10"));
+            test("fromPx", (utils.fromPx("10px") == 10));
             test("lerp1", (utils.lerp(0.0, 10.0, 0.5) == 5.0));
             test("lerp2", (utils.lerp(10.0, 30.0, 0.5) == 20.0));
             test("lerp3", (utils.lerp(10.0, 30.0, 0.0) == 10.0));
