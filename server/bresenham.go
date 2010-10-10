@@ -30,10 +30,10 @@ func bresenham(x0, y0, x1, y1 int) []Location {
 	steps := make([]Location, TileDistance(x0,y0,x1,y1)+1)
 	for x := x0; x <= x1; x++ {
 		if steep {
-			steps[sliceCounter] = Location{x, y, 0}
+			steps[sliceCounter] = Location{x, y, 0, nil}
 			fmt.Printf("-> %d, %d ", x, y)
 		} else {
-			steps[sliceCounter] = Location{y, x, 0}
+			steps[sliceCounter] = Location{y, x, 0, nil}
 			fmt.Printf("-> %d, %d ", y, x)
 		}
 		error = error - deltay

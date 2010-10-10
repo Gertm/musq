@@ -1,6 +1,8 @@
 package main
 
-import ()
+import (
+	"container/vector"
+)
 
 func TileDistance(x1, y1, x2, y2 int) int {
 	// the Chebyshev distance between 2 tiles
@@ -18,6 +20,7 @@ func LocationDistance(loc1, loc2 *Location) int {
 
 type Location struct {
 	x, y, Score int
+	Parent *Location
 }
 
 func (l *Location) Equals(p *Location) bool {
@@ -30,9 +33,8 @@ func (l *Location) Equals(p *Location) bool {
 func (l *Location) CalcScore(start *Location, dest *Location) int {
 	G := LocationDistance(l, start)
 	H := LocationDistance(l, dest)
-	F := G + H
-	l.Score = F
-	return F
+	l.Score = G + H
+	return l.Score
 }
 
 // this will need to look up the locations in the
@@ -53,3 +55,14 @@ func (l *Location) Neighbours() []Location {
 	return neighbours
 }
 
+func PopLoc(v vector.Vector) *Location {
+	return v.Pop().(*Location)
+}
+
+func astar(start, dest *Location) []*Location {
+	straightDistance := LocationDistance(start,dest)
+	var path vector.Vector
+	var openList vector.Vector
+	var closedList vector.Vector
+	
+}
