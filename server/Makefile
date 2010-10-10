@@ -9,6 +9,7 @@ GOFILES=\
 	heart.go\
 	playingfield.go\
 	bresenham.go\
+	astar.go\
 	helpers.go\
 
 include $(GOROOT)/src/Make.cmd
