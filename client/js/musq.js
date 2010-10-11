@@ -389,7 +389,12 @@ var musq = function() {
 
         function drawPlayer(cxt) {
             var playerUiVisual = logicalToVisual(data.playerUiSide);
-            drawSvgAround(cxt, "entities/player", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player/face", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player/ears", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player/eyes", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player/hair", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player/mouth", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player/nose", playerUiVisual.x, playerUiVisual.y);
         }
 
         function drawHud(cxt) {
@@ -470,7 +475,12 @@ var musq = function() {
 
         function preloadResources() {
             resourceBuffer.addXml("hud/talk", "images/hud/talk.svg");
-            resourceBuffer.addXml("entities/player", "images/faces/human/human01.svg");
+            resourceBuffer.addXml("entities/player/face", "images/faces/human/face01.svg");
+            resourceBuffer.addXml("entities/player/ears", "images/faces/human/ears01.svg");
+            resourceBuffer.addXml("entities/player/eyes", "images/faces/human/eyes01.svg");
+            resourceBuffer.addXml("entities/player/hair", "images/faces/human/hair01.svg");
+            resourceBuffer.addXml("entities/player/mouth", "images/faces/human/mouth01.svg");
+            resourceBuffer.addXml("entities/player/nose", "images/faces/human/nose01.svg");
         }
 
         function buildHud() {
