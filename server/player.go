@@ -42,7 +42,9 @@ func (p *Player) AddRequest(r []byte) {
 		p.CancelAllRequests()
 		x, _ := strconv.Atoi(req.Params["X"])
 		y, _ := strconv.Atoi(req.Params["Y"])
-		LocList := bresenham(p.X, p.Y, x, y)
+		startLoc := Location{ p.X, p.Y, 0, nil }
+		destLoc := Location{ x, y, 0, nil }
+		LocList := findPath(startLoc, destLoc)
 		for i := len(LocList) - 1; i >= 0; i-- {
 		//for i := 0; i<len(LocList); i++ {
 			fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
