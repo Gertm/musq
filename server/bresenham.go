@@ -4,8 +4,9 @@ import (
 	"fmt"
 )
 
-
 func bresenham(x0, y0, x1, y1 int) []Location {
+	fmt.Println("Why are we still using bresenham?")
+	defer fmt.Println("Why are we still using bresenham?")
 	steep := abs(y1-y0) > abs(x1-x0)
 	if steep {
 		x0, y0 = y0, x0
