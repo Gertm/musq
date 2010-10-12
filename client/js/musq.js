@@ -482,8 +482,8 @@ var musq = function () {
             var width = 24;
             var height = 24;
             resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", width, height);
-            width = 48;
-            height = 48;
+            width = 64;
+            height = 64;
             resourceBuffer.addSvgs(
                 "entities/player",
                 ["images/faces/human/male/face01.svg",
