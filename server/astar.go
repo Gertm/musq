@@ -7,13 +7,9 @@ import (
 )
 
 func TileDistance(x1, y1, x2, y2 int) int {
-	// the Chebyshev distance between 2 tiles
-	Xn := abs(x2 - x1)
-	Yn := abs(y2 - y1)
-	if Xn > Yn {
-		return Xn
-	}
-	return Yn
+	// it may be better to use the Manhattan distance here
+	distance := abs(x2 - x1) + abs(y2-y1)
+	return distance
 }
 
 func LocationDistance(loc1, loc2 *Location) int {
@@ -37,11 +33,7 @@ func (l *Location) String() string {
 }
 
 func LocFromString(locstring string) Location {
-	fmt.Printf("locstring: %s\n",locstring)
 	strList := strings.Split(locstring,",",-1)
-	for i := range strList {
-		fmt.Printf("Locs[%d] = %s\n",i, strList[i])
-	}
 	xx, _ := strconv.Atoi(strList[0])
 	yy, _ := strconv.Atoi(strList[1])
 	fmt.Printf("Returning location{ x: %d, y: %d } for string '%s'\n",xx,yy,locstring)
@@ -52,6 +44,10 @@ func (l *Location) CalcScore(start *Location, dest *Location) int {
 	G := LocationDistance(l, start)
 	H := LocationDistance(l, dest)
 	l.Score = G + H
+	// put in check to favor straight lines
+	if l.x != dest.x && l.y != dest.y {
+		l.Score++
+	}
 	//fmt.Printf("for %d,%d: G=%d, H=%d Score=%d\n",l.x, l.y, G, H, l.Score)
 	return l.Score
 }
@@ -59,20 +55,20 @@ func (l *Location) CalcScore(start *Location, dest *Location) int {
 // this will need to look up the locations in the
 // database to see if the locs are available. For now,
 // they all are.
-func (l *Location) Neighbours(path map[string]string) []Location {
+func (l *Location) Neighbours() []Location {
 	neighbours := make([]Location, 8)
 	count := 0
 	for i:=l.x-1;i<=l.x+1;i++ {
 		for j:=l.y-1;j<=l.y+1;j++ {
 			LocHere := Location{x:i, y:j, Score: 0, Parent: l}
-			if LocHere.Equals(l) {
-				// 
-			} else {
+			if !LocHere.Equals(l) {
 				neighbours[count] = Location{x:i, y:j, Score: 0, Parent: l}
+				fmt.Printf("%s ",neighbours[count].String())
 				count++
 			}
 		}
 	}
+	fmt.Println("")
 	return neighbours
 }
 
@@ -80,10 +76,13 @@ func findPath(start, dest Location) []Location {
 	path := make(map[string]string)
 	closedList := make(map[string]string)
 	current := start
-	path[start.String()]=start.String()
+	startstr := start.String()
+	path[startstr]=startstr
+	closedList[startstr]="ok"
 	for {
 		nextTile := selectBestNextTile(start, dest, current, path, closedList)
 		path[current.String()] = nextTile.String()
+		closedList[nextTile.String()]="ok"
 		current = nextTile
 		if nextTile.Equals(&dest) {
 			path[nextTile.String()] = current.String()
@@ -97,30 +96,39 @@ func findPath(start, dest Location) []Location {
 
 func selectBestNextTile(start, dest, tile Location, path, closedList map[string]string) Location {
 	current := tile
-	current.Score = 999999
-	neighbours := tile.Neighbours(path)
-	//fmt.Printf("Current score: %d\n", current.Score)
+	current.Score = 99
+	neighbours := tile.Neighbours()
+
 	for i:=0;i<len(neighbours);i++ {
-		thisnb := neighbours[i].String()
+		nbstr := neighbours[i].String()
 		neighbours[i].CalcScore(&start,&dest)
-		//fmt.Printf("neighbours[%d]: %d,%d Score: %d\n", i, neighbours[i].x, neighbours[i].y, neighbours[i].Score)
-		if neighbours[i].Score < current.Score {
-			//fmt.Println("this one is smaller!")
-			if neighbours[i].Equals(&current) {
+		fmt.Printf("neighbours[%d]: %d,%d Score: %d | currentscore: %d\n", i, neighbours[i].x, neighbours[i].y, neighbours[i].Score, current.Score)
+
+		if neighbours[i].Score <= current.Score {
+			if LocationDistance(&current,&dest) < LocationDistance(&neighbours[i],&dest) {
+				continue
+			}
+			fmt.Printf("found smaller one: %s\n", nbstr)
+
+			if neighbours[i].Equals(&tile) {
 				path[current.String()]=tile.String()
 				return current
 			}
-			_, ok := path[thisnb]
-			_, ok2 := closedList[thisnb]
-			if ok {
-				//fmt.Println("Found tile in path, skipping")
+			_, ok := path[nbstr]
+			//_, ok2 := closedList[nbstr]
+			if ok  {
+				fmt.Println("Found tile in path or closedList, skipping")
 				continue
 			}
+
 			current = neighbours[i]
-			//fmt.Printf("Current is now %d,%d\n",current.x,current.y)
+			current.CalcScore(&start,&dest)
+			fmt.Printf("Current is now %d,%d\n",current.x,current.y)
 		} else {
-			closedList[thisnb]=tile.String()
+			fmt.Printf("adding %s to the closed list\n",nbstr)
+			closedList[nbstr]="ok"
 		}
+
 	}
 	path[current.String()]=tile.String()
 	fmt.Printf("Returning %d,%d as next tile\n",current.x,current.y)
