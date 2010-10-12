@@ -19,3 +19,7 @@ body {
     font-family: "DejaVu Sans Mono", Monospace;
     padding: 5px 0px 5px 50px;
 }
+
+#svg2pngcanvas {
+    display: none;
+}

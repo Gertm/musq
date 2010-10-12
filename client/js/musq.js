@@ -1,8 +1,8 @@
-var musq = function() {
+var musq = function () {
 
     //##############################################################################################
 
-    var utils = function() {
+    var utils = function () {
 
         function toPx(i) {
             return i + "px";
@@ -32,7 +32,7 @@ var musq = function() {
 
         function onkeyKey(evt) {
             var e = window.event || evt;
-            var keyunicode = e.charCode || e.keyCode;            
+            var keyunicode = e.charCode || e.keyCode;
             return keyunicode;
         }
 
@@ -80,16 +80,16 @@ var musq = function() {
             inherit: inherit
         };
 
-    }();
+    } ();
 
     //##############################################################################################
 
-    var vecMath = function() {
+    var vecMath = function () {
 
         function vector2d(x, y) {
             this.x = x;
             this.y = y;
-            this.length = function() {
+            this.length = function () {
                 return Math.sqrt(this.x * this.x + this.y * this.y);
             };
         }
@@ -118,7 +118,7 @@ var musq = function() {
             normalize: normalize
         };
 
-    }();
+    } ();
 
     //##############################################################################################
 
@@ -127,9 +127,9 @@ var musq = function() {
         this.y = 0;
         this.width = 0;
         this.height = 0;
-        this.draw = function(cxt) {};
-        this.onClick = function() {};
-        this.hitTest = function(pt) {
+        this.draw = function (cxt) { };
+        this.onClick = function () { };
+        this.hitTest = function (pt) {
             var rc = {
                 x: this.x,
                 y: this.y,
@@ -138,7 +138,7 @@ var musq = function() {
             };
             return utils.ptInRc(rc, pt);
         };
-        this.onMouseClick = function(pt) {
+        this.onMouseClick = function (pt) {
             if (this.hitTest(pt)) {
                 this.onClick();
                 return true;
@@ -147,10 +147,10 @@ var musq = function() {
         };
     }
 
-    function hudSvgElement(svg) {
+    function hudImageElement(image) {
         utils.inherit(this, hudElement);
-        this.draw = function(cxt) {
-            cxt.drawSvg(svg, this.x, this.y);
+        this.draw = function (cxt) {
+            cxt.drawImage(image, this.x, this.y);
         };
     }
 
@@ -161,7 +161,7 @@ var musq = function() {
     data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
     data.playerUiSide = new vecMath.vector2d(0.0, 0.0);
     data.playerLogicSide = new vecMath.vector2d(0.0, 0.0);
-    data.now = function() {
+    data.now = function () {
         return (new Date()).getTime();
     };
     data.lastUpdateTime = data.now();
@@ -178,11 +178,11 @@ var musq = function() {
 
     //##############################################################################################
 
-    var communication = function() {
+    var communication = function () {
 
         if (window.WebSocket) {
 
-            var ws = new WebSocket("ws://"+musq_websocket_url+"/service");
+            var ws = new WebSocket("ws://" + musq_websocket_url + "/service");
 
             function send(obj) {
                 ws.send(JSON.stringify(obj));
@@ -195,7 +195,7 @@ var musq = function() {
                      });
             }
 
-            ws.onopen = function() {
+            ws.onopen = function () {
                 log("WebSocket opened.");
                 send({
                          "Function": "login",
@@ -204,14 +204,14 @@ var musq = function() {
                              "Password": ""
                          }
                      });
-                setInterval(sendKeepAliv, 10000);  
+                setInterval(sendKeepAliv, 10000);
             };
 
-            ws.onclose = function() {
+            ws.onclose = function () {
                 log("WebSocket closed.");
             };
 
-            ws.onmessage = function(evt) {
+            ws.onmessage = function (evt) {
                 log("Received " + evt.data + ".");
                 var json = JSON.parse(evt.data);
                 if (!json) {
@@ -249,13 +249,13 @@ var musq = function() {
 
         }
 
-    }();
+    } ();
 
     //##############################################################################################
 
-    var main = function() {
+    var main = function () {
 
-        var resourceBuffer = function() {
+        var resourceBuffer = function () {
 
             var container = {};
 
@@ -265,11 +265,13 @@ var musq = function() {
                 container[key] = image;
             }
 
-            function addXml(key, url) {
-                var xmlHttp = new XMLHttpRequest();
-                xmlHttp.open("GET", url, false);
-                xmlHttp.send();
-                container[key] = xmlHttp.responseText;
+            function addSvg(key, url, width, height) {
+                var canvas = document.getElementById("svg2pngcanvas");
+                canvas.setAttribute("width", utils.toPx(width));
+                canvas.setAttribute("height", utils.toPx(height));
+                var cxt = canvas.getContext("2d");
+                cxt.drawSvg(url, 0, 0);
+                addImage(key, canvas.toDataURL());
             }
 
             function remove(key) {
@@ -282,12 +284,12 @@ var musq = function() {
 
             return {
                 addImage: addImage,
-                addXml: addXml,
+                addSvg: addSvg,
                 remove: remove,
                 get: get
             };
 
-        }();
+        } ();
 
         function positionCanvas() {
             var xPadding = 40;
@@ -352,14 +354,14 @@ var musq = function() {
         }
 
         function drawSvgAround(cxt, key, x, y) {
-            // TODO: Find a way of determining the width/height of a svg.
-            var svgWidth = 64;
-            var svgHeight = 64;
-            cxt.drawSvg(resourceBuffer.get(key), x - svgWidth / 2, y - svgHeight / 2);
+            var image = resourceBuffer.get(key);
+            var width = image.width;
+            var height = image.height;
+            cxt.drawImage(image, x - width / 2, y - height / 2);
         }
 
         function drawSvgAt(cxt, key, x, y) {
-            cxt.drawSvg(resourceBuffer.get(key), x, y);
+            cxt.drawImage(resourceBuffer.get(key), x, y);
         }
 
         function drawBackground(cxt) {
@@ -474,17 +476,22 @@ var musq = function() {
         }
 
         function preloadResources() {
-            resourceBuffer.addXml("hud/talk", "images/hud/talk.svg");
-            resourceBuffer.addXml("entities/player/face", "images/faces/human/face01.svg");
-            resourceBuffer.addXml("entities/player/ears", "images/faces/human/ears01.svg");
-            resourceBuffer.addXml("entities/player/eyes", "images/faces/human/eyes01.svg");
-            resourceBuffer.addXml("entities/player/hair", "images/faces/human/hair01.svg");
-            resourceBuffer.addXml("entities/player/mouth", "images/faces/human/mouth01.svg");
-            resourceBuffer.addXml("entities/player/nose", "images/faces/human/nose01.svg");
+            // TODO: add a way of determining the width and height
+            var width = 24;
+            var height = 24;
+            resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", width, height);
+            width = 48;
+            height = 48;
+            resourceBuffer.addSvg("entities/player/face", "images/faces/human/face01.svg", width, height);
+            resourceBuffer.addSvg("entities/player/ears", "images/faces/human/ears01.svg", width, height);
+            resourceBuffer.addSvg("entities/player/eyes", "images/faces/human/eyes01.svg", width, height);
+            resourceBuffer.addSvg("entities/player/hair", "images/faces/human/hair01.svg", width, height);
+            resourceBuffer.addSvg("entities/player/mouth", "images/faces/human/mouth01.svg", width, height);
+            resourceBuffer.addSvg("entities/player/nose", "images/faces/human/nose01.svg", width, height);
         }
 
         function buildHud() {
-            data.hudTalk = new hudSvgElement(resourceBuffer.get("hud/talk"));
+            data.hudTalk = new hudImageElement(resourceBuffer.get("hud/talk"));
             data.hudTalk.width = 24;
             data.hudTalk.height = 24;
             data.hudTalk.onClick = onHudTalkClick;
@@ -522,11 +529,11 @@ var musq = function() {
             onWindowResize: onWindowResize
         };
 
-    }();
+    } ();
 
     //##############################################################################################
 
-    var testing = function() {
+    var testing = function () {
 
         function test(testString, condition) {
             if (!condition) {
@@ -550,14 +557,14 @@ var musq = function() {
             runTests: runTests
         };
 
-    }();
+    } ();
 
     return {
         main: main,
         testing: testing
     };
 
-}();
+} ();
 
 //##################################################################################################
 
