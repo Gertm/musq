@@ -486,12 +486,12 @@ var musq = function () {
             height = 48;
             resourceBuffer.addSvgs(
                 "entities/player",
-                ["images/faces/human/face01.svg",
-                 "images/faces/human/ears01.svg",
-                 "images/faces/human/eyes01.svg",
-                 "images/faces/human/hair01.svg",
-                 "images/faces/human/mouth01.svg",
-                 "images/faces/human/nose01.svg"],
+                ["images/faces/human/male/face01.svg",
+                 "images/faces/human/male/ears01.svg",
+                 "images/faces/human/male/eyes01.svg",
+                 "images/faces/human/male/hair01.svg",
+                 "images/faces/human/male/mouth01.svg",
+                 "images/faces/human/male/nose01.svg"],
                 width, height);
         }
 
