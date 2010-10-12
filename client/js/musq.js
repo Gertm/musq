@@ -265,13 +265,19 @@ var musq = function () {
                 container[key] = image;
             }
 
-            function addSvg(key, url, width, height) {
+            function addSvgs(key, urls, width, height) {
                 var canvas = document.getElementById("svg2pngcanvas");
                 canvas.setAttribute("width", utils.toPx(width));
                 canvas.setAttribute("height", utils.toPx(height));
                 var cxt = canvas.getContext("2d");
-                cxt.drawSvg(url, 0, 0);
+                urls.forEach(function (url, index, array) {
+                                 cxt.drawSvg(url, 0, 0);
+                             });
                 addImage(key, canvas.toDataURL());
+            }
+
+            function addSvg(key, url, width, height) {
+                addSvgs(key, [url], width, height);
             }
 
             function remove(key) {
@@ -285,6 +291,7 @@ var musq = function () {
             return {
                 addImage: addImage,
                 addSvg: addSvg,
+                addSvgs: addSvgs,
                 remove: remove,
                 get: get
             };
@@ -391,12 +398,7 @@ var musq = function () {
 
         function drawPlayer(cxt) {
             var playerUiVisual = logicalToVisual(data.playerUiSide);
-            drawSvgAround(cxt, "entities/player/face", playerUiVisual.x, playerUiVisual.y);
-            drawSvgAround(cxt, "entities/player/ears", playerUiVisual.x, playerUiVisual.y);
-            drawSvgAround(cxt, "entities/player/eyes", playerUiVisual.x, playerUiVisual.y);
-            drawSvgAround(cxt, "entities/player/hair", playerUiVisual.x, playerUiVisual.y);
-            drawSvgAround(cxt, "entities/player/mouth", playerUiVisual.x, playerUiVisual.y);
-            drawSvgAround(cxt, "entities/player/nose", playerUiVisual.x, playerUiVisual.y);
+            drawSvgAround(cxt, "entities/player", playerUiVisual.x, playerUiVisual.y);
         }
 
         function drawHud(cxt) {
@@ -482,12 +484,15 @@ var musq = function () {
             resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", width, height);
             width = 48;
             height = 48;
-            resourceBuffer.addSvg("entities/player/face", "images/faces/human/face01.svg", width, height);
-            resourceBuffer.addSvg("entities/player/ears", "images/faces/human/ears01.svg", width, height);
-            resourceBuffer.addSvg("entities/player/eyes", "images/faces/human/eyes01.svg", width, height);
-            resourceBuffer.addSvg("entities/player/hair", "images/faces/human/hair01.svg", width, height);
-            resourceBuffer.addSvg("entities/player/mouth", "images/faces/human/mouth01.svg", width, height);
-            resourceBuffer.addSvg("entities/player/nose", "images/faces/human/nose01.svg", width, height);
+            resourceBuffer.addSvgs(
+                "entities/player",
+                ["images/faces/human/face01.svg",
+                 "images/faces/human/ears01.svg",
+                 "images/faces/human/eyes01.svg",
+                 "images/faces/human/hair01.svg",
+                 "images/faces/human/mouth01.svg",
+                 "images/faces/human/nose01.svg"],
+                width, height);
         }
 
         function buildHud() {
