@@ -156,11 +156,17 @@ var musq = function () {
 
     //##############################################################################################
 
+    function entity(key) {
+        this.key = key;
+        // These are all in 'logical' coordinates, not in UI pixels.
+        this.positionLogicSide = new vecMath.vector2d(0.0, 0.0);
+        this.positionUiSide = new vecMath.vector2d(0.0, 0.0);
+    }
+
+    //##############################################################################################
+
     var data = {};
-    // These are all in 'logical' coordinates, not in UI pixels.
     data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
-    data.playerUiSide = new vecMath.vector2d(0.0, 0.0);
-    data.playerLogicSide = new vecMath.vector2d(0.0, 0.0);
     data.now = function () {
         return (new Date()).getTime();
     };
@@ -168,6 +174,7 @@ var musq = function () {
     data.talking = false;
     data.footerHeight = 20;
     data.logicalToVisualFactor = 70.0;
+    data.entities = [];
 
     //##############################################################################################
 
@@ -229,7 +236,7 @@ var musq = function () {
                     return;
                 }
                 if (json.Function == "move") {
-                    data.playerLogicSide = new vecMath.vector2d(parseInt(json.Params.X), parseInt(json.Params.Y));
+                    data.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X), parseInt(json.Params.Y));
                     return;
                 }
                 if (json.Function == "talk") {
@@ -360,15 +367,23 @@ var musq = function () {
             data.talkedit.style.display = "none";
         }
 
-        function drawSvgAround(cxt, key, x, y) {
+        function drawSvgAroundUi(cxt, key, pt) {
             var image = resourceBuffer.get(key);
             var width = image.width;
             var height = image.height;
-            cxt.drawImage(image, x - width / 2, y - height / 2);
+            cxt.drawImage(image, pt.x - width / 2, pt.y - height / 2);
         }
 
-        function drawSvgAt(cxt, key, x, y) {
-            cxt.drawImage(resourceBuffer.get(key), x, y);
+        function drawSvgAroundLogic(cxt, key, pt) {
+            drawSvgAroundUi(cxt, key, logicalToVisual(pt));
+        }
+
+        function drawSvgAtUi(cxt, key, pt) {
+            cxt.drawImage(resourceBuffer.get(key), pt.x, pt.y);
+        }
+
+        function drawSvgAtLogic(cxt, key, pt) {
+            drawSvgAtUi(cxt, key, logicalToVisual(pt));
         }
 
         function drawBackground(cxt) {
@@ -392,13 +407,14 @@ var musq = function () {
 
         function drawMoveTarget(cxt) {
             cxt.fillStyle = "#FF0000";
-            var playerLogicalVisual = logicalToVisual(data.playerLogicSide);
+            var playerLogicalVisual = logicalToVisual(data.player.positionLogicSide);
             cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
         }
 
-        function drawPlayer(cxt) {
-            var playerUiVisual = logicalToVisual(data.playerUiSide);
-            drawSvgAround(cxt, "entities/player", playerUiVisual.x, playerUiVisual.y);
+        function drawEntities(cxt) {
+            data.entities.forEach(function (e, index, array) {
+                                      drawSvgAroundLogic(cxt, e.key, e.positionUiSide);
+                                  });
         }
 
         function drawHud(cxt) {
@@ -410,7 +426,7 @@ var musq = function () {
             drawBackground(cxt);
             drawGrid(cxt);
             drawMoveTarget(cxt);
-            drawPlayer(cxt);
+            drawEntities(cxt);
             drawHud(cxt);
         }
 
@@ -419,15 +435,17 @@ var musq = function () {
             var newUpdateTime = data.now();
             // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
             var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
-            var v = vm.subtract(data.playerLogicSide, data.playerUiSide);
-            var vLength = v.length();
-            // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
-            // we seem to get rounding issues (jittering).
-            if (vLength > 0.1) {
-                data.playerUiSide = vm.add(data.playerUiSide, vm.scale(v, distance / vLength));
-            } else {
-                data.playerUiSide = data.playerLogicSide;
-            }
+            data.entities.forEach(function (e, index, array) {
+                                      var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
+                                      var vLength = v.length();
+                                      // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
+                                      // we seem to get rounding issues (jittering).
+                                      if (vLength > 0.1) {
+                                          e.positionUiSide = vm.add(e.positionUiSide, vm.scale(v, distance / vLength));
+                                      } else {
+                                          e.positionUiSide = e.positionLogicSide;
+                                      }
+                                  });
             data.lastUpdateTime = newUpdateTime;
         }
 
@@ -493,6 +511,14 @@ var musq = function () {
                  "images/faces/human/male/mouth01.svg",
                  "images/faces/human/male/nose01.svg"],
                 width, height);
+            resourceBuffer.addSvgs(
+                "entities/enemy01",
+                ["images/faces/human/male/face02.svg",
+                 "images/faces/human/male/ears02.svg",
+                 "images/faces/human/male/eyes01.svg",
+                 "images/faces/human/male/mouth01.svg",
+                 "images/faces/human/male/nose01.svg"],
+                width, height);
         }
 
         function buildHud() {
@@ -507,6 +533,15 @@ var musq = function () {
             data.hudTalk.y = 20;
         }
 
+        function buildEntities() {
+            data.player = new entity("entities/player");
+            data.entities.push(data.player);
+            data.enemy01 = new entity("entities/enemy01");
+            data.enemy01.positionLogicSide = new vecMath.vector2d(-3.0, 3.0);
+            data.enemy01.positionUiSide = data.enemy01.positionLogicSide;
+            data.entities.push(data.enemy01);
+        }
+
         function onWindowLoad() {
             data.canvas = document.getElementById("maincanvas");
             data.talkedit = document.getElementById("talkedit");
@@ -515,6 +550,7 @@ var musq = function () {
             layoutPage();
             buildHud();
             layoutHud();
+            buildEntities();
             var fps = 30;
             setInterval(updateUiData, 1000 / fps);
             setInterval(drawCanvas, 1000 / fps);
