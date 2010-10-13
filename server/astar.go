@@ -100,12 +100,15 @@ func selectBestNextTile(start, dest, tile Location, path map[string]string) Loca
 		nbstr := neighbours[i].String()
 		neighbours[i].CalcScore(&start,&dest)
 		//fmt.Printf("neighbours[%d]: %d,%d Score: %d | currentscore: %d\n", i, neighbours[i].x, neighbours[i].y, neighbours[i].Score, current.Score)
-
+		
 		if neighbours[i].Score <= current.Score {
-			// check to see if the new one is better even if they have the same distance
-			if LocationDistance(&current,&dest) < LocationDistance(&neighbours[i],&dest) {
-				continue
+			if neighbours[i].Score == current.Score {
+				// check to see if the new one is better even if they have the same distance
+				if LocationDistance(&current,&dest) < LocationDistance(&neighbours[i],&dest) {
+					continue
+				}
 			}
+			
 			//fmt.Printf("found smaller one: %s\n", nbstr)
 
 			if neighbours[i].Equals(&tile) {
