@@ -273,6 +273,7 @@ var musq = function () {
         function addSvgs(key, urls) {
             var canvas = document.getElementById("svg2pngcanvas");
             var cxt = canvas.getContext("2d");
+            cxt.clearRect(0, 0, canvas.width, canvas.height);
             urls.forEach(function (url, index, array) {
                              var xmlHttp = new XMLHttpRequest();
                              xmlHttp.open("GET", url, false);
@@ -280,7 +281,7 @@ var musq = function () {
                              var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
                              var width = parseInt(svg.getAttribute("width"), 10);
                              var height = parseInt(svg.getAttribute("height"), 10);
-                             if (utils.fromPx(canvas.width) !== width || utils.fromPx(canvas.height) !== height) {
+                             if (canvas.width !== width || canvas.height !== height) {
                                  canvas.setAttribute("width", utils.toPx(width));
                                  canvas.setAttribute("height", utils.toPx(height));
                              }
