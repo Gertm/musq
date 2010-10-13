@@ -1,6 +1,6 @@
 var musq = function () {
 
-    //##############################################################################################
+    //## generic utilities that have no dependencies ###############################################
 
     var utils = function () {
 
@@ -9,7 +9,7 @@ var musq = function () {
         }
 
         function fromPx(s) {
-            return parseInt(s.substr(0, s.length - 2));
+            return parseInt(s.substr(0, s.length - 2), 10);
         }
 
         function lerp(i1, i2, f) {
@@ -37,7 +37,7 @@ var musq = function () {
         }
 
         function removeTrailingEnter(s) {
-            if (s == "") {
+            if (s === "") {
                 return s;
             }
             if (s.charAt(s.length - 1) == '\n') {
@@ -82,7 +82,12 @@ var musq = function () {
 
     } ();
 
-    //##############################################################################################
+    function log(txt) {
+        if (console.log)
+            console.log("MUSQ: " + txt);
+    }
+
+    //## 2D vector math utilities ##################################################################
 
     var vecMath = function () {
 
@@ -108,7 +113,7 @@ var musq = function () {
 
         function normalize(v) {
             return scale(v, 1.0 / v.length());
-        };
+        }
 
         return {
             vector2d: vector2d,
@@ -120,7 +125,7 @@ var musq = function () {
 
     } ();
 
-    //##############################################################################################
+    //## HUD elements ##############################################################################
 
     function hudElement() {
         this.x = 0;
@@ -149,12 +154,14 @@ var musq = function () {
 
     function hudImageElement(image) {
         utils.inherit(this, hudElement);
+        this.width = image.width;
+        this.height = image.height;
         this.draw = function (cxt) {
             cxt.drawImage(image, this.x, this.y);
         };
     }
 
-    //##############################################################################################
+    //## canvas elements ###########################################################################
 
     function entity(key) {
         this.key = key;
@@ -163,7 +170,7 @@ var musq = function () {
         this.positionUiSide = new vecMath.vector2d(0.0, 0.0);
     }
 
-    //##############################################################################################
+    //## global data ###############################################################################
 
     var data = {};
     data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
@@ -176,14 +183,7 @@ var musq = function () {
     data.logicalToVisualFactor = 70.0;
     data.entities = [];
 
-    //##############################################################################################
-
-    function log(txt) {
-        if (console.log)
-            console.log("MUSQ: " + txt);
-    }
-
-    //##############################################################################################
+    //## websocket communication ###################################################################
 
     var communication = function () {
 
@@ -236,7 +236,7 @@ var musq = function () {
                     return;
                 }
                 if (json.Function == "move") {
-                    data.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X), parseInt(json.Params.Y));
+                    data.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
                     return;
                 }
                 if (json.Function == "talk") {
@@ -258,321 +258,320 @@ var musq = function () {
 
     } ();
 
-    //##############################################################################################
+    //## image/resource buffer management ##########################################################
 
-    var main = function () {
+    var resourceBuffer = function () {
 
-        var resourceBuffer = function () {
+        var container = {};
 
-            var container = {};
-
-            function addImage(key, url) {
-                var image = new Image();
-                image.src = url;
-                container[key] = image;
-            }
-
-            function addSvgs(key, urls, width, height) {
-                var canvas = document.getElementById("svg2pngcanvas");
-                canvas.setAttribute("width", utils.toPx(width));
-                canvas.setAttribute("height", utils.toPx(height));
-                var cxt = canvas.getContext("2d");
-                urls.forEach(function (url, index, array) {
-                                 cxt.drawSvg(url, 0, 0);
-                             });
-                addImage(key, canvas.toDataURL());
-            }
-
-            function addSvg(key, url, width, height) {
-                addSvgs(key, [url], width, height);
-            }
-
-            function remove(key) {
-                container[key] = undefined;
-            }
-
-            function get(key) {
-                return container[key];
-            }
-
-            return {
-                addImage: addImage,
-                addSvg: addSvg,
-                addSvgs: addSvgs,
-                remove: remove,
-                get: get
-            };
-
-        } ();
-
-        function positionCanvas() {
-            var xPadding = 40;
-            var yPadding = 20;
-            data.canvas.style.position = "fixed";
-            var newWidth = window.innerWidth - xPadding * 2;
-            data.canvas.setAttribute("width", utils.toPx(newWidth));
-            var newHeight = window.innerHeight - yPadding * 2 - data.footerHeight;
-            data.canvas.setAttribute("height", utils.toPx(newHeight));
-            data.canvas.style.top = utils.toPx(yPadding);
-            data.canvas.style.left = utils.toPx(xPadding);
+        function addImage(key, url) {
+            var image = new Image();
+            image.src = url;
+            container[key] = image;
         }
 
-        function positionFooter() {
-            data.footer.style.position = "fixed";
-            data.footer.style.width = utils.toPx(window.innerWidth);
-            data.footer.style.top = utils.toPx(window.innerHeight - data.footerHeight);
-            data.footer.style.left = utils.toPx(0);
+        function addSvgs(key, urls, width, height) {
+            var canvas = document.getElementById("svg2pngcanvas");
+            canvas.setAttribute("width", utils.toPx(width));
+            canvas.setAttribute("height", utils.toPx(height));
+            var cxt = canvas.getContext("2d");
+            urls.forEach(function (url, index, array) {
+                             cxt.drawSvg(url, 0, 0);
+                         });
+            addImage(key, canvas.toDataURL());
         }
 
-        function logicalToVisual(xy) {
-            return new vecMath.vector2d(
-                Math.round(data.canvas.width / 2 + xy.x * data.logicalToVisualFactor),
-                Math.round(data.canvas.height / 2 - xy.y * data.logicalToVisualFactor)
-            );
+        function addSvg(key, url, width, height) {
+            addSvgs(key, [url], width, height);
         }
 
-        function visualToLogic(xy) {
-            return new vecMath.vector2d(
-                Math.round((xy.x - data.canvas.width / 2) / data.logicalToVisualFactor),
-                Math.round((xy.y - data.canvas.height / 2) * -1 / data.logicalToVisualFactor)
-            );
+        function remove(key) {
+            container[key] = undefined;
         }
 
-        function startTalking() {
-            data.talking = true;
-            data.talkedit.style.display = "block";
-            data.talkedit.style.position = "fixed";
-            data.talkedit.style.top = utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.clientHeight);
-            data.talkedit.style.left = data.canvas.style.left;
-            // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
-            data.talkedit.setAttribute("cols", Math.round(data.canvas.width / 8.2));
-            data.talkedit.focus();
-        }
-
-        function sendTalkMessage() {
-            var message = utils.removeTrailingEnter(data.talkedit.value);
-            if (message != "") {
-                communication.send({
-                                       "Function": "talk",
-                                       "Params": {
-                                           "Message": message
-                                       }
-                                   });
-            }
-            data.talkedit.value = "";
-        }
-
-        function stopTalking() {
-            data.talking = false;
-            data.talkedit.style.display = "none";
-        }
-
-        function drawSvgAroundUi(cxt, key, pt) {
-            var image = resourceBuffer.get(key);
-            var width = image.width;
-            var height = image.height;
-            cxt.drawImage(image, pt.x - width / 2, pt.y - height / 2);
-        }
-
-        function drawSvgAroundLogic(cxt, key, pt) {
-            drawSvgAroundUi(cxt, key, logicalToVisual(pt));
-        }
-
-        function drawSvgAtUi(cxt, key, pt) {
-            cxt.drawImage(resourceBuffer.get(key), pt.x, pt.y);
-        }
-
-        function drawSvgAtLogic(cxt, key, pt) {
-            drawSvgAtUi(cxt, key, logicalToVisual(pt));
-        }
-
-        function drawBackground(cxt) {
-            cxt.fillStyle = "#88FF88";
-            cxt.fillRect(0, 0, data.canvas.width - 1, data.canvas.height - 1);
-        }
-
-        function drawGrid(cxt) {
-            var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
-            var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
-            for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
-                for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
-                    var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
-                    var halfTile = data.logicalToVisualFactor * 0.5;
-                    var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
-                    cxt.strokeStyle = "#AAAAAA";
-                    cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, data.logicalToVisualFactor, data.logicalToVisualFactor);
-                }
-            }
-        }
-
-        function drawMoveTarget(cxt) {
-            cxt.fillStyle = "#FF0000";
-            var playerLogicalVisual = logicalToVisual(data.player.positionLogicSide);
-            cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
-        }
-
-        function drawEntities(cxt) {
-            data.entities.forEach(function (e, index, array) {
-                                      drawSvgAroundLogic(cxt, e.key, e.positionUiSide);
-                                  });
-        }
-
-        function drawHud(cxt) {
-            data.hudTalk.draw(cxt);
-        }
-
-        function drawCanvas() {
-            var cxt = data.canvas.getContext("2d");
-            drawBackground(cxt);
-            drawGrid(cxt);
-            drawMoveTarget(cxt);
-            drawEntities(cxt);
-            drawHud(cxt);
-        }
-
-        function updateUiData() {
-            var vm = vecMath;
-            var newUpdateTime = data.now();
-            // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
-            var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
-            data.entities.forEach(function (e, index, array) {
-                                      var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
-                                      var vLength = v.length();
-                                      // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
-                                      // we seem to get rounding issues (jittering).
-                                      if (vLength > 0.1) {
-                                          e.positionUiSide = vm.add(e.positionUiSide, vm.scale(v, distance / vLength));
-                                      } else {
-                                          e.positionUiSide = e.positionLogicSide;
-                                      }
-                                  });
-            data.lastUpdateTime = newUpdateTime;
-        }
-
-        function onCanvasClick(evt) {
-            var offsetX = utils.onclickOffset(evt, "X", data.canvas);
-            var offsetY = utils.onclickOffset(evt, "Y", data.canvas);
-            var pt = new vecMath.vector2d(offsetX, offsetY);
-            if (data.hudTalk.onMouseClick(pt)) {
-                return;
-            }
-            var newPosition = visualToLogic(pt);
-            communication.send({
-                                   "Function": "move",
-                                   "Params": {
-                                       "X": "" + newPosition.x,
-                                       "Y": "" + newPosition.y
-                                   }
-                               });
-        }
-
-        function onCanvasKeyup(evt) {
-            var keyunicode = utils.onkeyKey(evt);
-            //alert(keyunicode);
-            if (keyunicode == 84 /* t */) {
-                if (!data.talking) {
-                    startTalking();
-                }
-            }
-            if (keyunicode == 13 /* enter */) {
-                if (data.talking) {
-                    sendTalkMessage();
-                    stopTalking();
-                }
-            }
-        }
-
-        function onHudTalkClick() {
-            if (!data.talking) {
-                startTalking();
-            } else {
-                stopTalking();
-            }
-        }
-
-        function layoutPage() {
-            positionCanvas();
-            positionFooter();
-        }
-
-        function preloadResources() {
-            // TODO: add a way of determining the width and height
-            var width = 24;
-            var height = 24;
-            resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", width, height);
-            width = 64;
-            height = 64;
-            resourceBuffer.addSvgs(
-                "entities/player",
-                ["images/faces/human/male/face01.svg",
-                 "images/faces/human/male/ears01.svg",
-                 "images/faces/human/male/eyes01.svg",
-                 "images/faces/human/male/hair01.svg",
-                 "images/faces/human/male/mouth01.svg",
-                 "images/faces/human/male/nose01.svg"],
-                width, height);
-            resourceBuffer.addSvgs(
-                "entities/enemy01",
-                ["images/faces/human/male/face02.svg",
-                 "images/faces/human/male/ears02.svg",
-                 "images/faces/human/male/eyes01.svg",
-                 "images/faces/human/male/mouth01.svg",
-                 "images/faces/human/male/nose01.svg"],
-                width, height);
-        }
-
-        function buildHud() {
-            data.hudTalk = new hudImageElement(resourceBuffer.get("hud/talk"));
-            data.hudTalk.width = 24;
-            data.hudTalk.height = 24;
-            data.hudTalk.onClick = onHudTalkClick;
-        }
-
-        function layoutHud() {
-            data.hudTalk.x = 20;
-            data.hudTalk.y = 20;
-        }
-
-        function buildEntities() {
-            data.player = new entity("entities/player");
-            data.entities.push(data.player);
-            data.enemy01 = new entity("entities/enemy01");
-            data.enemy01.positionLogicSide = new vecMath.vector2d(-3.0, 3.0);
-            data.enemy01.positionUiSide = data.enemy01.positionLogicSide;
-            data.entities.push(data.enemy01);
-        }
-
-        function onWindowLoad() {
-            data.canvas = document.getElementById("maincanvas");
-            data.talkedit = document.getElementById("talkedit");
-            data.footer = document.getElementById("footer");
-            preloadResources();
-            layoutPage();
-            buildHud();
-            layoutHud();
-            buildEntities();
-            var fps = 30;
-            setInterval(updateUiData, 1000 / fps);
-            setInterval(drawCanvas, 1000 / fps);
-            data.canvas.onclick = onCanvasClick;
-            // [Randy 08/10/2010] REMARK: Attaching to the canvas doesn't seem to work.
-            document.onkeyup = onCanvasKeyup;
-        }
-
-        function onWindowResize() {
-            layoutPage();
-            layoutHud();
-            drawCanvas();
+        function get(key) {
+            return container[key];
         }
 
         return {
-            onWindowLoad: onWindowLoad,
-            onWindowResize: onWindowResize
+            addImage: addImage,
+            addSvg: addSvg,
+            addSvgs: addSvgs,
+            remove: remove,
+            get: get
         };
 
     } ();
 
-    //##############################################################################################
+    //## utilities that depend on the global data ##################################################
+
+    function logicalToVisual(xy) {
+        var x = Math.round(data.canvas.width / 2 + xy.x * data.logicalToVisualFactor);
+        var y = Math.round(data.canvas.height / 2 - xy.y * data.logicalToVisualFactor);
+        return new vecMath.vector2d(x, y);
+    }
+
+    function visualToLogic(xy) {
+        var x = Math.round((xy.x - data.canvas.width / 2) / data.logicalToVisualFactor);
+        var y = Math.round((xy.y - data.canvas.height / 2) * -1 / data.logicalToVisualFactor);
+        return new vecMath.vector2d(x, y);
+    }
+
+    function drawSvgAroundUi(cxt, key, pt) {
+        var image = resourceBuffer.get(key);
+        var width = image.width;
+        var height = image.height;
+        cxt.drawImage(image, pt.x - width / 2, pt.y - height / 2);
+    }
+
+    function drawSvgAroundLogic(cxt, key, pt) {
+        drawSvgAroundUi(cxt, key, logicalToVisual(pt));
+    }
+
+    function drawSvgAtUi(cxt, key, pt) {
+        cxt.drawImage(resourceBuffer.get(key), pt.x, pt.y);
+    }
+
+    function drawSvgAtLogic(cxt, key, pt) {
+        drawSvgAtUi(cxt, key, logicalToVisual(pt));
+    }
+
+    //## page layout ###############################################################################
+
+    function positionCanvas() {
+        var xPadding = 40;
+        var yPadding = 20;
+        data.canvas.style.position = "fixed";
+        var newWidth = window.innerWidth - xPadding * 2;
+        data.canvas.setAttribute("width", utils.toPx(newWidth));
+        var newHeight = window.innerHeight - yPadding * 2 - data.footerHeight;
+        data.canvas.setAttribute("height", utils.toPx(newHeight));
+        data.canvas.style.top = utils.toPx(yPadding);
+        data.canvas.style.left = utils.toPx(xPadding);
+    }
+
+    function positionFooter() {
+        data.footer.style.position = "fixed";
+        data.footer.style.width = utils.toPx(window.innerWidth);
+        data.footer.style.top = utils.toPx(window.innerHeight - data.footerHeight);
+        data.footer.style.left = utils.toPx(0);
+    }
+
+    function layoutPage() {
+        positionCanvas();
+        positionFooter();
+    }
+
+    //## drawing ###################################################################################
+
+    function drawBackground(cxt) {
+        cxt.fillStyle = "#88FF88";
+        cxt.fillRect(0, 0, data.canvas.width - 1, data.canvas.height - 1);
+    }
+
+    function drawGrid(cxt) {
+        var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
+        var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
+        for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
+            for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
+                var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
+                var halfTile = data.logicalToVisualFactor * 0.5;
+                var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
+                cxt.strokeStyle = "#AAAAAA";
+                cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, data.logicalToVisualFactor, data.logicalToVisualFactor);
+            }
+        }
+    }
+
+    function drawMoveTarget(cxt) {
+        cxt.fillStyle = "#FF0000";
+        var playerLogicalVisual = logicalToVisual(data.player.positionLogicSide);
+        cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
+    }
+
+    function drawEntities(cxt) {
+        data.entities.forEach(function (e, index, array) {
+                                  drawSvgAroundLogic(cxt, e.key, e.positionUiSide);
+                              });
+    }
+
+    function drawHud(cxt) {
+        data.hudTalk.draw(cxt);
+    }
+
+    function drawCanvas() {
+        var cxt = data.canvas.getContext("2d");
+        drawBackground(cxt);
+        drawGrid(cxt);
+        drawMoveTarget(cxt);
+        drawEntities(cxt);
+        drawHud(cxt);
+    }
+
+    //## updating ##################################################################################
+
+    function updateUiData() {
+        var vm = vecMath;
+        var newUpdateTime = data.now();
+        // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
+        var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
+        data.entities.forEach(function (e, index, array) {
+                                  var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
+                                  var vLength = v.length();
+                                  // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
+                                  // we seem to get rounding issues (jittering).
+                                  if (vLength > 0.1) {
+                                      e.positionUiSide = vm.add(e.positionUiSide, vm.scale(v, distance / vLength));
+                                  } else {
+                                      e.positionUiSide = e.positionLogicSide;
+                                  }
+                              });
+        data.lastUpdateTime = newUpdateTime;
+    }
+
+    //## initialization ############################################################################
+
+    function preloadResources() {
+        // TODO: add a way of determining the width and height
+        var width = 24;
+        var height = 24;
+        resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", width, height);
+        width = 64;
+        height = 64;
+        resourceBuffer.addSvgs(
+            "entities/player",
+            ["images/faces/human/male/face01.svg",
+             "images/faces/human/male/ears01.svg",
+             "images/faces/human/male/eyes01.svg",
+             "images/faces/human/male/hair01.svg",
+             "images/faces/human/male/mouth01.svg",
+             "images/faces/human/male/nose01.svg"],
+            width, height);
+        resourceBuffer.addSvgs(
+            "entities/enemy01",
+            ["images/faces/human/male/face02.svg",
+             "images/faces/human/male/ears02.svg",
+             "images/faces/human/male/eyes01.svg",
+             "images/faces/human/male/mouth01.svg",
+             "images/faces/human/male/nose01.svg"],
+            width, height);
+    }
+
+    function buildHud() {
+        data.hudTalk = new hudImageElement(resourceBuffer.get("hud/talk"));
+        data.hudTalk.onClick = onHudTalkClick;
+    }
+
+    function layoutHud() {
+        data.hudTalk.x = 20;
+        data.hudTalk.y = 20;
+    }
+
+    function buildEntities() {
+        data.player = new entity("entities/player");
+        data.entities.push(data.player);
+        data.enemy01 = new entity("entities/enemy01");
+        data.enemy01.positionLogicSide = new vecMath.vector2d(-3.0, 3.0);
+        data.enemy01.positionUiSide = data.enemy01.positionLogicSide;
+        data.entities.push(data.enemy01);
+    }
+
+    //## ui message handlers #######################################################################
+
+    function startTalking() {
+        data.talking = true;
+        data.talkedit.style.display = "block";
+        data.talkedit.style.position = "fixed";
+        data.talkedit.style.top = utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.clientHeight);
+        data.talkedit.style.left = data.canvas.style.left;
+        // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
+        data.talkedit.setAttribute("cols", Math.round(data.canvas.width / 8.2));
+        data.talkedit.focus();
+    }
+
+    function sendTalkMessage() {
+        var message = utils.removeTrailingEnter(data.talkedit.value);
+        if (message !== "") {
+            communication.send({
+                                   "Function": "talk",
+                                   "Params": {
+                                       "Message": message
+                                   }
+                               });
+        }
+        data.talkedit.value = "";
+    }
+
+    function stopTalking() {
+        data.talking = false;
+        data.talkedit.style.display = "none";
+    }
+
+    function onCanvasClick(evt) {
+        var offsetX = utils.onclickOffset(evt, "X", data.canvas);
+        var offsetY = utils.onclickOffset(evt, "Y", data.canvas);
+        var pt = new vecMath.vector2d(offsetX, offsetY);
+        if (data.hudTalk.onMouseClick(pt)) {
+            return;
+        }
+        var newPosition = visualToLogic(pt);
+        communication.send({
+                               "Function": "move",
+                               "Params": {
+                                   "X": "" + newPosition.x,
+                                   "Y": "" + newPosition.y
+                               }
+                           });
+    }
+
+    function onCanvasKeyup(evt) {
+        var keyunicode = utils.onkeyKey(evt);
+        //alert(keyunicode);
+        if (keyunicode == 84 /* t */) {
+            if (!data.talking) {
+                startTalking();
+            }
+        }
+        if (keyunicode == 13 /* enter */) {
+            if (data.talking) {
+                sendTalkMessage();
+                stopTalking();
+            }
+        }
+    }
+
+    function onHudTalkClick() {
+        if (!data.talking) {
+            startTalking();
+        } else {
+            stopTalking();
+        }
+    }
+
+    function onWindowLoad() {
+        data.canvas = document.getElementById("maincanvas");
+        data.talkedit = document.getElementById("talkedit");
+        data.footer = document.getElementById("footer");
+        preloadResources();
+        layoutPage();
+        buildHud();
+        layoutHud();
+        buildEntities();
+        var fps = 30;
+        setInterval(updateUiData, 1000 / fps);
+        setInterval(drawCanvas, 1000 / fps);
+        data.canvas.onclick = onCanvasClick;
+        // [Randy 08/10/2010] REMARK: Attaching to the canvas doesn't seem to work.
+        document.onkeyup = onCanvasKeyup;
+    }
+
+    function onWindowResize() {
+        layoutPage();
+        layoutHud();
+        drawCanvas();
+    }
+
+    //## testing ###################################################################################
 
     var testing = function () {
 
@@ -601,7 +600,8 @@ var musq = function () {
     } ();
 
     return {
-        main: main,
+        onWindowLoad: onWindowLoad,
+        onWindowResize: onWindowResize,
         testing: testing
     };
 
@@ -611,8 +611,8 @@ var musq = function () {
 
 var runtests = false;
 if (!runtests) {
-    window.onload = musq.main.onWindowLoad;
-    window.onresize = musq.main.onWindowResize;
+    window.onload = musq.onWindowLoad;
+    window.onresize = musq.onWindowResize;
 }
 else {
     window.onload = musq.testing.runTests;
