@@ -270,19 +270,27 @@ var musq = function () {
             container[key] = image;
         }
 
-        function addSvgs(key, urls, width, height) {
+        function addSvgs(key, urls) {
             var canvas = document.getElementById("svg2pngcanvas");
-            canvas.setAttribute("width", utils.toPx(width));
-            canvas.setAttribute("height", utils.toPx(height));
             var cxt = canvas.getContext("2d");
             urls.forEach(function (url, index, array) {
-                             cxt.drawSvg(url, 0, 0);
+                             var xmlHttp = new XMLHttpRequest();
+                             xmlHttp.open("GET", url, false);
+                             xmlHttp.send();
+                             var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
+                             var width = parseInt(svg.getAttribute("width"), 10);
+                             var height = parseInt(svg.getAttribute("height"), 10);
+                             if (utils.fromPx(canvas.width) !== width || utils.fromPx(canvas.height) !== height) {
+                                 canvas.setAttribute("width", utils.toPx(width));
+                                 canvas.setAttribute("height", utils.toPx(height));
+                             }
+                             cxt.drawSvg(xmlHttp.responseText, 0, 0);
                          });
             addImage(key, canvas.toDataURL());
         }
 
-        function addSvg(key, url, width, height) {
-            addSvgs(key, [url], width, height);
+        function addSvg(key, url) {
+            addSvgs(key, [url]);
         }
 
         function remove(key) {
@@ -432,12 +440,7 @@ var musq = function () {
     //## initialization ############################################################################
 
     function preloadResources() {
-        // TODO: add a way of determining the width and height
-        var width = 24;
-        var height = 24;
-        resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", width, height);
-        width = 64;
-        height = 64;
+        resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg");
         resourceBuffer.addSvgs(
             "entities/player",
             ["images/faces/human/male/face01.svg",
@@ -445,16 +448,14 @@ var musq = function () {
              "images/faces/human/male/eyes01.svg",
              "images/faces/human/male/hair01.svg",
              "images/faces/human/male/mouth01.svg",
-             "images/faces/human/male/nose01.svg"],
-            width, height);
+             "images/faces/human/male/nose01.svg"]);
         resourceBuffer.addSvgs(
             "entities/enemy01",
             ["images/faces/human/male/face02.svg",
              "images/faces/human/male/ears02.svg",
              "images/faces/human/male/eyes01.svg",
              "images/faces/human/male/mouth01.svg",
-             "images/faces/human/male/nose01.svg"],
-            width, height);
+             "images/faces/human/male/nose01.svg"]);
     }
 
     function buildHud() {
