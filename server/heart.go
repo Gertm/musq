@@ -7,17 +7,7 @@ import (
 
 func startLogic() {
 	go chatHub()
-	// go HeartBeat()
 }
-
-type subscription struct {
-	Chan      chan string
-	subscribe bool
-}
-
-var chatSubChan = make(chan subscription)
-
-var chatterList = make(map[chan string]int)
 
 // different approach, let's give everyone a heart...
 func Heart(playername string, aorta chan<- bool) {
@@ -35,14 +25,5 @@ func Heart(playername string, aorta chan<- bool) {
 			// ok, these error messages aren't really helpful, but they're
 			// fun, and easy to search for ;-)
 		}
-	}
-}
-
-
-func chatHub() {
-	fmt.Println("ChatHub waiting for players...")
-	for {
-		subscription := <-chatSubChan
-		chatterList[subscription.Chan] = 0, subscription.subscribe
 	}
 }

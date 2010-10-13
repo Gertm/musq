@@ -15,6 +15,7 @@ type Player struct {
 	SVG      string
 	PwdHsh   string
 	Requests vector.Vector
+	ChatChan chan string
 }
 
 type Request struct {
@@ -80,7 +81,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	var hBeatChan = make(chan bool, 20)
 	go Heart(p.Name, hBeatChan)
 	defer fmt.Println("Exiting the playerhandler!")
-
+	
+	p.ChatChan = make(chan string, 20)
+	
 	for {
 		//fmt.Printf("Pending requests for %s: %d\n",p.Name,len(p.Requests))
 		select {
@@ -130,7 +133,6 @@ func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
 }
 
 func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
-	fmt.Println("Handling the move...")
 	x, _ := strconv.Atoi(r.Params["X"])
 	y, _ := strconv.Atoi(r.Params["Y"])
 	fmt.Printf("%s wants to go to %d, %d\n", p.Name, x, y)

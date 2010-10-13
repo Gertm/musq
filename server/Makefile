@@ -8,7 +8,7 @@ GOFILES=\
 	tile.go\
 	heart.go\
 	playingfield.go\
-	bresenham.go\
+	chat.go\
 	astar.go\
 	helpers.go\
 

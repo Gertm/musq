@@ -6,3 +6,4 @@ glob:*.orig
 glob:*.8
 glob:*.6
 glob:server/httpd
+glob:server/musq
