@@ -179,88 +179,14 @@ var musq = function () {
 
     var data = {};
     data.state = "init";
+    data.login = {};
     data.game = {};
+    data.game.fps = 30;
     data.game.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
     data.game.lastUpdateTime = utils.now();
     data.game.talking = false;
     data.game.logicalToVisualFactor = 70.0;
     data.game.entities = [];
-
-    //## websocket communication ###################################################################
-
-    var communication = function () {
-
-        if (window.WebSocket) {
-
-            var ws = new WebSocket("ws://" + musq_websocket_url + "/service");
-
-            function send(obj) {
-                ws.send(JSON.stringify(obj));
-            }
-
-            function sendKeepAliv(obj) {
-                send({
-                         "Function": "keepalive",
-                         "Params": {}
-                     });
-            }
-
-            ws.onopen = function () {
-                log("WebSocket opened.");
-                send({
-                         "Function": "login",
-                         "Params": {
-                             "Username": "Randy",
-                             "Password": ""
-                         }
-                     });
-                setInterval(sendKeepAliv, 10000);
-            };
-
-            ws.onclose = function () {
-                log("WebSocket closed.");
-                // [Randy 14/10/2010] TODO: Reset the state.
-            };
-
-            ws.onmessage = function (evt) {
-                log("Received " + evt.data + ".");
-                var json = JSON.parse(evt.data);
-                if (!json) {
-                    log("Unable to parse as JSON.");
-                    return;
-                }
-                if (!json.Function) {
-                    log("JSON has unexpected format.");
-                    return;
-                }
-                if (json.Function == "login") {
-                    return;
-                }
-                if (json.Function == "keepalive") {
-                    return;
-                }
-                if (json.Function == "move") {
-                    data.game.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-                    return;
-                }
-                if (json.Function == "talk") {
-                    alert(json.Params.Message);
-                    return;
-                }
-            };
-
-            return {
-                send: send
-            };
-
-        } else {
-
-            log("Sorry, your browser does not support websockets.");
-            return {};
-
-        }
-
-    } ();
 
     //## image/resource buffer management ##########################################################
 
@@ -349,6 +275,17 @@ var musq = function () {
         drawSvgAtUi(cxt, key, logicalToVisual(pt));
     }
 
+    function wsSend(obj) {
+        data.ws.send(JSON.stringify(obj));
+    }
+
+    function sendKeepAliv(obj) {
+        wsSend({
+                   "Function": "keepalive",
+                   "Params": {}
+               });
+    }
+
     //## page layout ###############################################################################
 
     function positionGameCanvas() {
@@ -375,7 +312,14 @@ var musq = function () {
         positionFooter();
     }
 
+    function setStateToLogin() {
+        data.login.container.style.display = "block";
+        data.game.container.style.display = "none";
+        data.state = "login";
+    }
+
     function setStateToGame() {
+        data.login.container.style.display = "none";
         data.game.container.style.display = "block";
         data.state = "game";
     }
@@ -453,7 +397,7 @@ var musq = function () {
         data.game.lastUpdateTime = newUpdateTime;
     }
 
-    //## ui message handlers #######################################################################
+    //## message handlers ##########################################################################
 
     function startTalking() {
         data.game.talking = true;
@@ -469,12 +413,12 @@ var musq = function () {
     function sendTalkMessage() {
         var message = utils.removeTrailingEnter(data.game.talkedit.value);
         if (message !== "") {
-            communication.send({
-                                   "Function": "talk",
-                                   "Params": {
-                                       "Message": message
-                                   }
-                               });
+            wsSend({
+                       "Function": "talk",
+                       "Params": {
+                           "Message": message
+                       }
+                   });
         }
         data.game.talkedit.value = "";
     }
@@ -492,13 +436,13 @@ var musq = function () {
             return;
         }
         var newPosition = visualToLogic(pt);
-        communication.send({
-                               "Function": "move",
-                               "Params": {
-                                   "X": "" + newPosition.x,
-                                   "Y": "" + newPosition.y
-                               }
-                           });
+        wsSend({
+                   "Function": "move",
+                   "Params": {
+                       "X": "" + newPosition.x,
+                       "Y": "" + newPosition.y
+                   }
+               });
     }
 
     function onCanvasKeyup(evt) {
@@ -506,15 +450,17 @@ var musq = function () {
         //alert(keyunicode);
         if (data.state === "game") {
             if (keyunicode == 84 /* t */) {
-                if (!data.talking) {
+                if (!data.game.talking) {
                     startTalking();
                 }
+                return;
             }
             if (keyunicode == 13 /* enter */) {
-                if (data.talking) {
+                if (data.game.talking) {
                     sendTalkMessage();
                     stopTalking();
                 }
+                return;
             }
         }
     }
@@ -524,6 +470,51 @@ var musq = function () {
             startTalking();
         } else {
             stopTalking();
+        }
+    }
+
+    function onWebSocketOpened() {
+        log("WebSocket opened.");
+        wsSend({
+                   "Function": "login",
+                   "Params": {
+                       "Username": "Randy",
+                       "Password": ""
+                   }
+               });
+        setInterval(sendKeepAliv, 10000);
+    }
+
+    function onWebSocketClosed() {
+        log("WebSocket closed.");
+        // [Randy 14/10/2010] TODO: Reset the state.
+    }
+
+    function onWebSocketMessage(evt) {
+        log("Received " + evt.data + ".");
+        var json = JSON.parse(evt.data);
+        if (!json) {
+            log("Unable to parse as JSON.");
+            return;
+        }
+        if (!json.Function) {
+            log("JSON has unexpected format.");
+            return;
+        }
+        if (json.Function == "login") {
+            setStateToGame();
+            return;
+        }
+        if (json.Function == "keepalive") {
+            return;
+        }
+        if (json.Function == "move") {
+            data.game.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+            return;
+        }
+        if (json.Function == "talk") {
+            alert(json.Params.Message);
+            return;
         }
     }
 
@@ -567,23 +558,39 @@ var musq = function () {
         data.game.entities.push(data.game.enemy01);
     }
 
-    function onWindowLoad() {
+    function initializeWebSocket() {
+        data.ws = new WebSocket("ws://" + musq_websocket_url + "/service");
+        data.ws.onopen = onWebSocketOpened;
+        data.ws.onclose = onWebSocketClosed;
+        data.ws.onmessage = onWebSocketMessage;
+    }
+
+    function initializeLogin() {
+        data.login.container = document.getElementById("logincontainer");
+    }
+
+    function initializeGame() {
         data.game.container = document.getElementById("gamecontainer");
         data.game.canvas = document.getElementById("gamecanvas");
         data.game.talkedit = document.getElementById("gametalkedit");
-        data.footer = document.getElementById("footer");
-        preloadResources();
-        layoutPage();
         buildGameHud();
         layoutGameHud();
         buildGameEntities();
-        var fps = 30;
-        setInterval(updateGameUiData, 1000 / fps);
-        setInterval(drawGameCanvas, 1000 / fps);
+        setInterval(updateGameUiData, 1000 / data.game.fps);
+        setInterval(drawGameCanvas, 1000 / data.game.fps);
         data.game.canvas.onclick = onGameCanvasClick;
+    }
+
+    function onWindowLoad() {
+        data.footer = document.getElementById("footer");
+        preloadResources();
+        initializeLogin();
+        initializeGame();
+        layoutPage();
         // [Randy 08/10/2010] REMARK: Attaching to the canvas doesn't seem to work.
         document.onkeyup = onCanvasKeyup;
-        setStateToGame();
+        setStateToLogin();
+        initializeWebSocket();
     }
 
     function onWindowResize() {

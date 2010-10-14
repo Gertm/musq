@@ -6,6 +6,11 @@ body
     /*background-image: url('../images/background.png');*/
 }
 
+#logincontainer
+{
+    display: none;
+}
+
 #gamecontainer
 {
     display: none;
