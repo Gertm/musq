@@ -180,6 +180,8 @@ var musq = function () {
     var data = {};
     data.state = "init";
     data.login = {};
+    data.login.lastUpdateTime = utils.now();
+    data.login.angle = 0.0;
     data.game = {};
     data.game.fps = 30;
     data.game.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
@@ -256,23 +258,23 @@ var musq = function () {
         return new vecMath.vector2d(x, y);
     }
 
-    function drawSvgAroundUi(cxt, key, pt) {
+    function drawImageAroundUi(cxt, key, pt) {
         var image = resourceBuffer.get(key);
         var width = image.width;
         var height = image.height;
         cxt.drawImage(image, pt.x - width / 2, pt.y - height / 2);
     }
 
-    function drawSvgAroundLogic(cxt, key, pt) {
-        drawSvgAroundUi(cxt, key, logicalToVisual(pt));
+    function drawImageAroundLogic(cxt, key, pt) {
+        drawImageAroundUi(cxt, key, logicalToVisual(pt));
     }
 
-    function drawSvgAtUi(cxt, key, pt) {
+    function drawImageAtUi(cxt, key, pt) {
         cxt.drawImage(resourceBuffer.get(key), pt.x, pt.y);
     }
 
-    function drawSvgAtLogic(cxt, key, pt) {
-        drawSvgAtUi(cxt, key, logicalToVisual(pt));
+    function drawImageAtLogic(cxt, key, pt) {
+        drawImageAtUi(cxt, key, logicalToVisual(pt));
     }
 
     function wsSend(obj) {
@@ -287,6 +289,16 @@ var musq = function () {
     }
 
     //## page layout ###############################################################################
+
+    function positionLogin() {
+        data.login.container.style.position = "fixed";
+        var width = 500;
+        data.login.container.style.width = utils.toPx(width);
+        var height = 230;
+        data.login.container.style.height = utils.toPx(height);
+        data.login.container.style.top = utils.toPx((window.innerHeight - height) / 2);
+        data.login.container.style.left = utils.toPx((window.innerWidth - width) / 2);
+    }
 
     function positionGameCanvas() {
         var xPadding = 40;
@@ -308,6 +320,7 @@ var musq = function () {
     }
 
     function layoutPage() {
+        positionLogin();
         positionGameCanvas();
         positionFooter();
     }
@@ -316,6 +329,7 @@ var musq = function () {
         data.login.container.style.display = "block";
         data.game.container.style.display = "none";
         data.state = "login";
+        data.login.username.focus();
     }
 
     function setStateToGame() {
@@ -325,6 +339,17 @@ var musq = function () {
     }
 
     //## drawing ###################################################################################
+
+    function drawLoginCanvas() {
+        if (data.state !== "login") {
+            return;
+        }
+        var cxt = data.login.canvas.getContext("2d");
+        cxt.clearRect(0, 0, data.login.canvas.width, data.login.canvas.height);
+        //cxt.rotate(data.login.angle);
+        drawImageAtUi(cxt, "login/logo", { x: 0, y: 0 });
+        //cxt.rotate(-data.login.angle);
+    }
 
     function drawGameBackground(cxt) {
         cxt.fillStyle = "#88FF88";
@@ -353,7 +378,7 @@ var musq = function () {
 
     function drawGameEntities(cxt) {
         data.game.entities.forEach(function (e, index, array) {
-                                       drawSvgAroundLogic(cxt, e.key, e.positionUiSide);
+                                       drawImageAroundLogic(cxt, e.key, e.positionUiSide);
                                    });
     }
 
@@ -374,6 +399,20 @@ var musq = function () {
     }
 
     //## updating ##################################################################################
+
+    function updateLoginAnimation() {
+        if (data.state !== "login") {
+            return;
+        }
+        var newUpdateTime = utils.now();
+        /*
+        data.login.angle += (newUpdateTime - data.login.lastUpdateTime) * 0.0001;
+        if (data.login.angle > 2.0 * Math.pi) {
+            data.login.angle -= 2.0 * Math.pi;
+        }
+         */
+        data.login.lastUpdateTime = newUpdateTime;
+    }
 
     function updateGameUiData() {
         if (data.state !== "game") {
@@ -428,6 +467,16 @@ var musq = function () {
         data.game.talkedit.style.display = "none";
     }
 
+    function onLoginButton() {
+        wsSend({
+                   "Function": "login",
+                   "Params": {
+                       "Username": data.login.username.value,
+                       "Password": data.login.password.value
+                   }
+               });
+    }
+
     function onGameCanvasClick(evt) {
         var offsetX = utils.onclickOffset(evt, "X", data.game.canvas);
         var offsetY = utils.onclickOffset(evt, "Y", data.game.canvas);
@@ -448,6 +497,13 @@ var musq = function () {
     function onCanvasKeyup(evt) {
         var keyunicode = utils.onkeyKey(evt);
         //alert(keyunicode);
+        if (data.state === "login") {
+            if (keyunicode == 13 /* enter */) {
+                onLoginButton();
+                return;
+            }
+            return;
+        }
         if (data.state === "game") {
             if (keyunicode == 84 /* t */) {
                 if (!data.game.talking) {
@@ -462,6 +518,7 @@ var musq = function () {
                 }
                 return;
             }
+            return;
         }
     }
 
@@ -475,13 +532,6 @@ var musq = function () {
 
     function onWebSocketOpened() {
         log("WebSocket opened.");
-        wsSend({
-                   "Function": "login",
-                   "Params": {
-                       "Username": "Randy",
-                       "Password": ""
-                   }
-               });
         setInterval(sendKeepAliv, 10000);
     }
 
@@ -521,6 +571,10 @@ var musq = function () {
     //## initialization ############################################################################
 
     function preloadResources() {
+        // [Randy 14/10/2010] PATCH: logo.svg causes an exception in canvg.
+        // Maybe because the font doesn't exist here?
+        //resourceBuffer.addSvg("login/logo", "images/logo.svg");
+        resourceBuffer.addImage("login/logo", "images/logo.png");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg");
         resourceBuffer.addSvgs(
             "entities/player",
@@ -567,6 +621,13 @@ var musq = function () {
 
     function initializeLogin() {
         data.login.container = document.getElementById("logincontainer");
+        data.login.canvas = document.getElementById("logincanvas");
+        data.login.username = document.getElementById("loginusername");
+        data.login.password = document.getElementById("loginpassword");
+        data.login.button = document.getElementById("loginbutton");
+        data.login.button.onclick = onLoginButton;
+        setInterval(updateLoginAnimation, 30);
+        setInterval(drawLoginCanvas, 30);
     }
 
     function initializeGame() {

@@ -6,9 +6,30 @@ body
     /*background-image: url('../images/background.png');*/
 }
 
+.rounded-corners {
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    -khtml-border-radius: 20px;
+    border-radius: 20px;
+}
+
 #logincontainer
 {
     display: none;
+    background-color: #ffffff;
+    padding: 10px;
+}
+
+#logincanvas
+{
+    float: left;
+    margin: 10px;
+}
+
+#logincontrols
+{
+    float: left;
+    margin: 10px;
 }
 
 #gamecontainer
