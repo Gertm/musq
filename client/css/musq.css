@@ -1,25 +1,36 @@
-body {
+body
+{
     margin: 0px;
     padding: 0px;
     background-color: #000033;
-    background-image: url('../images/background.png');
+    /*background-image: url('../images/background.png');*/
 }
 
-#maincanvas {
-}
-
-#talkedit {
+#gamecontainer
+{
     display: none;
 }
 
-#footer {
-    background-color: #000000;
-    color: #AAAAAA;
+#gamecanvas
+{
+}
+
+#gametalkedit
+{
+    display: none;
+}
+
+#footer
+{
+    background-color: #000022;
+    color: #888888;
     font-size: 0.7em;
     font-family: "DejaVu Sans Mono", Monospace;
     padding: 5px 0px 5px 50px;
+    border-top: 1px solid #888888;
 }
 
-#svg2pngcanvas {
+#svg2pngcanvas
+{
     display: none;
 }

@@ -69,6 +69,10 @@ var musq = function () {
             }
         }
 
+        function now() {
+            return (new Date()).getTime();
+        }
+
         return {
             toPx: toPx,
             fromPx: fromPx,
@@ -77,7 +81,8 @@ var musq = function () {
             onkeyKey: onkeyKey,
             removeTrailingEnter: removeTrailingEnter,
             ptInRc: ptInRc,
-            inherit: inherit
+            inherit: inherit,
+            now: now
         };
 
     } ();
@@ -127,7 +132,7 @@ var musq = function () {
 
     //## HUD elements ##############################################################################
 
-    function hudElement() {
+    function gameHudElement() {
         this.x = 0;
         this.y = 0;
         this.width = 0;
@@ -152,8 +157,8 @@ var musq = function () {
         };
     }
 
-    function hudImageElement(image) {
-        utils.inherit(this, hudElement);
+    function gameHudImageElement(image) {
+        utils.inherit(this, gameHudElement);
         this.width = image.width;
         this.height = image.height;
         this.draw = function (cxt) {
@@ -163,7 +168,7 @@ var musq = function () {
 
     //## canvas elements ###########################################################################
 
-    function entity(key) {
+    function gameEntity(key) {
         this.key = key;
         // These are all in 'logical' coordinates, not in UI pixels.
         this.positionLogicSide = new vecMath.vector2d(0.0, 0.0);
@@ -173,15 +178,13 @@ var musq = function () {
     //## global data ###############################################################################
 
     var data = {};
-    data.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
-    data.now = function () {
-        return (new Date()).getTime();
-    };
-    data.lastUpdateTime = data.now();
-    data.talking = false;
-    data.footerHeight = 20;
-    data.logicalToVisualFactor = 70.0;
-    data.entities = [];
+    data.state = "init";
+    data.game = {};
+    data.game.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
+    data.game.lastUpdateTime = utils.now();
+    data.game.talking = false;
+    data.game.logicalToVisualFactor = 70.0;
+    data.game.entities = [];
 
     //## websocket communication ###################################################################
 
@@ -216,6 +219,7 @@ var musq = function () {
 
             ws.onclose = function () {
                 log("WebSocket closed.");
+                // [Randy 14/10/2010] TODO: Reset the state.
             };
 
             ws.onmessage = function (evt) {
@@ -236,7 +240,7 @@ var musq = function () {
                     return;
                 }
                 if (json.Function == "move") {
-                    data.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+                    data.game.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
                     return;
                 }
                 if (json.Function == "talk") {
@@ -315,14 +319,14 @@ var musq = function () {
     //## utilities that depend on the global data ##################################################
 
     function logicalToVisual(xy) {
-        var x = Math.round(data.canvas.width / 2 + xy.x * data.logicalToVisualFactor);
-        var y = Math.round(data.canvas.height / 2 - xy.y * data.logicalToVisualFactor);
+        var x = Math.round(data.game.canvas.width / 2 + xy.x * data.game.logicalToVisualFactor);
+        var y = Math.round(data.game.canvas.height / 2 - xy.y * data.game.logicalToVisualFactor);
         return new vecMath.vector2d(x, y);
     }
 
     function visualToLogic(xy) {
-        var x = Math.round((xy.x - data.canvas.width / 2) / data.logicalToVisualFactor);
-        var y = Math.round((xy.y - data.canvas.height / 2) * -1 / data.logicalToVisualFactor);
+        var x = Math.round((xy.x - data.game.canvas.width / 2) / data.game.logicalToVisualFactor);
+        var y = Math.round((xy.y - data.game.canvas.height / 2) * -1 / data.game.logicalToVisualFactor);
         return new vecMath.vector2d(x, y);
     }
 
@@ -347,95 +351,180 @@ var musq = function () {
 
     //## page layout ###############################################################################
 
-    function positionCanvas() {
+    function positionGameCanvas() {
         var xPadding = 40;
         var yPadding = 20;
-        data.canvas.style.position = "fixed";
+        data.game.canvas.style.position = "fixed";
         var newWidth = window.innerWidth - xPadding * 2;
-        data.canvas.setAttribute("width", utils.toPx(newWidth));
-        var newHeight = window.innerHeight - yPadding * 2 - data.footerHeight;
-        data.canvas.setAttribute("height", utils.toPx(newHeight));
-        data.canvas.style.top = utils.toPx(yPadding);
-        data.canvas.style.left = utils.toPx(xPadding);
+        data.game.canvas.setAttribute("width", utils.toPx(newWidth));
+        var newHeight = window.innerHeight - yPadding * 2 - data.footer.clientHeight;
+        data.game.canvas.setAttribute("height", utils.toPx(newHeight));
+        data.game.canvas.style.top = utils.toPx(yPadding);
+        data.game.canvas.style.left = utils.toPx(xPadding);
     }
 
     function positionFooter() {
         data.footer.style.position = "fixed";
         data.footer.style.width = utils.toPx(window.innerWidth);
-        data.footer.style.top = utils.toPx(window.innerHeight - data.footerHeight);
+        data.footer.style.top = utils.toPx(window.innerHeight - data.footer.clientHeight);
         data.footer.style.left = utils.toPx(0);
     }
 
     function layoutPage() {
-        positionCanvas();
+        positionGameCanvas();
         positionFooter();
+    }
+
+    function setStateToGame() {
+        data.game.container.style.display = "block";
+        data.state = "game";
     }
 
     //## drawing ###################################################################################
 
-    function drawBackground(cxt) {
+    function drawGameBackground(cxt) {
         cxt.fillStyle = "#88FF88";
-        cxt.fillRect(0, 0, data.canvas.width - 1, data.canvas.height - 1);
+        cxt.fillRect(0, 0, data.game.canvas.width - 1, data.game.canvas.height - 1);
     }
 
-    function drawGrid(cxt) {
+    function drawGameGrid(cxt) {
         var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
-        var bottomRight = visualToLogic(new vecMath.vector2d(data.canvas.width - 1, data.canvas.height - 1));
+        var bottomRight = visualToLogic(new vecMath.vector2d(data.game.canvas.width - 1, data.game.canvas.height - 1));
         for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
             for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
                 var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
-                var halfTile = data.logicalToVisualFactor * 0.5;
+                var halfTile = data.game.logicalToVisualFactor * 0.5;
                 var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
                 cxt.strokeStyle = "#AAAAAA";
-                cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, data.logicalToVisualFactor, data.logicalToVisualFactor);
+                cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, data.game.logicalToVisualFactor, data.game.logicalToVisualFactor);
             }
         }
     }
 
-    function drawMoveTarget(cxt) {
+    function drawGameMoveTarget(cxt) {
         cxt.fillStyle = "#FF0000";
-        var playerLogicalVisual = logicalToVisual(data.player.positionLogicSide);
+        var playerLogicalVisual = logicalToVisual(data.game.player.positionLogicSide);
         cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
     }
 
-    function drawEntities(cxt) {
-        data.entities.forEach(function (e, index, array) {
-                                  drawSvgAroundLogic(cxt, e.key, e.positionUiSide);
-                              });
+    function drawGameEntities(cxt) {
+        data.game.entities.forEach(function (e, index, array) {
+                                       drawSvgAroundLogic(cxt, e.key, e.positionUiSide);
+                                   });
     }
 
-    function drawHud(cxt) {
-        data.hudTalk.draw(cxt);
+    function drawGameHud(cxt) {
+        data.game.hudTalk.draw(cxt);
     }
 
-    function drawCanvas() {
-        var cxt = data.canvas.getContext("2d");
-        drawBackground(cxt);
-        drawGrid(cxt);
-        drawMoveTarget(cxt);
-        drawEntities(cxt);
-        drawHud(cxt);
+    function drawGameCanvas() {
+        if (data.state !== "game") {
+            return;
+        }
+        var cxt = data.game.canvas.getContext("2d");
+        drawGameBackground(cxt);
+        drawGameGrid(cxt);
+        drawGameMoveTarget(cxt);
+        drawGameEntities(cxt);
+        drawGameHud(cxt);
     }
 
     //## updating ##################################################################################
 
-    function updateUiData() {
+    function updateGameUiData() {
+        if (data.state !== "game") {
+            return;
+        }
         var vm = vecMath;
-        var newUpdateTime = data.now();
+        var newUpdateTime = utils.now();
         // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
-        var distance = (newUpdateTime - data.lastUpdateTime) * 0.001;
-        data.entities.forEach(function (e, index, array) {
-                                  var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
-                                  var vLength = v.length();
-                                  // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
-                                  // we seem to get rounding issues (jittering).
-                                  if (vLength > 0.1) {
-                                      e.positionUiSide = vm.add(e.positionUiSide, vm.scale(v, distance / vLength));
-                                  } else {
-                                      e.positionUiSide = e.positionLogicSide;
-                                  }
-                              });
-        data.lastUpdateTime = newUpdateTime;
+        var distance = (newUpdateTime - data.game.lastUpdateTime) * 0.001;
+        data.game.entities.forEach(function (e, index, array) {
+                                       var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
+                                       var vLength = v.length();
+                                       // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
+                                       // we seem to get rounding issues (jittering).
+                                       if (vLength > 0.1) {
+                                           e.positionUiSide = vm.add(e.positionUiSide, vm.scale(v, distance / vLength));
+                                       } else {
+                                           e.positionUiSide = e.positionLogicSide;
+                                       }
+                                   });
+        data.game.lastUpdateTime = newUpdateTime;
+    }
+
+    //## ui message handlers #######################################################################
+
+    function startTalking() {
+        data.game.talking = true;
+        data.game.talkedit.style.display = "block";
+        data.game.talkedit.style.position = "fixed";
+        data.game.talkedit.style.top = utils.toPx(utils.fromPx(data.game.canvas.style.top) + data.game.canvas.height - data.game.talkedit.clientHeight);
+        data.game.talkedit.style.left = data.game.canvas.style.left;
+        // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
+        data.game.talkedit.setAttribute("cols", Math.round(data.game.canvas.width / 8.2));
+        data.game.talkedit.focus();
+    }
+
+    function sendTalkMessage() {
+        var message = utils.removeTrailingEnter(data.game.talkedit.value);
+        if (message !== "") {
+            communication.send({
+                                   "Function": "talk",
+                                   "Params": {
+                                       "Message": message
+                                   }
+                               });
+        }
+        data.game.talkedit.value = "";
+    }
+
+    function stopTalking() {
+        data.game.talking = false;
+        data.game.talkedit.style.display = "none";
+    }
+
+    function onGameCanvasClick(evt) {
+        var offsetX = utils.onclickOffset(evt, "X", data.game.canvas);
+        var offsetY = utils.onclickOffset(evt, "Y", data.game.canvas);
+        var pt = new vecMath.vector2d(offsetX, offsetY);
+        if (data.game.hudTalk.onMouseClick(pt)) {
+            return;
+        }
+        var newPosition = visualToLogic(pt);
+        communication.send({
+                               "Function": "move",
+                               "Params": {
+                                   "X": "" + newPosition.x,
+                                   "Y": "" + newPosition.y
+                               }
+                           });
+    }
+
+    function onCanvasKeyup(evt) {
+        var keyunicode = utils.onkeyKey(evt);
+        //alert(keyunicode);
+        if (data.state === "game") {
+            if (keyunicode == 84 /* t */) {
+                if (!data.talking) {
+                    startTalking();
+                }
+            }
+            if (keyunicode == 13 /* enter */) {
+                if (data.talking) {
+                    sendTalkMessage();
+                    stopTalking();
+                }
+            }
+        }
+    }
+
+    function onGameHudTalkClick() {
+        if (!data.game.talking) {
+            startTalking();
+        } else {
+            stopTalking();
+        }
     }
 
     //## initialization ############################################################################
@@ -459,118 +548,48 @@ var musq = function () {
              "images/faces/human/male/nose01.svg"]);
     }
 
-    function buildHud() {
-        data.hudTalk = new hudImageElement(resourceBuffer.get("hud/talk"));
-        data.hudTalk.onClick = onHudTalkClick;
+    function buildGameHud() {
+        data.game.hudTalk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
+        data.game.hudTalk.onClick = onGameHudTalkClick;
     }
 
-    function layoutHud() {
-        data.hudTalk.x = 20;
-        data.hudTalk.y = 20;
+    function layoutGameHud() {
+        data.game.hudTalk.x = 20;
+        data.game.hudTalk.y = 20;
     }
 
-    function buildEntities() {
-        data.player = new entity("entities/player");
-        data.entities.push(data.player);
-        data.enemy01 = new entity("entities/enemy01");
-        data.enemy01.positionLogicSide = new vecMath.vector2d(-3.0, 3.0);
-        data.enemy01.positionUiSide = data.enemy01.positionLogicSide;
-        data.entities.push(data.enemy01);
-    }
-
-    //## ui message handlers #######################################################################
-
-    function startTalking() {
-        data.talking = true;
-        data.talkedit.style.display = "block";
-        data.talkedit.style.position = "fixed";
-        data.talkedit.style.top = utils.toPx(utils.fromPx(data.canvas.style.top) + data.canvas.height - data.talkedit.clientHeight);
-        data.talkedit.style.left = data.canvas.style.left;
-        // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
-        data.talkedit.setAttribute("cols", Math.round(data.canvas.width / 8.2));
-        data.talkedit.focus();
-    }
-
-    function sendTalkMessage() {
-        var message = utils.removeTrailingEnter(data.talkedit.value);
-        if (message !== "") {
-            communication.send({
-                                   "Function": "talk",
-                                   "Params": {
-                                       "Message": message
-                                   }
-                               });
-        }
-        data.talkedit.value = "";
-    }
-
-    function stopTalking() {
-        data.talking = false;
-        data.talkedit.style.display = "none";
-    }
-
-    function onCanvasClick(evt) {
-        var offsetX = utils.onclickOffset(evt, "X", data.canvas);
-        var offsetY = utils.onclickOffset(evt, "Y", data.canvas);
-        var pt = new vecMath.vector2d(offsetX, offsetY);
-        if (data.hudTalk.onMouseClick(pt)) {
-            return;
-        }
-        var newPosition = visualToLogic(pt);
-        communication.send({
-                               "Function": "move",
-                               "Params": {
-                                   "X": "" + newPosition.x,
-                                   "Y": "" + newPosition.y
-                               }
-                           });
-    }
-
-    function onCanvasKeyup(evt) {
-        var keyunicode = utils.onkeyKey(evt);
-        //alert(keyunicode);
-        if (keyunicode == 84 /* t */) {
-            if (!data.talking) {
-                startTalking();
-            }
-        }
-        if (keyunicode == 13 /* enter */) {
-            if (data.talking) {
-                sendTalkMessage();
-                stopTalking();
-            }
-        }
-    }
-
-    function onHudTalkClick() {
-        if (!data.talking) {
-            startTalking();
-        } else {
-            stopTalking();
-        }
+    function buildGameEntities() {
+        data.game.player = new gameEntity("entities/player");
+        data.game.entities.push(data.game.player);
+        data.game.enemy01 = new gameEntity("entities/enemy01");
+        data.game.enemy01.positionLogicSide = new vecMath.vector2d(-3.0, 3.0);
+        data.game.enemy01.positionUiSide = data.game.enemy01.positionLogicSide;
+        data.game.entities.push(data.game.enemy01);
     }
 
     function onWindowLoad() {
-        data.canvas = document.getElementById("maincanvas");
-        data.talkedit = document.getElementById("talkedit");
+        data.game.container = document.getElementById("gamecontainer");
+        data.game.canvas = document.getElementById("gamecanvas");
+        data.game.talkedit = document.getElementById("gametalkedit");
         data.footer = document.getElementById("footer");
         preloadResources();
         layoutPage();
-        buildHud();
-        layoutHud();
-        buildEntities();
+        buildGameHud();
+        layoutGameHud();
+        buildGameEntities();
         var fps = 30;
-        setInterval(updateUiData, 1000 / fps);
-        setInterval(drawCanvas, 1000 / fps);
-        data.canvas.onclick = onCanvasClick;
+        setInterval(updateGameUiData, 1000 / fps);
+        setInterval(drawGameCanvas, 1000 / fps);
+        data.game.canvas.onclick = onGameCanvasClick;
         // [Randy 08/10/2010] REMARK: Attaching to the canvas doesn't seem to work.
         document.onkeyup = onCanvasKeyup;
+        setStateToGame();
     }
 
     function onWindowResize() {
         layoutPage();
-        layoutHud();
-        drawCanvas();
+        layoutGameHud();
+        drawGameCanvas();
     }
 
     //## testing ###################################################################################
