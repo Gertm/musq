@@ -20,3 +20,22 @@ func chatHub() {
 	}
 }
 
+func makeChatReply(pname, message string) {
+	
+}
+
+func chatHub() {
+    conns := make(map[*websocket.Conn]int)
+    for {
+        select {
+        case subscription := <-subscriptionChan:
+            conns[subscription.conn] = 0, subscription.subscribe
+        case message := <-messageChan:
+            for conn, _ := range conns {
+                if _, err := conn.Write(message); err != nil {
+                    conn.Close()
+                }
+            }
+        }
+    }
+}
