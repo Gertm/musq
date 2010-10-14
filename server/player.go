@@ -42,6 +42,9 @@ func (p *Player) AddRequest(r []byte) {
 		p.CancelAllRequests()
 		x, _ := strconv.Atoi(req.Params["X"])
 		y, _ := strconv.Atoi(req.Params["Y"])
+		if x == p.X && y == p.Y {
+			return
+		}
 		startLoc := Location{ p.X, p.Y, 0, nil }
 		destLoc := Location{ x, y, 0, nil }
 		LocList := findPath(startLoc, destLoc)
@@ -133,13 +136,6 @@ func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	fmt.Println("Handling the move...")
 	x, _ := strconv.Atoi(r.Params["X"])
 	y, _ := strconv.Atoi(r.Params["Y"])
-	fmt.Printf("%s wants to go to %d, %d\n", p.Name, x, y)
-	// is this distance greater than one tile?
-	if TileDistance(p.X, p.Y, x, y) > 1 {
-		// split up the movement, do the first one
-	} else {
-		// if not, we're probably in a sequence. Just do this one then
-	}
 	b, err := json.Marshal(r)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")
