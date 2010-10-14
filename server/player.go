@@ -47,8 +47,7 @@ func (p *Player) AddRequest(r []byte) {
 		destLoc := Location{ x, y, 0, nil }
 		LocList := findPath(startLoc, destLoc)
 		for i := len(LocList) - 1; i >= 0; i-- {
-		//for i := 0; i<len(LocList); i++ {
-			fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
+			//fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
 			p.Requests.Push(Request{Function: "move", Params: map[string]string{"X":strconv.Itoa(LocList[i].x), "Y":strconv.Itoa(LocList[i].y)}})
 			fmt.Print("+")
 		}
@@ -56,7 +55,6 @@ func (p *Player) AddRequest(r []byte) {
 	}
 	fmt.Print("+")
 	p.Requests.Push(*req)
-
 }
 
 func (p *Player) getNextRequest() (*Request, os.Error) {
@@ -136,12 +134,6 @@ func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	x, _ := strconv.Atoi(r.Params["X"])
 	y, _ := strconv.Atoi(r.Params["Y"])
 	fmt.Printf("%s wants to go to %d, %d\n", p.Name, x, y)
-	// is this distance greater than one tile?
-	if TileDistance(p.X, p.Y, x, y) > 1 {
-		// split up the movement, do the first one
-	} else {
-		// if not, we're probably in a sequence. Just do this one then
-	}
 	b, err := json.Marshal(r)
 	if err != nil {
 		fmt.Println("Couldn't marshal the reply")

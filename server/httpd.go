@@ -32,6 +32,8 @@ func WebSocketHandler(ws *websocket.Conn) {
 		n, err := ws.Read(buf)
 		if err != nil {
 			fmt.Println("Exiting wshandler!")
+			// TODO: stop the playerhandler process and the websocket-reply
+			// handling function below.
 			break
 		}
 		fmt.Printf("Received: %s\n", buf[0:n])
