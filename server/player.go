@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"json"
 	"strconv"
 	"fmt"
 	"container/vector"
@@ -15,11 +14,17 @@ type Player struct {
 	SVG      string
 	PwdHsh   string
 	Requests vector.Vector
+	ChatChan chan string
 }
 
 type Request struct {
 	Function string
 	Params   map[string]string
+}
+
+func (p *Player) Move(x int, y int) (int, int) {
+	p.X, p.Y = x, y
+	return p.X, p.Y
 }
 
 func (p *Player) SaveToDB() os.Error {
@@ -49,16 +54,14 @@ func (p *Player) AddRequest(r []byte) {
 		destLoc := Location{ x, y, 0, nil }
 		LocList := findPath(startLoc, destLoc)
 		for i := len(LocList) - 1; i >= 0; i-- {
-		//for i := 0; i<len(LocList); i++ {
-			fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
-			p.Requests.Push(Request{Function: "move", Params: map[string]string{"X":strconv.Itoa(LocList[i].x), "Y":strconv.Itoa(LocList[i].y)}})
+			//fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
+			p.Requests.Push(Request{Function: "move", Params: map[string]string{"X": strconv.Itoa(LocList[i].x), "Y": strconv.Itoa(LocList[i].y)}})
 			fmt.Print("+")
 		}
 		return
 	}
 	fmt.Print("+")
 	p.Requests.Push(*req)
-
 }
 
 func (p *Player) getNextRequest() (*Request, os.Error) {
@@ -69,21 +72,18 @@ func (p *Player) getNextRequest() (*Request, os.Error) {
 	return nil, os.NewError("Yarr!")
 }
 
-func getRequestFromJSON(bson []byte) (*Request, os.Error) {
-	var req = new(Request)
-	err := json.Unmarshal(bson, req)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("Woops! That wasn't a valid JSON string!")
-	}
-	return req, err
-}
-
 func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	var hBeatChan = make(chan bool, 20)
+
 	go Heart(p.Name, hBeatChan)
 	defer fmt.Println("Exiting the playerhandler!")
 
+	// subscribe and unsubscribe to the chatHub
+	chatSubChan <- subscription{wsReplyChan, true}
+	defer func() {
+		chatSubChan <- subscription{wsReplyChan, false}
+	}()
+	
 	for {
 		//fmt.Printf("Pending requests for %s: %d\n",p.Name,len(p.Requests))
 		select {
@@ -113,60 +113,29 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	fmt.Println("Handling the login...")
 	rply := Request{"login", map[string]string{}}
-	b, err := json.Marshal(rply)
-	if err != nil {
-		fmt.Println("Couldn't marshal the reply")
-		return
-	}
-	fmt.Printf("Sending %s\n", b)
-	wsReplyChan <- b
+	MarshalAndSendRequest(&rply, wsReplyChan)
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	rply := Request{"keepalive", map[string]string{}}
-	b, err := json.Marshal(rply)
-	if err != nil {
-		fmt.Println("Couldn't marshal the reply")
-		return
-	}
-	wsReplyChan <- b
+	MarshalAndSendRequest(&rply, wsReplyChan)
 }
 
 func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
-	fmt.Println("Handling the move...")
 	x, _ := strconv.Atoi(r.Params["X"])
 	y, _ := strconv.Atoi(r.Params["Y"])
-	b, err := json.Marshal(r)
-	if err != nil {
-		fmt.Println("Couldn't marshal the reply")
-		return
-	}
-	fmt.Printf("Sending %s\n", b)
-	ok := wsReplyChan <- b
+	fmt.Printf("%s wants to go to %d, %d\n", p.Name, x, y)
+	ok := MarshalAndSendRequest(r, wsReplyChan)
 	if ok {
 		p.X, p.Y = x, y
 	} else {
-		fmt.Printf("Couldn't send reply over websocket for %s\n",p.Name)
 		p.CancelAllRequests()
 	}
 }
 
 func HandleTalk(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	fmt.Println("Handling the talk...")
-	message := r.Params["Message"]
-	rply := Request{"talk", map[string]string{"Message": message}}
-	b, err := json.Marshal(rply)
-	if err != nil {
-		fmt.Println("Couldn't marshal the reply")
-		return
-	}
-	fmt.Printf("Sending %s\n", b)
-	wsReplyChan <- b
-}
-
-func (p *Player) Move(x int, y int) (int, int) {
-	p.X, p.Y = x, y
-	return p.X, p.Y
+	chatChan <- chatMessage{From: p.Name, Msg: r.Params["Message"]}
 }
 
 

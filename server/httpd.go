@@ -22,7 +22,7 @@ func config_handler(c http.ResponseWriter, r *http.Request) {
 func WebSocketHandler(ws *websocket.Conn) {
 	// temporary player -- need to have logins later 
 	var reqs vector.Vector
-	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", reqs}
+	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", reqs, nil}
 	var wsChan = make(chan []byte)
 	var wsReplyChan = make(chan []byte)
 	go PlayerHandler(&p, wsChan, wsReplyChan)
@@ -32,12 +32,14 @@ func WebSocketHandler(ws *websocket.Conn) {
 		n, err := ws.Read(buf)
 		if err != nil {
 			fmt.Println("Exiting wshandler!")
+			// TODO: stop the playerhandler process and the websocket-reply
+			// handling function below.
 			break
 		}
 		fmt.Printf("Received: %s\n", buf[0:n])
 		wsChan <- buf[0:n]
 		go func() {
-			for	{
+			for {
 				if closed(wsReplyChan) {
 					return
 				}
