@@ -181,7 +181,8 @@ var musq = function () {
     data.state = "init";
     data.login = {};
     data.login.lastUpdateTime = utils.now();
-    data.login.angle = 0.0;
+    data.login.scaleFactor = 1.0;
+    data.login.scaleDirection = -1.0;
     data.game = {};
     data.game.fps = 30;
     data.game.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
@@ -345,10 +346,14 @@ var musq = function () {
             return;
         }
         var cxt = data.login.canvas.getContext("2d");
+        cxt.save();
         cxt.clearRect(0, 0, data.login.canvas.width, data.login.canvas.height);
-        //cxt.rotate(data.login.angle);
-        drawImageAtUi(cxt, "login/logo", { x: 0, y: 0 });
-        //cxt.rotate(-data.login.angle);
+        var image = resourceBuffer.get("login/logo");
+        var newWidth = image.width * data.login.scaleFactor;
+        cxt.translate((image.width - newWidth) / 2.0, 0.0);
+        cxt.scale(data.login.scaleFactor, 1.0);
+        cxt.drawImage(image, 0.0, 0.0);
+        cxt.restore();
     }
 
     function drawGameBackground(cxt) {
@@ -405,12 +410,15 @@ var musq = function () {
             return;
         }
         var newUpdateTime = utils.now();
-        /*
-        data.login.angle += (newUpdateTime - data.login.lastUpdateTime) * 0.0001;
-        if (data.login.angle > 2.0 * Math.pi) {
-            data.login.angle -= 2.0 * Math.pi;
+        data.login.scaleFactor += data.login.scaleDirection * (newUpdateTime - data.login.lastUpdateTime) * 0.001 * 0.3;
+        if (data.login.scaleFactor > 1.0) {
+            data.login.scaleFactor = 1.0;
+            data.login.scaleDirection = -1.0;
         }
-         */
+        if (data.login.scaleFactor < -1.0) {
+            data.login.scaleFactor = -1.0;
+            data.login.scaleDirection = 1.0;
+        }
         data.login.lastUpdateTime = newUpdateTime;
     }
 
