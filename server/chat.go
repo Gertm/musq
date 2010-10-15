@@ -1,41 +1,39 @@
 package main
 
 import (
-	"fmt"
+//	"fmt"
 )
 
 type subscription struct {
-	Chan      chan string
+	Chan      chan<- []byte
 	subscribe bool
 }
 
+type chatMessage struct {
+	From string
+	Msg  string
+}
+
 var chatSubChan = make(chan subscription)
-var chatterList = make(map[chan string]int)
+var chatChan = make(chan chatMessage)
 
+func (c chatMessage) ToRequest() Request {
+	R := Request{"Talk", map[string]string{"Name": c.From, "Message": c.Msg}}
+	return R
+}
+
+// simple chat message subscription service and multiplexer 
 func chatHub() {
-	fmt.Println("ChatHub waiting for players...")
+	chans := make(map[chan<- []byte]int)
 	for {
-		subscription := <-chatSubChan
-		chatterList[subscription.Chan] = 0, subscription.subscribe
+		select {
+		case subscription := <-chatSubChan:
+			chans[subscription.Chan] = 0, subscription.subscribe
+		case message := <-chatChan:
+			for chatter, _ := range chans {
+				R := message.ToRequest()
+				MarshalAndSendRequest(&R, chatter)
+			}
+		}
 	}
-}
-
-func makeChatReply(pname, message string) {
-	
-}
-
-func chatHub() {
-    conns := make(map[*websocket.Conn]int)
-    for {
-        select {
-        case subscription := <-subscriptionChan:
-            conns[subscription.conn] = 0, subscription.subscribe
-        case message := <-messageChan:
-            for conn, _ := range conns {
-                if _, err := conn.Write(message); err != nil {
-                    conn.Close()
-                }
-            }
-        }
-    }
 }

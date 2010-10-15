@@ -39,7 +39,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 		fmt.Printf("Received: %s\n", buf[0:n])
 		wsChan <- buf[0:n]
 		go func() {
-			for	{
+			for {
 				if closed(wsReplyChan) {
 					return
 				}
