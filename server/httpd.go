@@ -34,7 +34,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 			fmt.Println("Exiting wshandler!")
 			// TODO: stop the playerhandler process and the websocket-reply
 			// handling function below.
-			break
+			return
 		}
 		fmt.Printf("Received: %s\n", buf[0:n])
 		wsChan <- buf[0:n]

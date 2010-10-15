@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"fmt"
+	"fmt"
 )
 
 type subscription struct {
@@ -14,11 +14,15 @@ type chatMessage struct {
 	Msg  string
 }
 
+func (c chatMessage) String() string {
+	return fmt.Sprintf("Chat: <%s> %s\n", c.From, c.Msg)
+}
+
 var chatSubChan = make(chan subscription)
 var chatChan = make(chan chatMessage)
 
 func (c chatMessage) ToRequest() Request {
-	R := Request{"Talk", map[string]string{"Name": c.From, "Message": c.Msg}}
+	R := Request{"talk", map[string]string{"Name": c.From, "Message": c.Msg}}
 	return R
 }
 
