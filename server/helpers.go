@@ -4,7 +4,32 @@ import (
 	"math"
 	"fmt"
 	"time"
+	"json"
+	"os"
 )
+
+func MarshalAndSendRequest(r *Request, ReplyChan chan<- []byte) bool {
+	b, err := json.Marshal(r)
+	if err != nil {
+		fmt.Println("Couldn't marshal this request")
+		return false
+	}
+	ok := ReplyChan <- b
+	if !ok {
+		fmt.Println("Couldn't send the request back to the ReplyChan")
+	}
+	return ok
+}
+
+func getRequestFromJSON(bson []byte) (*Request, os.Error) {
+	var req = new(Request)
+	err := json.Unmarshal(bson, req)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Woops! That wasn't a valid JSON string!")
+	}
+	return req, err
+}
 
 func Round(x float64) int {
 	if math.Signbit(x) {
@@ -23,4 +48,3 @@ func abs(x int) int {
 func Log(str string) {
 	fmt.Println(time.LocalTime().Format(time.Kitchen) + " - " + str)
 }
-
