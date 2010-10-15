@@ -105,6 +105,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 				HandleMove(p, r, wsReplyChan)
 			case "talk":
 				HandleTalk(p, r, wsReplyChan)
+			case "quit":
+				fmt.Printf("Exiting playerhandler for %s\n",p.Name)
+				return
 			}
 		}
 	}

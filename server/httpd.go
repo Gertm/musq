@@ -26,7 +26,11 @@ func WebSocketHandler(ws *websocket.Conn) {
 	var wsChan = make(chan []byte)
 	var wsReplyChan = make(chan []byte)
 	go PlayerHandler(&p, wsChan, wsReplyChan)
+	defer func() {
+		wsChan <- []byte("{Function:\"quit\"}")
+	}()
 
+	
 	buf := make([]byte, 1024)
 	for {
 		n, err := ws.Read(buf)
@@ -38,15 +42,23 @@ func WebSocketHandler(ws *websocket.Conn) {
 		}
 		fmt.Printf("Received: %s\n", buf[0:n])
 		wsChan <- buf[0:n]
-		go func() {
+		wsReplyStopChan := make(chan bool)
+		defer func() {
+			wsReplyStopChan <- true
+		}()
+		go func(stopChan chan bool) {
 			for {
 				if closed(wsReplyChan) {
 					return
 				}
-				reply := <-wsReplyChan
-				ws.Write(reply)
+				select {
+				case reply := <-wsReplyChan:
+					ws.Write(reply)
+				case <-stopChan:
+					return
+				}
 			}
-		}()
+		}(wsReplyStopChan)
 	}
 }
 
