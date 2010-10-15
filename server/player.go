@@ -77,7 +77,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 
 	go Heart(p.Name, hBeatChan)
 	defer fmt.Println("Exiting the playerhandler!")
-
+	defer close(hBeatChan)
 	// subscribe and unsubscribe to the chatHub
 	chatSubChan <- subscription{wsReplyChan, true}
 	defer func() {

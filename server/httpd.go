@@ -27,7 +27,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 	var wsReplyChan = make(chan []byte)
 	go PlayerHandler(&p, wsChan, wsReplyChan)
 	defer func() {
-		wsChan <- []byte("{Function:\"quit\"}")
+		wsChan <- []byte("{\"Function\":\"quit\"}")
 	}()
 
 	

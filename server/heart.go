@@ -15,6 +15,9 @@ func Heart(playername string, aorta chan<- bool) {
 	fmt.Printf("%s's heart starting!\n",playername)
 	defer fmt.Printf("%s's heart stopped\n",playername)
 	for {
+		if closed(aorta) {
+			return
+		}
 		time.Sleep(1e9)
 		ok := aorta <- true
 		if !ok {
