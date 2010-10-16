@@ -173,6 +173,7 @@ var musq = function () {
         // These are all in 'logical' coordinates, not in UI pixels.
         this.positionLogicSide = new vecMath.vector2d(0.0, 0.0);
         this.positionUiSide = new vecMath.vector2d(0.0, 0.0);
+        this.speed = 1.0;
     }
 
     //## global data ###############################################################################
@@ -428,9 +429,8 @@ var musq = function () {
         }
         var vm = vecMath;
         var newUpdateTime = utils.now();
-        // [Randy 06/10/2010] REMARK: Speed is 1 tile / second.
-        var distance = (newUpdateTime - data.game.lastUpdateTime) * 0.001;
         data.game.entities.forEach(function (e, index, array) {
+                                       var distance = e.speed * (newUpdateTime - data.game.lastUpdateTime) * 0.001;
                                        var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
                                        var vLength = v.length();
                                        // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
@@ -568,6 +568,7 @@ var musq = function () {
         }
         if (json.Function == "move") {
             data.game.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+            data.game.player.speed = vecMath.subtract(data.game.player.positionLogicSide, data.game.player.positionUiSide).length();
             return;
         }
         if (json.Function == "talk") {
