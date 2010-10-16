@@ -37,11 +37,7 @@ func (p *Player) CancelAllRequests() {
 	p.Requests.Cut(0, p.Requests.Len())
 }
 
-func (p *Player) AddRequest(r []byte) {
-	req, err := getRequestFromJSON(r)
-	if err != nil {
-		return
-	}
+func (p *Player) AddRequest(req *Request) {
 	if req.Function == "move" {
 		fmt.Println("Cancelling all move requests")
 		p.CancelAllRequests()
@@ -85,10 +81,17 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	}()
 	
 	for {
-		//fmt.Printf("Pending requests for %s: %d\n",p.Name,len(p.Requests))
 		select {
 		case rcvB := <-wsChan:
-			p.AddRequest(rcvB)
+			r, _ := getRequestFromJSON(rcvB)
+			switch {
+			case r.Function == "talk":
+				HandleTalk(p, r, wsReplyChan)
+			case r.Function == "keepalive":
+				HandleKeepAlive(p, r, wsReplyChan)
+			case true:
+				p.AddRequest(r)
+			}
 		case <-hBeatChan: // this should be handled elsewhere so this doesn't get crowded?
 			r, jerr := p.getNextRequest()
 			if jerr != nil {
@@ -99,12 +102,8 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 			switch r.Function {
 			case "login":
 				HandleLogin(p, r, wsReplyChan)
-			case "keepalive":
-				HandleKeepAlive(p, r, wsReplyChan)
 			case "move":
 				HandleMove(p, r, wsReplyChan)
-			case "talk":
-				HandleTalk(p, r, wsReplyChan)
 			case "quit":
 				fmt.Printf("Exiting playerhandler for %s\n",p.Name)
 				return
