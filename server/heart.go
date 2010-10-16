@@ -10,23 +10,23 @@ func startLogic() {
 }
 
 // different approach, let's give everyone a heart...
-func Heart(playername string, aorta chan<- bool) {
+func Heart(p *Player, aorta chan<- bool) {
 	//i := 0
-	fmt.Printf("%s's heart starting!\n",playername)
-	defer fmt.Printf("%s's heart stopped\n",playername)
+	fmt.Printf("%s's heart starting!\n", p.Name)
+	defer fmt.Printf("%s's heart stopped.\n", p.Name)
 	for {
-		if closed(aorta) {
-			return
-		}
 		time.Sleep(1e9)
 		ok := aorta <- true
 		if !ok {
-			fmt.Printf("%s has a clogged artery!\n",playername)
+			fmt.Printf("%s has a clogged artery!\n", p.Name)
 		}
 		if len(aorta) > cap(aorta)/2 {
-			fmt.Printf("%s's cholesterol level rising...\n",playername)
+			fmt.Printf("%s's cholesterol level rising...\n", p.Name)
 			// ok, these error messages aren't really helpful, but they're
 			// fun, and easy to search for ;-)
+		}
+		if !p.Active {
+			return
 		}
 	}
 }

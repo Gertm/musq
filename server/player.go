@@ -15,6 +15,7 @@ type Player struct {
 	PwdHsh   string
 	Requests vector.Vector
 	ChatChan chan string
+	Active   bool
 }
 
 type Request struct {
@@ -71,18 +72,18 @@ func (p *Player) getNextRequest() (*Request, os.Error) {
 func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	var hBeatChan = make(chan bool, 20)
 
-	go Heart(p.Name, hBeatChan)
+	go Heart(p, hBeatChan)
 	defer fmt.Println("Exiting the playerhandler!")
-	defer close(hBeatChan)
 	// subscribe and unsubscribe to the chatHub
 	chatSubChan <- subscription{wsReplyChan, true}
 	defer func() {
 		chatSubChan <- subscription{wsReplyChan, false}
+		p.Active = false  // to make the heartbeat routine stop
 	}()
 	
 	for {
 		select {
-		case rcvB := <-wsChan:
+		case rcvB := <-wsChan: // request not dependent on HB
 			r, _ := getRequestFromJSON(rcvB)
 			switch {
 			case r.Function == "talk":
@@ -92,13 +93,12 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 			case true:
 				p.AddRequest(r)
 			}
-		case <-hBeatChan: // this should be handled elsewhere so this doesn't get crowded?
+		case <-hBeatChan: // requests dependent on HB
 			r, jerr := p.getNextRequest()
 			if jerr != nil {
 				continue
 			}
 			fmt.Print("-")
-			//fmt.Printf("%s got function '%s'\n", p.Name, r.Function)
 			switch r.Function {
 			case "login":
 				HandleLogin(p, r, wsReplyChan)
@@ -136,7 +136,6 @@ func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 }
 
 func HandleTalk(p *Player, r *Request, wsReplyChan chan<- []byte) {
-	fmt.Println("Handling the talk...")
 	chatChan <- chatMessage{From: p.Name, Msg: r.Params["Message"]}
 }
 

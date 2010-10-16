@@ -38,6 +38,7 @@ func chatHub() {
 				R := message.ToRequest()
 				MarshalAndSendRequest(&R, chatter)
 			}
+			fmt.Printf("# <%s> %s\n", message.From, message.Msg)
 		}
 	}
 }
