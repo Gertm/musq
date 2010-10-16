@@ -138,18 +138,3 @@ func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 func HandleTalk(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	chatChan <- chatMessage{From: p.Name, Msg: r.Params["Message"]}
 }
-
-
-// TODO STUFF
-/*
- keep a current state for players
- Keep a stack of actions to do and pick them off every tick?
- when a different action is selected, cancel all other moves
- when moving, just send a position msg to the client every tick?
- little message queue/stack in the player goroutine
-
- http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
-
- client moves faster if distance is longer?
-
-*/
