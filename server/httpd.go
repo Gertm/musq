@@ -22,7 +22,7 @@ func config_handler(c http.ResponseWriter, r *http.Request) {
 func WebSocketHandler(ws *websocket.Conn) {
 	// temporary player -- need to have logins later 
 	var reqs vector.Vector
-	p := Player{"Randy", 0, 0, "human01", "bsdsdcwe", reqs, nil, true}
+	p := Player{"UnnamedPlayer", 0, 0, "human01", "bsdsdcwe", reqs, nil, true}
 	var wsChan = make(chan []byte)
 	var wsReplyChan = make(chan []byte)
 	go PlayerHandler(&p, wsChan, wsReplyChan)
