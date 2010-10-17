@@ -290,56 +290,6 @@ var musq = function () {
                });
     }
 
-    //## page layout ###############################################################################
-
-    function positionLogin() {
-        data.login.container.style.position = "fixed";
-        var width = 500;
-        data.login.container.style.width = utils.toPx(width);
-        var height = 230;
-        data.login.container.style.height = utils.toPx(height);
-        data.login.container.style.top = utils.toPx((window.innerHeight - height) / 2);
-        data.login.container.style.left = utils.toPx((window.innerWidth - width) / 2);
-    }
-
-    function positionGameCanvas() {
-        var xPadding = 40;
-        var yPadding = 20;
-        data.game.canvas.style.position = "fixed";
-        var newWidth = window.innerWidth - xPadding * 2;
-        data.game.canvas.setAttribute("width", utils.toPx(newWidth));
-        var newHeight = window.innerHeight - yPadding * 2 - data.footer.clientHeight;
-        data.game.canvas.setAttribute("height", utils.toPx(newHeight));
-        data.game.canvas.style.top = utils.toPx(yPadding);
-        data.game.canvas.style.left = utils.toPx(xPadding);
-    }
-
-    function positionFooter() {
-        data.footer.style.position = "fixed";
-        data.footer.style.width = utils.toPx(window.innerWidth);
-        data.footer.style.top = utils.toPx(window.innerHeight - data.footer.clientHeight);
-        data.footer.style.left = utils.toPx(0);
-    }
-
-    function layoutPage() {
-        positionLogin();
-        positionGameCanvas();
-        positionFooter();
-    }
-
-    function setStateToLogin() {
-        data.login.container.style.display = "block";
-        data.game.container.style.display = "none";
-        data.state = "login";
-        data.login.username.focus();
-    }
-
-    function setStateToGame() {
-        data.login.container.style.display = "none";
-        data.game.container.style.display = "block";
-        data.state = "game";
-    }
-
     //## drawing ###################################################################################
 
     function drawLoginCanvas() {
@@ -445,6 +395,19 @@ var musq = function () {
     }
 
     //## message handlers ##########################################################################
+
+    function setStateToLogin() {
+        data.login.container.style.display = "block";
+        data.game.container.style.display = "none";
+        data.state = "login";
+        data.login.username.focus();
+    }
+
+    function setStateToGame() {
+        data.login.container.style.display = "none";
+        data.game.container.style.display = "block";
+        data.state = "game";
+    }
 
     function startTalking() {
         data.game.talking = true;
@@ -577,6 +540,44 @@ var musq = function () {
         }
     }
 
+    //## page layout ###############################################################################
+
+    function positionLogin() {
+        data.login.container.style.position = "fixed";
+        var width = 500;
+        data.login.container.style.width = utils.toPx(width);
+        var height = 230;
+        data.login.container.style.height = utils.toPx(height);
+        data.login.container.style.top = utils.toPx((window.innerHeight - height) / 2);
+        data.login.container.style.left = utils.toPx((window.innerWidth - width) / 2);
+    }
+
+    function positionGameCanvas() {
+        var xPadding = 40;
+        var yPadding = 20;
+        data.game.canvas.style.position = "fixed";
+        var newWidth = window.innerWidth - xPadding * 2;
+        data.game.canvas.setAttribute("width", utils.toPx(newWidth));
+        var newHeight = window.innerHeight - yPadding * 2 - data.footer.clientHeight;
+        data.game.canvas.setAttribute("height", utils.toPx(newHeight));
+        data.game.canvas.style.top = utils.toPx(yPadding);
+        data.game.canvas.style.left = utils.toPx(xPadding);
+    }
+
+    function positionFooter() {
+        data.footer.style.position = "fixed";
+        data.footer.style.width = utils.toPx(window.innerWidth);
+        data.footer.style.top = utils.toPx(window.innerHeight - data.footer.clientHeight);
+        data.footer.style.left = utils.toPx(0);
+    }
+
+    function layoutPage() {
+        positionLogin();
+        positionGameCanvas();
+        positionFooter();
+        data.login.controls.style.marginTop = utils.toPx((data.login.container.clientHeight - data.login.controls.clientHeight) / 2);
+    }
+
     //## initialization ############################################################################
 
     function preloadResources() {
@@ -602,17 +603,14 @@ var musq = function () {
              "images/faces/human/male/nose01.svg"]);
     }
 
-    function buildGameHud() {
+    function initializeGameHud() {
         data.game.hudTalk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
         data.game.hudTalk.onClick = onGameHudTalkClick;
-    }
-
-    function layoutGameHud() {
         data.game.hudTalk.x = 20;
         data.game.hudTalk.y = 20;
     }
 
-    function buildGameEntities() {
+    function initializeGameEntities() {
         data.game.player = new gameEntity("entities/player");
         data.game.entities.push(data.game.player);
         data.game.enemy01 = new gameEntity("entities/enemy01");
@@ -631,6 +629,7 @@ var musq = function () {
     function initializeLogin() {
         data.login.container = document.getElementById("logincontainer");
         data.login.canvas = document.getElementById("logincanvas");
+        data.login.controls = document.getElementById("logincontrols");
         data.login.username = document.getElementById("loginusername");
         data.login.password = document.getElementById("loginpassword");
         data.login.button = document.getElementById("loginbutton");
@@ -643,9 +642,8 @@ var musq = function () {
         data.game.container = document.getElementById("gamecontainer");
         data.game.canvas = document.getElementById("gamecanvas");
         data.game.talkedit = document.getElementById("gametalkedit");
-        buildGameHud();
-        layoutGameHud();
-        buildGameEntities();
+        initializeGameHud();
+        initializeGameEntities();
         setInterval(updateGameUiData, 1000 / data.game.fps);
         setInterval(drawGameCanvas, 1000 / data.game.fps);
         data.game.canvas.onclick = onGameCanvasClick;
@@ -656,11 +654,11 @@ var musq = function () {
         preloadResources();
         initializeLogin();
         initializeGame();
-        layoutPage();
         // [Randy 08/10/2010] REMARK: Attaching to the canvas doesn't seem to work.
         document.onkeyup = onCanvasKeyup;
         setStateToLogin();
         initializeWebSocket();
+        layoutPage();
     }
 
     function onWindowResize() {

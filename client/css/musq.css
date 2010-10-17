@@ -17,19 +17,18 @@ body
 {
     display: none;
     background-color: #ffffff;
-    padding: 10px;
 }
 
 #logincanvas
 {
     float: left;
-    margin: 10px;
+    margin: 20px;
 }
 
 #logincontrols
 {
     float: left;
-    margin: 10px;
+    margin: 20px;
 }
 
 #gamecontainer
