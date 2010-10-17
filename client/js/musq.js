@@ -232,7 +232,7 @@ var musq = function () {
     data.game.colors = {};
     data.game.colors["skin"] = ["#fff0c1", "#785d42"];
     data.game.colors["hair"] = ["#140d00"];
-    data.game.colors["eye"] = ["#000000"];
+    data.game.colors["eye"] = ["#000000", "#000044"];
 
     //## image/resource buffer management ##########################################################
 
@@ -681,7 +681,7 @@ var musq = function () {
             "entities/player",
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][0]},
              {url: "images/faces/human/male/face01.svg", color: data.game.colors["skin"][0]},
-             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][0]},
+             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][1]},
              {url: "images/faces/human/male/mouth01.svg", color: ""},
              {url: "images/faces/human/male/nose01.svg", color: ""},
              {url: "images/faces/human/male/hair01.svg", color: data.game.colors["hair"][0]}]);
@@ -758,7 +758,6 @@ var musq = function () {
         }
 
         function runTests() {
-alert("testtest".replaceAll("test", "ba"));
             test("replaceAll", ("testtest".replaceAll("test", "ba") === "baba"));
             test("toPx", (utils.toPx(10) == "10px"));
             test("fromPx", (utils.fromPx("10px") == 10));
