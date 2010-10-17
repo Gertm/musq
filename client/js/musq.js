@@ -524,7 +524,7 @@ var musq = function () {
 
     function onWebSocketClosed() {
         log("WebSocket closed.");
-        // [Randy 14/10/2010] TODO: Reset the state.
+        setStateToLogin();
     }
 
     function onWebSocketMessage(evt) {
