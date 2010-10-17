@@ -12,7 +12,7 @@ type Player struct {
 	X        int
 	Y        int
 	SVG      string
-	PwdHsh   string
+	Pwd      string
 	Requests vector.Vector
 	ChatChan chan string
 	Active   bool
@@ -113,9 +113,12 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 }
 
 func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
-	fmt.Println("Handling the login...")
+	p.Name = r.Params["Username"]
+	p.Pwd = r.Params["Password"]
+	// TODO: get player data from database
 	rply := Request{"login", map[string]string{}}
 	MarshalAndSendRequest(&rply, wsReplyChan)
+	fmt.Printf("%s logged in!\n", p.Name)
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {

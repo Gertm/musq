@@ -13,7 +13,9 @@ func startLogic() {
 func Heart(p *Player, aorta chan<- bool) {
 	//i := 0
 	fmt.Printf("%s's heart starting!\n", p.Name)
-	defer fmt.Printf("%s's heart stopped.\n", p.Name)
+	defer func() {
+		fmt.Printf("%s's heart stopped.\n", p.Name)
+	}()
 	for {
 		time.Sleep(1e9)
 		ok := aorta <- true
