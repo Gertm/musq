@@ -118,6 +118,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	// TODO: get player data from database
 	rply := Request{"login", map[string]string{}}
 	MarshalAndSendRequest(&rply, wsReplyChan)
+	MarshalAndSendRequest(&Request{"jump", map[string]string{"X":"0","Y":"0"}}, wsReplyChan)
 	fmt.Printf("%s logged in!\n", p.Name)
 }
 

@@ -13,7 +13,7 @@ func startLogic() {
 func Heart(p *Player, aorta chan<- bool) {
 	//i := 0
 	fmt.Printf("%s's heart starting!\n", p.Name)
-	defer func() {
+	defer func() { // this way the %s doesn't get evaluated until the
 		fmt.Printf("%s's heart stopped.\n", p.Name)
 	}()
 	for {
