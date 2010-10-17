@@ -133,8 +133,8 @@ var musq = function () {
     //## animation classes #########################################################################
 
     function moveAnimation() {
-        this.curr = new vecMath.vector2d();
-        this.dst = new vecMath.vector2d();
+        this.curr = new vecMath.vector2d(0.0, 0.0);
+        this.dst = new vecMath.vector2d(0.0, 0.0);
         this.speed = 1.0;
         this.initialize = function (position) {
             this.curr = position;
@@ -288,6 +288,13 @@ var musq = function () {
         return new vecMath.vector2d(x, y);
     }
 
+    function getLogicalViewPort() {
+        return {
+            topLeft: visualToLogic(new vecMath.vector2d(0.0, 0.0)),
+            bottomRight: visualToLogic(new vecMath.vector2d(data.game.canvas.width - 1, data.game.canvas.height - 1))
+        };
+    }
+
     function drawImageAroundUi(cxt, key, pt) {
         var image = resourceBuffer.get(key);
         var width = image.width;
@@ -341,10 +348,9 @@ var musq = function () {
     }
 
     function drawGameGrid(cxt) {
-        var topLeft = visualToLogic(new vecMath.vector2d(0.0, 0.0));
-        var bottomRight = visualToLogic(new vecMath.vector2d(data.game.canvas.width - 1, data.game.canvas.height - 1));
-        for (var x = topLeft.x - 1; x < bottomRight.x + 1; x++) {
-            for (var y = bottomRight.y - 1; y < topLeft.y + 1; y++) {
+        var viewPort = getLogicalViewPort();
+        for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
+            for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
                 var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
                 var halfTile = data.game.logicalToVisualFactor * 0.5;
                 var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
@@ -416,7 +422,7 @@ var musq = function () {
         data.game.lastUpdateTime = newUpdateTime;
     }
 
-    //## message handlers ##########################################################################
+    //## message handler helpers ###################################################################
 
     function setStateToLogin() {
         data.login.container.style.display = "block";
@@ -459,6 +465,28 @@ var musq = function () {
         data.game.talking = false;
         data.game.talkedit.style.display = "none";
     }
+
+    function ensurePlayerIsWithinViewPort() {
+        var playerDst = data.game.entities[data.playerName].moveAnimation.dst;
+        var viewPort = getLogicalViewPort();
+        var border = 3;
+        var newViewPortCenter = new vecMath.vector2d(data.game.viewPortCenter.dst.x, data.game.viewPortCenter.dst.y);
+        if (playerDst.x > viewPort.bottomRight.x - border) {
+            newViewPortCenter.x = playerDst.x;
+        }
+        if (playerDst.x < viewPort.topLeft.x + border) {
+            newViewPortCenter.x = playerDst.x;
+        }
+        if (playerDst.y > viewPort.topLeft.y - border) {
+            newViewPortCenter.y = playerDst.y;
+        }
+        if (playerDst.y < viewPort.bottomRight.y + border) {
+            newViewPortCenter.y = playerDst.y;
+        }
+        data.game.viewPortCenter.setDestination(newViewPortCenter, 1.0);
+    }
+
+    //## message handlers ##########################################################################
 
     function onLoginButton() {
         if (data.login.username.value === "") {
@@ -568,7 +596,9 @@ var musq = function () {
         }
         if (json.Function == "move") {
             var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-            data.game.entities[data.playerName].moveAnimation.setDestination(newDestination, 1.0);
+            var playerMove = data.game.entities[data.playerName].moveAnimation;
+            playerMove.setDestination(newDestination, 1.0);
+            ensurePlayerIsWithinViewPort();
             return;
         }
         if (json.Function == "talk") {
