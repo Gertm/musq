@@ -73,6 +73,13 @@ var musq = function () {
             return (new Date()).getTime();
         }
 
+        function stringReplaceRecursive(s, oldS, newS) {
+            var r = s.replace(oldS, newS);
+            if (r === s)
+                return r;
+            return stringReplaceRecursive(r, oldS, newS);
+        }
+
         return {
             toPx: toPx,
             fromPx: fromPx,
@@ -82,7 +89,8 @@ var musq = function () {
             removeTrailingEnter: removeTrailingEnter,
             ptInRc: ptInRc,
             inherit: inherit,
-            now: now
+            now: now,
+            stringReplaceRecursive: stringReplaceRecursive
         };
 
     } ();
@@ -91,6 +99,10 @@ var musq = function () {
         if (console.log)
             console.log("MUSQ: " + txt);
     }
+
+    String.prototype.replaceAll = function (oldS, newS) {
+        return utils.stringReplaceRecursive(this, oldS, newS);
+    };
 
     //## 2D vector math utilities ##################################################################
 
@@ -217,6 +229,10 @@ var musq = function () {
     data.game.talking = false;
     data.game.logicalToVisualFactor = 70.0;
     data.game.entities = {};
+    data.game.colors = {};
+    data.game.colors["skin"] = ["#fff0c1", "#785d42"];
+    data.game.colors["hair"] = ["#140d00"];
+    data.game.colors["eye"] = ["#000000", "#000044"];
 
     //## image/resource buffer management ##########################################################
 
@@ -230,28 +246,31 @@ var musq = function () {
             container[key] = image;
         }
 
-        function addSvgs(key, urls) {
+        function addSvgs(key, urlsAndColors) {
             var canvas = document.getElementById("svg2pngcanvas");
             var cxt = canvas.getContext("2d");
             cxt.clearRect(0, 0, canvas.width, canvas.height);
-            urls.forEach(function (url, index, array) {
-                             var xmlHttp = new XMLHttpRequest();
-                             xmlHttp.open("GET", url, false);
-                             xmlHttp.send();
-                             var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
-                             var width = parseInt(svg.getAttribute("width"), 10);
-                             var height = parseInt(svg.getAttribute("height"), 10);
-                             if (canvas.width !== width || canvas.height !== height) {
-                                 canvas.setAttribute("width", utils.toPx(width));
-                                 canvas.setAttribute("height", utils.toPx(height));
-                             }
-                             cxt.drawSvg(xmlHttp.responseText, 0, 0);
-                         });
+            urlsAndColors.forEach(function (e, index, array) {
+                                      var url = e.url;
+                                      var color = e.color;
+                                      var xmlHttp = new XMLHttpRequest();
+                                      xmlHttp.open("GET", url, false);
+                                      xmlHttp.send();
+                                      var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
+                                      var width = parseInt(svg.getAttribute("width"), 10);
+                                      var height = parseInt(svg.getAttribute("height"), 10);
+                                      if (canvas.width !== width || canvas.height !== height) {
+                                          canvas.setAttribute("width", utils.toPx(width));
+                                          canvas.setAttribute("height", utils.toPx(height));
+                                      }
+                                      var svgTxt = xmlHttp.responseText.replaceAll("#badf0d", color);
+                                      cxt.drawSvg(svgTxt, 0, 0);
+                                  });
             addImage(key, canvas.toDataURL());
         }
 
-        function addSvg(key, url) {
-            addSvgs(key, [url]);
+        function addSvg(key, url, color) {
+            addSvgs(key, [{url: url, color: color}]);
         }
 
         function remove(key) {
@@ -655,24 +674,24 @@ var musq = function () {
     function preloadResources() {
         // [Randy 14/10/2010] PATCH: logo.svg causes an exception in canvg.
         // Maybe because the font doesn't exist here?
-        //resourceBuffer.addSvg("login/logo", "images/logo.svg");
+        //resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
         resourceBuffer.addImage("login/logo", "images/logo.png");
-        resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg");
+        resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
         resourceBuffer.addSvgs(
             "entities/player",
-            ["images/faces/human/male/ears01.svg",
-             "images/faces/human/male/face01.svg",
-             "images/faces/human/male/eyes01.svg",
-             "images/faces/human/male/mouth01.svg",
-             "images/faces/human/male/nose01.svg",
-             "images/faces/human/male/hair01.svg"]);
+            [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][0]},
+             {url: "images/faces/human/male/face01.svg", color: data.game.colors["skin"][0]},
+             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][1]},
+             {url: "images/faces/human/male/mouth01.svg", color: ""},
+             {url: "images/faces/human/male/nose01.svg", color: ""},
+             {url: "images/faces/human/male/hair01.svg", color: data.game.colors["hair"][0]}]);
         resourceBuffer.addSvgs(
             "entities/enemy01",
-            ["images/faces/human/male/ears02.svg",
-             "images/faces/human/male/face02.svg",
-             "images/faces/human/male/eyes01.svg",
-             "images/faces/human/male/mouth01.svg",
-             "images/faces/human/male/nose01.svg"]);
+            [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][1]},
+             {url: "images/faces/human/male/face02.svg", color: data.game.colors["skin"][1]},
+             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][0]},
+             {url: "images/faces/human/male/mouth01.svg", color: ""},
+             {url: "images/faces/human/male/nose01.svg", color: ""}]);
     }
 
     function initializeGameHud() {
@@ -739,6 +758,7 @@ var musq = function () {
         }
 
         function runTests() {
+            test("replaceAll", ("testtest".replaceAll("test", "ba") === "baba"));
             test("toPx", (utils.toPx(10) == "10px"));
             test("fromPx", (utils.fromPx("10px") == 10));
             test("lerp1", (utils.lerp(0.0, 10.0, 0.5) == 5.0));
