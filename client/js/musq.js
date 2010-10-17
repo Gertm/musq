@@ -205,17 +205,18 @@ var musq = function () {
 
     var data = {};
     data.state = "init";
+    data.playerName = "";
     data.login = {};
     data.login.lastUpdateTime = utils.now();
     data.login.scaleFactor = 1.0;
     data.login.scaleDirection = -1.0;
     data.game = {};
     data.game.fps = 30;
-    data.game.viewPortCenter = new vecMath.vector2d(0.0, 0.0);
+    data.game.viewPortCenter = new moveAnimation();
     data.game.lastUpdateTime = utils.now();
     data.game.talking = false;
     data.game.logicalToVisualFactor = 70.0;
-    data.game.entities = [];
+    data.game.entities = {};
 
     //## image/resource buffer management ##########################################################
 
@@ -274,14 +275,16 @@ var musq = function () {
     //## utilities that depend on the global data ##################################################
 
     function logicalToVisual(xy) {
-        var x = Math.round(data.game.canvas.width / 2 + xy.x * data.game.logicalToVisualFactor);
-        var y = Math.round(data.game.canvas.height / 2 - xy.y * data.game.logicalToVisualFactor);
+        var viewPortCenter = data.game.viewPortCenter.curr;
+        var x = Math.round(data.game.canvas.width / 2 + (xy.x - viewPortCenter.x) * data.game.logicalToVisualFactor);
+        var y = Math.round(data.game.canvas.height / 2 - (xy.y - viewPortCenter.y) * data.game.logicalToVisualFactor);
         return new vecMath.vector2d(x, y);
     }
 
     function visualToLogic(xy) {
-        var x = Math.round((xy.x - data.game.canvas.width / 2) / data.game.logicalToVisualFactor);
-        var y = Math.round((xy.y - data.game.canvas.height / 2) * -1 / data.game.logicalToVisualFactor);
+        var viewPortCenter = data.game.viewPortCenter.curr;
+        var x = Math.round((xy.x - data.game.canvas.width / 2) / data.game.logicalToVisualFactor + viewPortCenter.x);
+        var y = Math.round((xy.y - data.game.canvas.height / 2) * -1 / data.game.logicalToVisualFactor + viewPortCenter.y);
         return new vecMath.vector2d(x, y);
     }
 
@@ -353,14 +356,15 @@ var musq = function () {
 
     function drawGameMoveTarget(cxt) {
         cxt.fillStyle = "#FF0000";
-        var pt = logicalToVisual(data.game.player.moveAnimation.dst);
+        var pt = logicalToVisual(data.game.entities[data.playerName].moveAnimation.dst);
         cxt.fillRect(pt.x - 2, pt.y - 2, 4, 4);
     }
 
     function drawGameEntities(cxt) {
-        data.game.entities.forEach(function (e, index, array) {
-                                       drawImageAroundLogic(cxt, e.key, e.moveAnimation.curr);
-                                   });
+        for (eI in data.game.entities) {
+            var e = data.game.entities[eI];
+            drawImageAroundLogic(cxt, e.key, e.moveAnimation.curr);
+        }
     }
 
     function drawGameHud(cxt) {
@@ -404,9 +408,11 @@ var musq = function () {
         }
         var newUpdateTime = utils.now();
         var timeDiffInMs = newUpdateTime - data.game.lastUpdateTime;
-        data.game.entities.forEach(function (e, index, array) {
-                                       e.moveAnimation.update(timeDiffInMs);
-                                   });
+        data.game.viewPortCenter.update(timeDiffInMs);
+        for (eI in data.game.entities) {
+            var e = data.game.entities[eI];
+            e.moveAnimation.update(timeDiffInMs);
+        };
         data.game.lastUpdateTime = newUpdateTime;
     }
 
@@ -455,6 +461,11 @@ var musq = function () {
     }
 
     function onLoginButton() {
+        if (data.login.username.value === "") {
+            data.login.username.style.backgroundColor = "#FF0000";
+            data.login.username.focus();
+            return;
+        }
         wsSend({
                    "Function": "login",
                    "Params": {
@@ -539,6 +550,16 @@ var musq = function () {
             return;
         }
         if (json.Function == "login") {
+            data.playerName = data.login.username.value;
+            data.login.username.style.backgroundColor = "#FFFFFF";
+            data.game.viewPortCenter.initialize(new vecMath.vector2d(0.0, 0.0));
+            data.game.entities = {};
+            var player = new gameEntity("entities/player");
+            player.moveAnimation.initialize(new vecMath.vector2d(0.0, 0.0));
+            data.game.entities[data.playerName] = player;
+            var enemy01 = new gameEntity("entities/enemy01");
+            enemy01.moveAnimation.initialize(new vecMath.vector2d(-3.0, 3.0));
+            data.game.entities["enemy01"] = enemy01;
             setStateToGame();
             return;
         }
@@ -547,7 +568,7 @@ var musq = function () {
         }
         if (json.Function == "move") {
             var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-            data.game.player.moveAnimation.setDestination(newDestination, 1.0);
+            data.game.entities[data.playerName].moveAnimation.setDestination(newDestination, 1.0);
             return;
         }
         if (json.Function == "talk") {
@@ -609,16 +630,16 @@ var musq = function () {
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg");
         resourceBuffer.addSvgs(
             "entities/player",
-            ["images/faces/human/male/face01.svg",
-             "images/faces/human/male/ears01.svg",
+            ["images/faces/human/male/ears01.svg",
+             "images/faces/human/male/face01.svg",
              "images/faces/human/male/eyes01.svg",
-             "images/faces/human/male/hair01.svg",
              "images/faces/human/male/mouth01.svg",
-             "images/faces/human/male/nose01.svg"]);
+             "images/faces/human/male/nose01.svg",
+             "images/faces/human/male/hair01.svg"]);
         resourceBuffer.addSvgs(
             "entities/enemy01",
-            ["images/faces/human/male/face02.svg",
-             "images/faces/human/male/ears02.svg",
+            ["images/faces/human/male/ears02.svg",
+             "images/faces/human/male/face02.svg",
              "images/faces/human/male/eyes01.svg",
              "images/faces/human/male/mouth01.svg",
              "images/faces/human/male/nose01.svg"]);
@@ -627,15 +648,6 @@ var musq = function () {
     function initializeGameHud() {
         data.game.hudTalk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
         data.game.hudTalk.onClick = onGameHudTalkClick;
-    }
-
-    function initializeGameEntities() {
-        data.game.player = new gameEntity("entities/player");
-        data.game.player.moveAnimation.initialize(new vecMath.vector2d(0.0, 0.0));
-        data.game.entities.push(data.game.player);
-        data.game.enemy01 = new gameEntity("entities/enemy01");
-        data.game.enemy01.moveAnimation.initialize(new vecMath.vector2d(-3.0, 3.0));
-        data.game.entities.push(data.game.enemy01);
     }
 
     function initializeWebSocket() {
@@ -662,7 +674,6 @@ var musq = function () {
         data.game.canvas = document.getElementById("gamecanvas");
         data.game.talkedit = document.getElementById("gametalkedit");
         initializeGameHud();
-        initializeGameEntities();
         setInterval(updateGameUiData, 1000 / data.game.fps);
         setInterval(drawGameCanvas, 1000 / data.game.fps);
         data.game.canvas.onclick = onGameCanvasClick;
@@ -678,6 +689,7 @@ var musq = function () {
         setStateToLogin();
         initializeWebSocket();
         layoutPage();
+        layoutGameHud();
     }
 
     function onWindowResize() {
