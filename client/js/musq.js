@@ -550,6 +550,7 @@ var musq = function () {
         data.login.container.style.height = utils.toPx(height);
         data.login.container.style.top = utils.toPx((window.innerHeight - height) / 2);
         data.login.container.style.left = utils.toPx((window.innerWidth - width) / 2);
+        data.login.controls.style.marginTop = utils.toPx((data.login.container.clientHeight - data.login.controls.clientHeight) / 2);
     }
 
     function positionGameCanvas() {
@@ -575,7 +576,6 @@ var musq = function () {
         positionLogin();
         positionGameCanvas();
         positionFooter();
-        data.login.controls.style.marginTop = utils.toPx((data.login.container.clientHeight - data.login.controls.clientHeight) / 2);
     }
 
     //## initialization ############################################################################
