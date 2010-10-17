@@ -130,6 +130,34 @@ var musq = function () {
 
     } ();
 
+    //## animation classes #########################################################################
+
+    function moveAnimation() {
+        this.curr = new vecMath.vector2d();
+        this.dst = new vecMath.vector2d();
+        this.speed = 1.0;
+        this.initialize = function (position) {
+            this.curr = position;
+            this.dst = position;
+        };
+        this.setDestination = function (dst, timeToReachInSecs) {
+            this.dst = dst;
+            this.speed = vecMath.subtract(this.dst, this.curr).length() / timeToReachInSecs;
+        };
+        this.update = function (timeDiffInMilliSecs) {
+            var distance = this.speed * timeDiffInMilliSecs * 0.001;
+            var v = vecMath.subtract(this.dst, this.curr);
+            var vLength = v.length();
+            // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
+            // we seem to get rounding issues (jittering).
+            if (vLength > 0.1) {
+                this.curr = vecMath.add(this.curr, vecMath.scale(v, distance / vLength));
+            } else {
+                this.curr = this.dst;
+            }
+        };
+    }
+
     //## HUD elements ##############################################################################
 
     function gameHudElement() {
@@ -170,10 +198,7 @@ var musq = function () {
 
     function gameEntity(key) {
         this.key = key;
-        // These are all in 'logical' coordinates, not in UI pixels.
-        this.positionLogicSide = new vecMath.vector2d(0.0, 0.0);
-        this.positionUiSide = new vecMath.vector2d(0.0, 0.0);
-        this.speed = 1.0;
+        this.moveAnimation = new moveAnimation();
     }
 
     //## global data ###############################################################################
@@ -328,13 +353,13 @@ var musq = function () {
 
     function drawGameMoveTarget(cxt) {
         cxt.fillStyle = "#FF0000";
-        var playerLogicalVisual = logicalToVisual(data.game.player.positionLogicSide);
-        cxt.fillRect(playerLogicalVisual.x - 2, playerLogicalVisual.y - 2, 4, 4);
+        var pt = logicalToVisual(data.game.player.moveAnimation.dst);
+        cxt.fillRect(pt.x - 2, pt.y - 2, 4, 4);
     }
 
     function drawGameEntities(cxt) {
         data.game.entities.forEach(function (e, index, array) {
-                                       drawImageAroundLogic(cxt, e.key, e.positionUiSide);
+                                       drawImageAroundLogic(cxt, e.key, e.moveAnimation.curr);
                                    });
     }
 
@@ -377,19 +402,10 @@ var musq = function () {
         if (data.state !== "game") {
             return;
         }
-        var vm = vecMath;
         var newUpdateTime = utils.now();
+        var timeDiffInMs = newUpdateTime - data.game.lastUpdateTime;
         data.game.entities.forEach(function (e, index, array) {
-                                       var distance = e.speed * (newUpdateTime - data.game.lastUpdateTime) * 0.001;
-                                       var v = vm.subtract(e.positionLogicSide, e.positionUiSide);
-                                       var vLength = v.length();
-                                       // [Randy 06/10/2010] REMARK: If length becomes small (like 0.01)
-                                       // we seem to get rounding issues (jittering).
-                                       if (vLength > 0.1) {
-                                           e.positionUiSide = vm.add(e.positionUiSide, vm.scale(v, distance / vLength));
-                                       } else {
-                                           e.positionUiSide = e.positionLogicSide;
-                                       }
+                                       e.moveAnimation.update(timeDiffInMs);
                                    });
         data.game.lastUpdateTime = newUpdateTime;
     }
@@ -530,8 +546,8 @@ var musq = function () {
             return;
         }
         if (json.Function == "move") {
-            data.game.player.positionLogicSide = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-            data.game.player.speed = vecMath.subtract(data.game.player.positionLogicSide, data.game.player.positionUiSide).length();
+            var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+            data.game.player.moveAnimation.setDestination(newDestination, 1.0);
             return;
         }
         if (json.Function == "talk") {
@@ -578,6 +594,11 @@ var musq = function () {
         positionFooter();
     }
 
+    function layoutGameHud() {
+        data.game.hudTalk.x = 20;
+        data.game.hudTalk.y = 20;
+    }
+
     //## initialization ############################################################################
 
     function preloadResources() {
@@ -606,16 +627,14 @@ var musq = function () {
     function initializeGameHud() {
         data.game.hudTalk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
         data.game.hudTalk.onClick = onGameHudTalkClick;
-        data.game.hudTalk.x = 20;
-        data.game.hudTalk.y = 20;
     }
 
     function initializeGameEntities() {
         data.game.player = new gameEntity("entities/player");
+        data.game.player.moveAnimation.initialize(new vecMath.vector2d(0.0, 0.0));
         data.game.entities.push(data.game.player);
         data.game.enemy01 = new gameEntity("entities/enemy01");
-        data.game.enemy01.positionLogicSide = new vecMath.vector2d(-3.0, 3.0);
-        data.game.enemy01.positionUiSide = data.game.enemy01.positionLogicSide;
+        data.game.enemy01.moveAnimation.initialize(new vecMath.vector2d(-3.0, 3.0));
         data.game.entities.push(data.game.enemy01);
     }
 
