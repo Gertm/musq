@@ -72,7 +72,7 @@ func (l *Location) Neighbours() []Location {
 	return neighbours
 }
 
-func findPath(start, dest Location, maxsteps int) []Location {
+func findPath(start, dest Location) []Location {
 	path := make(map[string]string)
 	current := start
 	startstr := start.String()

@@ -53,7 +53,7 @@ func (p *Player) AddRequest(req *Request) {
 		}
 		startLoc := Location{ p.X, p.Y, 0, nil }
 		destLoc := Location{ x, y, 0, nil }
-		LocList := findPath(startLoc, destLoc, 25) // last params = max steps (to be used later)
+		LocList := findPath(startLoc, destLoc)
 		for i := len(LocList) - 1; i >= 0; i-- {
 			//fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
 			p.Requests.Push(Request{Function: "move", Params: map[string]string{"X": strconv.Itoa(LocList[i].x), "Y": strconv.Itoa(LocList[i].y)}})
