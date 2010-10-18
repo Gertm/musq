@@ -8,14 +8,14 @@ import (
 )
 
 type Player struct {
-	Name     string
-	X        int
-	Y        int
-	SVG      string
-	Pwd      string
-	Requests vector.Vector
-	ChatChan chan string
-	Active   bool
+	Name        string
+	X           int
+	Y           int
+	SVG         string
+	Pwd         string
+	Requests    vector.Vector
+	ChatChan    chan string
+	Active      bool
 	Destination Location
 }
 
@@ -44,24 +44,6 @@ func (p *Player) CancelAllRequests() {
 }
 
 func (p *Player) AddRequest(req *Request) {
-	if req.Function == "move" {
-		fmt.Println("Cancelling all move requests")
-		p.CancelAllRequests()
-		x, _ := strconv.Atoi(req.Params["X"])
-		y, _ := strconv.Atoi(req.Params["Y"])
-		if x == p.X && y == p.Y {
-			return
-		}
-		startLoc := Location{ p.X, p.Y, 0}
-		destLoc := Location{ x, y, 0}
-		LocList := findPath(startLoc, destLoc, 25) // last params = max steps (to be used later)
-		for i := len(LocList) - 1; i >= 0; i-- {
-			//fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)
-			p.Requests.Push(Request{Function: "move", Params: map[string]string{"X": strconv.Itoa(LocList[i].x), "Y": strconv.Itoa(LocList[i].y)}})
-			fmt.Print("+")
-		}
-		return
-	}
 	fmt.Print("+")
 	p.Requests.Push(*req)
 }
@@ -83,9 +65,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	chatSubChan <- subscription{wsReplyChan, true}
 	defer func() {
 		chatSubChan <- subscription{wsReplyChan, false}
-		p.Active = false  // to make the heartbeat routine stop
+		p.Active = false // to make the heartbeat routine stop
 	}()
-	
+
 	for {
 		select {
 		case rcvB := <-wsChan: // request not dependent on HB
@@ -95,22 +77,26 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 				HandleTalk(p, r, wsReplyChan)
 			case r.Function == "keepalive":
 				HandleKeepAlive(p, r, wsReplyChan)
+			case r.Function == "move":
+				x, _ := strconv.Atoi(r.Params["X"])
+				y, _ := strconv.Atoi(r.Params["Y"])
+				p.Destination = Location{x, y}
 			case true:
 				p.AddRequest(r)
 			}
 		case <-hBeatChan: // requests dependent on HB
 			r, jerr := p.getNextRequest()
 			if jerr != nil {
+				// nothing to do, so continue moving
+				DoMoveStep(p, wsReplyChan)
 				continue
 			}
 			fmt.Print("-")
 			switch r.Function {
 			case "login":
 				HandleLogin(p, r, wsReplyChan)
-			case "move":
-				HandleMove(p, r, wsReplyChan)
 			case "quit":
-				fmt.Printf("Exiting playerhandler for %s\n",p.Name)
+				fmt.Printf("Exiting playerhandler for %s\n", p.Name)
 				return
 			}
 		}
@@ -123,7 +109,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	// TODO: get player data from database
 	rply := Request{"login", map[string]string{}}
 	MarshalAndSendRequest(&rply, wsReplyChan)
-	MarshalAndSendRequest(&Request{"jump", map[string]string{"X":"0","Y":"0"}}, wsReplyChan)
+	MarshalAndSendRequest(&Request{"jump", map[string]string{"X": "0", "Y": "0"}}, wsReplyChan)
 	fmt.Printf("%s logged in!\n", p.Name)
 }
 
@@ -132,12 +118,23 @@ func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	MarshalAndSendRequest(&rply, wsReplyChan)
 }
 
+func DoMoveStep(p *Player, wsReplyChan chan<- []byte) {
+	currentLoc := Location{p.X, p.Y}
+	if currentLoc.Equals(&p.Destination) {
+		return
+	}
+	nextLoc := selectNextLoc(currentLoc, p.Destination)
+	r := Request{Function: "move", Params: map[string]string{"X":strconv.Itoa(nextLoc.x), "Y": strconv.Itoa(nextLoc.y)}}
+    if MarshalAndSendRequest(&r, wsReplyChan) {
+		PlayerMoveToTile(p, nextLoc.x, nextLoc.y)
+	}
+}
+
 func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	x, _ := strconv.Atoi(r.Params["X"])
 	y, _ := strconv.Atoi(r.Params["Y"])
 	fmt.Printf("%s wants to go to %d, %d\n", p.Name, x, y)
-	ok := MarshalAndSendRequest(r, wsReplyChan)
-	if ok {
+	if MarshalAndSendRequest(r, wsReplyChan) {
 		p.X, p.Y = x, y
 	} else {
 		p.CancelAllRequests()
