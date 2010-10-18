@@ -2,6 +2,10 @@ package main
 
 import ()
 
+type Tile struct {
+	player *Player
+}
+
 var PlayingField = make(map[string]Tile)
 
 func getTileAt(x int, y int) Tile {
@@ -21,7 +25,7 @@ func PlayerMoveToTile(p *Player, x, y int) {
 	if !isTileFree(x, y) {
 		return
 	}
-	oldtile := getTileAt(p.X, p.Y)
+	oldtile := p.CurrentTile()
 	oldtile.player = nil
 	p.X = x
 	p.Y = y
