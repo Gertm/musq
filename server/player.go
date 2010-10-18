@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -109,7 +110,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	// TODO: get player data from database
 	rply := Request{"login", map[string]string{}}
 	MarshalAndSendRequest(&rply, wsReplyChan)
-	MarshalAndSendRequest(&Request{"jump", map[string]string{"X": "0", "Y": "0"}}, wsReplyChan)
+	MarshalAndSendRequest(&Request{"jump", map[string]string{"Name": p.Name, "X": "0", "Y": "0"}}, wsReplyChan)
 	fmt.Printf("%s logged in!\n", p.Name)
 	chatSubChan <- subscription{wsReplyChan, true}
 }
@@ -125,7 +126,7 @@ func DoMoveStep(p *Player, wsReplyChan chan<- []byte) {
 		return
 	}
 	nextLoc := selectNextLoc(currentLoc, p.Destination)
-	r := Request{Function: "move", Params: map[string]string{"X":strconv.Itoa(nextLoc.x), "Y": strconv.Itoa(nextLoc.y)}}
+	r := Request{Function: "move", Params: map[string]string{"Name": p.Name, "X":strconv.Itoa(nextLoc.x), "Y": strconv.Itoa(nextLoc.y)}}
     if MarshalAndSendRequest(&r, wsReplyChan) {
 		PlayerMoveToTile(p, nextLoc.x, nextLoc.y)
 	}
