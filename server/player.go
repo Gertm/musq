@@ -16,6 +16,7 @@ type Player struct {
 	Requests vector.Vector
 	ChatChan chan string
 	Active   bool
+	Destination Location
 }
 
 type Request struct {
@@ -51,8 +52,8 @@ func (p *Player) AddRequest(req *Request) {
 		if x == p.X && y == p.Y {
 			return
 		}
-		startLoc := Location{ p.X, p.Y, 0, nil }
-		destLoc := Location{ x, y, 0, nil }
+		startLoc := Location{ p.X, p.Y, 0}
+		destLoc := Location{ x, y, 0}
 		LocList := findPath(startLoc, destLoc, 25) // last params = max steps (to be used later)
 		for i := len(LocList) - 1; i >= 0; i-- {
 			//fmt.Printf("Adding request to %d,%d for %s\n",LocList[i].x,LocList[i].y,p.Name)

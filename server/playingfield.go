@@ -16,6 +16,12 @@ func setTileAt(x int, y int, t *Tile) {
 }
 
 func PlayerMoveToTile(p *Player, x, y int) {
+	// this function is NOT threadsafe
+	// need to make a better version later on
+	// maybe in the 'world' hub?
+	if !isTileFree(x, y) {
+		return
+	}
 	oldtile := getTileAt(p.X, p.Y)
 	oldtile.player = nil
 	p.X = x
