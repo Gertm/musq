@@ -72,11 +72,12 @@ func (l *Location) Neighbours() []Location {
 	return neighbours
 }
 
-func findPath(start, dest Location) []Location {
+func findPath(start, dest Location, maxsteps int) []Location {
 	path := make(map[string]string)
 	current := start
 	startstr := start.String()
 	path[startstr]=startstr
+	steps := 0
 	for {
 		nextTile := selectBestNextTile(start, dest, current, path)
 		path[current.String()] = nextTile.String()
@@ -84,6 +85,10 @@ func findPath(start, dest Location) []Location {
 		if nextTile.Equals(&dest) {
 			path[nextTile.String()] = current.String()
 			//fmt.Printf("path: %s\n",path)
+			return makeLocList(path, &start)[1:]
+		}
+		steps++
+		if steps >= maxsteps {
 			return makeLocList(path, &start)[1:]
 		}
 	}
