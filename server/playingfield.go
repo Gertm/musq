@@ -1,6 +1,9 @@
 package main
 
-import ()
+import (
+	"strconv"
+	"fmt"
+)
 
 type Tile struct {
 	player *Player
@@ -29,7 +32,7 @@ func PlayerMoveToTile(p *Player, x, y int) {
 	oldtile.player = nil
 	p.X = x
 	p.Y = y
-	newtile := getTileAt(x,y)
+	newtile := getTileAt(x, y)
 	newtile.player = p
 }
 
@@ -39,4 +42,35 @@ func isTileFree(x, y int) bool {
 		return true
 	}
 	return false
+}
+
+type MoveRequest struct {
+	player *Player
+	From   Location
+	To     Location
+}
+// this resembles the chat hub quite a bit, perhaps I could abstract this?
+var moveSubChan = make(chan subscription)
+var moveChan = make(chan MoveRequest)
+
+func (m MoveRequest) ToRequest() Request {
+	x := strconv.Itoa(m.player.X)
+	y := strconv.Itoa(m.player.Y)
+	return Request{Function: "Move", Params: map[string]string{"Name": m.player.Name, "X": x, "Y": y}}
+}
+
+func moveHub() {
+	chans := make(map[chan<- []byte]int)
+	for {
+		select {
+		case subscription := <-moveSubChan:
+			chans[subscription.Chan] = 0, subscription.subscribe
+		case message := <-moveChan:
+			for mover, _ := range chans {
+				R:= message.ToRequest()
+				MarshalAndSendRequest(&R, mover)
+			}
+			fmt.Printf("@ [%s] moving from %s to %s\n", message.From, message.From.String(), message.To.String())
+		}
+	}
 }

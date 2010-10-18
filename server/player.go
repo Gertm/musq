@@ -62,7 +62,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	go Heart(p, hBeatChan)
 	defer fmt.Println("Exiting the playerhandler!")
 	// subscribe and unsubscribe to the chatHub
-	chatSubChan <- subscription{wsReplyChan, true}
+
 	defer func() {
 		chatSubChan <- subscription{wsReplyChan, false}
 		p.Active = false // to make the heartbeat routine stop
@@ -111,6 +111,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	MarshalAndSendRequest(&rply, wsReplyChan)
 	MarshalAndSendRequest(&Request{"jump", map[string]string{"X": "0", "Y": "0"}}, wsReplyChan)
 	fmt.Printf("%s logged in!\n", p.Name)
+	chatSubChan <- subscription{wsReplyChan, true}
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {

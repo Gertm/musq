@@ -48,3 +48,10 @@ func abs(x int) int {
 func Log(str string) {
 	fmt.Println(time.LocalTime().Format(time.Kitchen) + " - " + str)
 }
+
+
+// not sure about a place for this yet, so I'll just put it here for now
+
+type ToRequester interface {
+	ToRequest() Request
+}

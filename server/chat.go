@@ -22,8 +22,7 @@ var chatSubChan = make(chan subscription)
 var chatChan = make(chan chatMessage)
 
 func (c chatMessage) ToRequest() Request {
-	R := Request{"talk", map[string]string{"Name": c.From, "Message": c.Msg}}
-	return R
+	return Request{"talk", map[string]string{"Name": c.From, "Message": c.Msg}}
 }
 
 // simple chat message subscription service and multiplexer 
