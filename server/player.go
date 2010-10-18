@@ -24,8 +24,12 @@ type Request struct {
 }
 
 func (p *Player) Move(x int, y int) (int, int) {
-	p.X, p.Y = x, y
+	PlayerMoveToTile(p, x, y)
 	return p.X, p.Y
+}
+
+func (p *Player) CurrentTile() Tile {
+	return getTileAt(p.X, p.Y)
 }
 
 func (p *Player) SaveToDB() os.Error {
