@@ -229,6 +229,7 @@ var musq = function () {
     data.game.talking = false;
     data.game.logicalToVisualFactor = 70.0;
     data.game.entities = {};
+    data.game.visuals = {};
     data.game.colors = {};
     data.game.colors["skin"] = ["#fff0c1", "#785d42"];
     data.game.colors["hair"] = ["#140d00"];
@@ -380,6 +381,9 @@ var musq = function () {
     }
 
     function drawGameMoveTarget(cxt) {
+        if (data.playerName === "" || !data.game.entities[data.playerName]) {
+            return;
+        }
         cxt.fillStyle = "#FF0000";
         var pt = logicalToVisual(data.game.entities[data.playerName].moveAnimation.dst);
         cxt.fillRect(pt.x - 2, pt.y - 2, 4, 4);
@@ -510,6 +514,7 @@ var musq = function () {
     function onLoginButton() {
         if (data.login.username.value === "") {
             data.login.username.style.backgroundColor = "#FF0000";
+            data.login.password.style.backgroundColor = "#FF0000";
             data.login.username.focus();
             return;
         }
@@ -596,21 +601,27 @@ var musq = function () {
             log("JSON has unexpected format.");
             return;
         }
-        if (json.Function == "login") {
+        if (json.Function === "login") {
             data.playerName = data.login.username.value;
             data.login.username.style.backgroundColor = "#FFFFFF";
-            data.game.viewPortCenter.initialize(new vecMath.vector2d(0.0, 0.0));
+            data.login.password.style.backgroundColor = "#FFFFFF";
             data.game.entities = {};
-            var player = new gameEntity("entities/player");
-            player.moveAnimation.initialize(new vecMath.vector2d(0.0, 0.0));
-            data.game.entities[data.playerName] = player;
             setStateToGame();
             return;
         }
-        if (json.Function == "keepalive") {
+        if (json.Function === "jump") {
+            var player = new gameEntity(data.game.visuals[data.playerName]);
+            player.moveAnimation.initialize(new vecMath.vector2d(json.Function.X, json.Function.Y));
+            data.game.entities[data.playerName] = player;
+            if (json.Function.Name === data.playerName) {
+                data.game.viewPortCenter.initialize(new vecMath.vector2d(0.0, 0.0));
+            }
             return;
         }
-        if (json.Function == "move") {
+        if (json.Function === "keepalive") {
+            return;
+        }
+        if (json.Function === "move") {
             var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
             var player = data.game.entities[json.Params.Name];
             if (player) {
@@ -621,7 +632,7 @@ var musq = function () {
             }
             return;
         }
-        if (json.Function == "talk") {
+        if (json.Function === "talk") {
             alert(json.Params.Name + " says: " + json.Params.Message);
             return;
         }
@@ -679,7 +690,7 @@ var musq = function () {
         resourceBuffer.addImage("login/logo", "images/logo.png");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
         resourceBuffer.addSvgs(
-            "entities/player",
+            "entities/player01",
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][0]},
              {url: "images/faces/human/male/face01.svg", color: data.game.colors["skin"][0]},
              {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][1]},
@@ -687,12 +698,15 @@ var musq = function () {
              {url: "images/faces/human/male/nose01.svg", color: ""},
              {url: "images/faces/human/male/hair01.svg", color: data.game.colors["hair"][0]}]);
         resourceBuffer.addSvgs(
-            "entities/enemy01",
+            "entities/player02",
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][1]},
              {url: "images/faces/human/male/face02.svg", color: data.game.colors["skin"][1]},
              {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][0]},
              {url: "images/faces/human/male/mouth01.svg", color: ""},
              {url: "images/faces/human/male/nose01.svg", color: ""}]);
+        // TMP stuff
+        data.game.visuals["gert"] = "entities/player01";
+        data.game.visuals["randy"] = "entities/player02";
     }
 
     function initializeGameHud() {
