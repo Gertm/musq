@@ -604,9 +604,6 @@ var musq = function () {
             var player = new gameEntity("entities/player");
             player.moveAnimation.initialize(new vecMath.vector2d(0.0, 0.0));
             data.game.entities[data.playerName] = player;
-            var enemy01 = new gameEntity("entities/enemy01");
-            enemy01.moveAnimation.initialize(new vecMath.vector2d(-3.0, 3.0));
-            data.game.entities["enemy01"] = enemy01;
             setStateToGame();
             return;
         }
@@ -615,13 +612,17 @@ var musq = function () {
         }
         if (json.Function == "move") {
             var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-            var playerMove = data.game.entities[data.playerName].moveAnimation;
-            playerMove.setDestination(newDestination, 1.0);
-            ensurePlayerIsWithinViewPort();
+            var player = data.game.entities[json.Params.Name];
+            if (player) {
+                player.moveAnimation.setDestination(newDestination, 1.0);
+                if (json.Params.Name === data.playerName) {
+                    ensurePlayerIsWithinViewPort();
+                }
+            }
             return;
         }
         if (json.Function == "talk") {
-            alert(json.Params.Message);
+            alert(json.Params.Name + " says: " + json.Params.Message);
             return;
         }
     }
