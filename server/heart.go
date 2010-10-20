@@ -43,13 +43,13 @@ var ReplySubChan = make(chan subscription)
 var ReplyChan = make(chan Request)
 
 func startLogic() {
-	go Hub(chatSubChan, chatChan)
-	go Hub(ReplySubChan, ReplyChan)
+	go RequestHub(chatSubChan, chatChan)
+	go RequestHub(ReplySubChan, ReplyChan)
 }
 
 
 // simple multiplexer
-func Hub(subChan chan subscription, mainChan chan Request) {
+func RequestHub(subChan chan subscription, mainChan chan Request) {
 	chans := make(map[chan<- []byte]int)
 	defer fmt.Println("Hub shutting down!")
 	for {
@@ -60,7 +60,8 @@ func Hub(subChan chan subscription, mainChan chan Request) {
 			for chn, _ := range chans {
 				ok := MarshalAndSendRequest(&R, chn)
 				if !ok {
-					fmt.Printf("Stuff going wrong with sending on to websocket rcv channel!\n")
+					fmt.Println(R)
+					fmt.Printf("Stuff going wrong with sending on rcv channel!\n")
 				}
 			}
 			fmt.Printf("Broadcasting: %s\n",R)

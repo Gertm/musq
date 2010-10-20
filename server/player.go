@@ -83,6 +83,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 				x, _ := strconv.Atoi(r.Params["X"])
 				y, _ := strconv.Atoi(r.Params["Y"])
 				p.Destination = Location{x, y}
+			case r.Function == "quit":
+				fmt.Printf("%s quitting...\n", p.Name)
+				return
 			case true:
 				p.AddRequest(r)
 			}
@@ -93,13 +96,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 				DoMoveStep(p)
 				continue
 			}
-			fmt.Print("-")
 			switch r.Function {
 			case "login":
 				HandleLogin(p, r, wsReplyChan)
-			case "quit":
-				fmt.Printf("%s quitting...\n", p.Name)
-				return
 			}
 		}
 	}
@@ -115,7 +114,6 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	ReplySubChan <- subscription{wsReplyChan, true}
 	fmt.Printf("%s logged in!\n", p.Name)
 	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": "0", "Y": "0"}}
-
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
