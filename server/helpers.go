@@ -8,13 +8,13 @@ import (
 	"os"
 )
 
-func MarshalAndSendRequest(r *Request, ReplyChan chan<- []byte) bool {
+func MarshalAndSendRequest(r *Request, RplyChan chan<- []byte) bool {
 	b, err := json.Marshal(r)
 	if err != nil {
 		fmt.Println("Couldn't marshal this request")
 		return false
 	}
-	ok := ReplyChan <- b
+	ok := RplyChan <- b
 	if !ok {
 		fmt.Println("Couldn't send the request back to the ReplyChan")
 	}

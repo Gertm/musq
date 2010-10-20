@@ -7,6 +7,7 @@ import (
 
 func startLogic() {
 	go chatHub()
+	go reqHub()
 }
 
 // different approach, let's give everyone a heart...

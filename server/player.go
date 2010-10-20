@@ -20,10 +20,6 @@ type Player struct {
 	Destination Location
 }
 
-type Request struct {
-	Function string
-	Params   map[string]string
-}
 
 func (p *Player) Move(x int, y int) (int, int) {
 	PlayerMoveToTile(p, x, y)
@@ -66,6 +62,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 
 	defer func() {
 		chatSubChan <- subscription{wsReplyChan, false}
+		ReplySubChan <- subscription{wsReplyChan, false}
 		p.Active = false // to make the heartbeat routine stop
 	}()
 
@@ -75,7 +72,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 			r, _ := getRequestFromJSON(rcvB)
 			switch {
 			case r.Function == "talk":
-				HandleTalk(p, r, wsReplyChan)
+				HandleTalk(p, r)
 			case r.Function == "keepalive":
 				HandleKeepAlive(p, r, wsReplyChan)
 			case r.Function == "move":
@@ -89,7 +86,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 			r, jerr := p.getNextRequest()
 			if jerr != nil {
 				// nothing to do, so continue moving
-				DoMoveStep(p, wsReplyChan)
+				DoMoveStep(p)
 				continue
 			}
 			fmt.Print("-")
@@ -108,11 +105,13 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	p.Name = r.Params["Username"]
 	p.Pwd = r.Params["Password"]
 	// TODO: get player data from database
-	rply := Request{"login", map[string]string{}}
+	rply := Request{"login", map[string]string{"Success":"true"}}
 	MarshalAndSendRequest(&rply, wsReplyChan)
-	MarshalAndSendRequest(&Request{"jump", map[string]string{"Name": p.Name, "X": "0", "Y": "0"}}, wsReplyChan)
-	fmt.Printf("%s logged in!\n", p.Name)
 	chatSubChan <- subscription{wsReplyChan, true}
+	ReplySubChan <- subscription{wsReplyChan, true}
+	fmt.Printf("%s logged in!\n", p.Name)
+	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": "0", "Y": "0"}}
+
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
@@ -120,16 +119,15 @@ func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	MarshalAndSendRequest(&rply, wsReplyChan)
 }
 
-func DoMoveStep(p *Player, wsReplyChan chan<- []byte) {
+func DoMoveStep(p *Player) {
 	currentLoc := Location{p.X, p.Y}
 	if currentLoc.Equals(&p.Destination) {
 		return
 	}
 	nextLoc := selectNextLoc(currentLoc, p.Destination)
 	r := Request{Function: "move", Params: map[string]string{"Name": p.Name, "X":strconv.Itoa(nextLoc.x), "Y": strconv.Itoa(nextLoc.y)}}
-    if MarshalAndSendRequest(&r, wsReplyChan) {
-		PlayerMoveToTile(p, nextLoc.x, nextLoc.y)
-	}
+	ReplyChan <- r
+	PlayerMoveToTile(p, nextLoc.x, nextLoc.y)
 }
 
 func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
@@ -143,6 +141,6 @@ func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	}
 }
 
-func HandleTalk(p *Player, r *Request, wsReplyChan chan<- []byte) {
+func HandleTalk(p *Player, r *Request) {
 	chatChan <- chatMessage{From: p.Name, Msg: r.Params["Message"]}
 }
