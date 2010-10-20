@@ -509,13 +509,17 @@ var musq = function () {
         data.game.viewPortCenter.setDestination(newViewPortCenter, 1.0);
     }
 
+    function setLoginIncorrect() {
+        data.login.username.style.backgroundColor = "#FF0000";
+        data.login.password.style.backgroundColor = "#FF0000";
+        data.login.username.focus();
+    }
+
     //## message handlers ##########################################################################
 
     function onLoginButton() {
         if (data.login.username.value === "") {
-            data.login.username.style.backgroundColor = "#FF0000";
-            data.login.password.style.backgroundColor = "#FF0000";
-            data.login.username.focus();
+            setLoginIncorrect();
             return;
         }
         wsSend({
@@ -602,18 +606,22 @@ var musq = function () {
             return;
         }
         if (json.Function === "login") {
-            data.playerName = data.login.username.value;
-            data.login.username.style.backgroundColor = "#FFFFFF";
-            data.login.password.style.backgroundColor = "#FFFFFF";
-            data.game.entities = {};
-            setStateToGame();
+            if (json.Params.Success === "true") {
+                data.playerName = data.login.username.value;
+                data.login.username.style.backgroundColor = "#FFFFFF";
+                data.login.password.style.backgroundColor = "#FFFFFF";
+                data.game.entities = {};
+                setStateToGame();
+            } else {
+                setLoginIncorrect();
+            }
             return;
         }
         if (json.Function === "jump") {
-            var player = new gameEntity(data.game.visuals[data.playerName]);
-            player.moveAnimation.initialize(new vecMath.vector2d(json.Function.X, json.Function.Y));
-            data.game.entities[data.playerName] = player;
-            if (json.Function.Name === data.playerName) {
+            var player = new gameEntity(data.game.visuals[json.Params.Name]);
+            player.moveAnimation.initialize(new vecMath.vector2d(json.Params.X, json.Params.Y));
+            data.game.entities[json.Params.Name] = player;
+            if (json.Params.Name === data.playerName) {
                 data.game.viewPortCenter.initialize(new vecMath.vector2d(0.0, 0.0));
             }
             return;
