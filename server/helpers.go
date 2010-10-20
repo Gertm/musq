@@ -31,6 +31,10 @@ func getRequestFromJSON(bson []byte) (*Request, os.Error) {
 	return req, err
 }
 
+func AddPlayerNameToRequest(r *Request, p *Player) {
+	r.Params["Name"] = p.Name
+}
+
 func Round(x float64) int {
 	if math.Signbit(x) {
 		return int(math.Ceil(x - 0.5))
@@ -52,6 +56,6 @@ func Log(str string) {
 
 // not sure about a place for this yet, so I'll just put it here for now
 
-type ToRequester interface {
+type Requester interface {
 	ToRequest() Request
 }

@@ -5,11 +5,6 @@ import (
 	"fmt"
 )
 
-func startLogic() {
-	go chatHub()
-	go reqHub()
-}
-
 // different approach, let's give everyone a heart...
 func Heart(p *Player, aorta chan<- bool) {
 	//i := 0
@@ -30,6 +25,45 @@ func Heart(p *Player, aorta chan<- bool) {
 		}
 		if !p.Active {
 			return
+		}
+	}
+}
+
+type Request struct {
+	Function string
+	Params   map[string]string
+}
+
+type subscription struct {
+	Chan      chan<- []byte
+	subscribe bool
+}
+
+var ReplySubChan = make(chan subscription)
+var ReplyChan = make(chan Request)
+
+func startLogic() {
+	go Hub(chatSubChan, chatChan)
+	go Hub(ReplySubChan, ReplyChan)
+}
+
+
+// simple multiplexer
+func Hub(subChan chan subscription, mainChan chan Request) {
+	chans := make(map[chan<- []byte]int)
+	defer fmt.Println("Hub shutting down!")
+	for {
+		select {
+		case subscription := <-subChan:
+			chans[subscription.Chan] = 0, subscription.subscribe
+		case R := <-mainChan:
+			for chn, _ := range chans {
+				ok := MarshalAndSendRequest(&R, chn)
+				if !ok {
+					fmt.Printf("Stuff going wrong with sending on to websocket rcv channel!\n")
+				}
+			}
+			fmt.Printf("Broadcasting: %s\n",R)
 		}
 	}
 }

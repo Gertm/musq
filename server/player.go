@@ -69,7 +69,11 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 	for {
 		select {
 		case rcvB := <-wsChan: // request not dependent on HB
-			r, _ := getRequestFromJSON(rcvB)
+			r, rerr := getRequestFromJSON(rcvB)
+			if rerr != nil {
+				fmt.Println("error getting the JSON:", rerr)
+				continue
+			}
 			switch {
 			case r.Function == "talk":
 				HandleTalk(p, r)
@@ -94,7 +98,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 			case "login":
 				HandleLogin(p, r, wsReplyChan)
 			case "quit":
-				fmt.Printf("Exiting playerhandler for %s\n", p.Name)
+				fmt.Printf("%s quitting...\n", p.Name)
 				return
 			}
 		}
@@ -130,17 +134,7 @@ func DoMoveStep(p *Player) {
 	PlayerMoveToTile(p, nextLoc.x, nextLoc.y)
 }
 
-func HandleMove(p *Player, r *Request, wsReplyChan chan<- []byte) {
-	x, _ := strconv.Atoi(r.Params["X"])
-	y, _ := strconv.Atoi(r.Params["Y"])
-	fmt.Printf("%s wants to go to %d, %d\n", p.Name, x, y)
-	if MarshalAndSendRequest(r, wsReplyChan) {
-		p.X, p.Y = x, y
-	} else {
-		p.CancelAllRequests()
-	}
-}
-
 func HandleTalk(p *Player, r *Request) {
-	chatChan <- chatMessage{From: p.Name, Msg: r.Params["Message"]}
+	AddPlayerNameToRequest(r, p)
+	chatChan <- *r
 }
