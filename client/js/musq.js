@@ -649,14 +649,19 @@ var musq = function () {
     //## page layout ###############################################################################
 
     function positionLogin() {
-        data.login.container.style.position = "fixed";
         var width = 500;
-        data.login.container.style.width = utils.toPx(width);
         var height = 230;
-        data.login.container.style.height = utils.toPx(height);
-        data.login.container.style.top = utils.toPx((window.innerHeight - height) / 2);
-        data.login.container.style.left = utils.toPx((window.innerWidth - width) / 2);
-        data.login.controls.style.marginTop = utils.toPx((data.login.container.clientHeight - data.login.controls.clientHeight) / 2);
+        data.login.dropshadow.style.position = "fixed";
+        data.login.dropshadow.style.width = utils.toPx(width);
+        data.login.dropshadow.style.height = utils.toPx(height);
+        data.login.dropshadow.style.top = utils.toPx((window.innerHeight - height) / 2 + 6);
+        data.login.dropshadow.style.left = utils.toPx((window.innerWidth - width) / 2 + 6);
+        data.login.main.style.position = "fixed";
+        data.login.main.style.width = utils.toPx(width);
+        data.login.main.style.height = utils.toPx(height);
+        data.login.main.style.top = utils.toPx((window.innerHeight - height) / 2);
+        data.login.main.style.left = utils.toPx((window.innerWidth - width) / 2);
+        data.login.controls.style.marginTop = utils.toPx((data.login.main.clientHeight - data.login.controls.clientHeight) / 2);
     }
 
     function positionGameCanvas() {
@@ -731,6 +736,8 @@ var musq = function () {
 
     function initializeLogin() {
         data.login.container = document.getElementById("logincontainer");
+        data.login.dropshadow = document.getElementById("logindropshadow");
+        data.login.main = document.getElementById("loginmain");
         data.login.canvas = document.getElementById("logincanvas");
         data.login.controls = document.getElementById("logincontrols");
         data.login.username = document.getElementById("loginusername");
