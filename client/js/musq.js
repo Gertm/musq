@@ -441,7 +441,7 @@ var musq = function () {
         for (eI in data.game.entities) {
             var e = data.game.entities[eI];
             e.moveAnimation.update(timeDiffInMs);
-        };
+        }
         data.game.lastUpdateTime = newUpdateTime;
     }
 
@@ -513,6 +513,43 @@ var musq = function () {
         data.login.username.style.backgroundColor = "#FF0000";
         data.login.password.style.backgroundColor = "#FF0000";
         data.login.username.focus();
+    }
+
+    function handleLoginJson(json) {
+        if (json.Params.Success === "true") {
+            data.playerName = data.login.username.value;
+            data.login.username.style.backgroundColor = "#FFFFFF";
+            data.login.password.style.backgroundColor = "#FFFFFF";
+            data.game.entities = {};
+            setStateToGame();
+        } else {
+            setLoginIncorrect();
+        }
+    }
+
+    function handleJumpJson(json) {
+        var player = new gameEntity(data.game.visuals[json.Params.Name]);
+        var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+        player.moveAnimation.initialize(pos);
+        data.game.entities[json.Params.Name] = player;
+        if (json.Params.Name === data.playerName) {
+            data.game.viewPortCenter.initialize(pos);
+        }
+    }
+
+    function handleMoveJson(json) {
+        var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+        var player = data.game.entities[json.Params.Name];
+        if (player) {
+            player.moveAnimation.setDestination(newDestination, 1.0);
+            if (json.Params.Name === data.playerName) {
+                ensurePlayerIsWithinViewPort();
+            }
+        }
+    }
+
+    function handleTalkJson(json) {
+        alert(json.Params.Name + " says: " + json.Params.Message);
     }
 
     //## message handlers ##########################################################################
@@ -606,43 +643,22 @@ var musq = function () {
             return;
         }
         if (json.Function === "login") {
-            if (json.Params.Success === "true") {
-                data.playerName = data.login.username.value;
-                data.login.username.style.backgroundColor = "#FFFFFF";
-                data.login.password.style.backgroundColor = "#FFFFFF";
-                data.game.entities = {};
-                setStateToGame();
-            } else {
-                setLoginIncorrect();
-            }
+            handleLoginJson(json);
             return;
         }
         if (json.Function === "jump") {
-            var player = new gameEntity(data.game.visuals[json.Params.Name]);
-            var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-            player.moveAnimation.initialize(pos);
-            data.game.entities[json.Params.Name] = player;
-            if (json.Params.Name === data.playerName) {
-                data.game.viewPortCenter.initialize(pos);
-            }
+            handleJumpJson(json);
             return;
         }
         if (json.Function === "keepalive") {
             return;
         }
         if (json.Function === "move") {
-            var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-            var player = data.game.entities[json.Params.Name];
-            if (player) {
-                player.moveAnimation.setDestination(newDestination, 1.0);
-                if (json.Params.Name === data.playerName) {
-                    ensurePlayerIsWithinViewPort();
-                }
-            }
+            handleMoveJson(json);
             return;
         }
         if (json.Function === "talk") {
-            alert(json.Params.Name + " says: " + json.Params.Message);
+            handleTalkJson(json);
             return;
         }
     }
