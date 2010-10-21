@@ -252,10 +252,8 @@ var musq = function () {
             var cxt = canvas.getContext("2d");
             cxt.clearRect(0, 0, canvas.width, canvas.height);
             urlsAndColors.forEach(function (e, index, array) {
-                                      var url = e.url;
-                                      var color = e.color;
                                       var xmlHttp = new XMLHttpRequest();
-                                      xmlHttp.open("GET", url, false);
+                                      xmlHttp.open("GET", e.url, false);
                                       xmlHttp.send();
                                       var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
                                       var width = parseInt(svg.getAttribute("width"), 10);
@@ -264,7 +262,7 @@ var musq = function () {
                                           canvas.setAttribute("width", utils.toPx(width));
                                           canvas.setAttribute("height", utils.toPx(height));
                                       }
-                                      var svgTxt = xmlHttp.responseText.replaceAll("#badf0d", color);
+                                      var svgTxt = e.color ? xmlHttp.responseText.replaceAll("#badf0d", e.color) : xmlHttp.responseText;
                                       cxt.drawSvg(svgTxt, 0, 0);
                                   });
             addImage(key, canvas.toDataURL());
@@ -506,7 +504,7 @@ var musq = function () {
         if (playerDst.y < viewPort.bottomRight.y + border) {
             newViewPortCenter.y = playerDst.y;
         }
-        data.game.viewPortCenter.setDesination(newViewPortCenter, 1.0);
+        data.game.viewPortCenter.setDestination(newViewPortCenter, 1.0);
     }
 
     function setLoginIncorrect() {
@@ -724,16 +722,17 @@ var musq = function () {
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][0]},
              {url: "images/faces/human/male/face01.svg", color: data.game.colors["skin"][0]},
              {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][1]},
-             {url: "images/faces/human/male/mouth01.svg", color: ""},
-             {url: "images/faces/human/male/nose01.svg", color: ""},
+             {url: "images/faces/human/male/mouth01.svg"},
+             {url: "images/faces/human/male/nose01.svg"},
              {url: "images/faces/human/male/hair01.svg", color: data.game.colors["hair"][0]}]);
         resourceBuffer.addSvgs(
             "entities/player02",
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][1]},
              {url: "images/faces/human/male/face02.svg", color: data.game.colors["skin"][1]},
              {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][0]},
-             {url: "images/faces/human/male/mouth01.svg", color: ""},
-             {url: "images/faces/human/male/nose01.svg", color: ""}]);
+             {url: "images/faces/human/male/mouth01.svg"},
+             {url: "images/faces/human/male/nose01.svg"},
+             {url: "images/faces/human/glasses01.svg"}]);
         // TMP stuff
         data.game.visuals["gert"] = "entities/player01";
         data.game.visuals["randy"] = "entities/player02";
