@@ -149,11 +149,11 @@ var musq = function () {
         this.dst = new vecMath.vector2d(0.0, 0.0);
         this.speed = 1.0;
         this.initialize = function (position) {
-            this.curr = position;
-            this.dst = position;
+            this.curr = new vecMath.vector2d(position.x, position.y);
+            this.dst = new vecMath.vector2d(position.x, position.y);
         };
         this.setDestination = function (dst, timeToReachInSecs) {
-            this.dst = dst;
+            this.dst = new vecMath.vector2d(dst.x, dst.y);
             this.speed = vecMath.subtract(this.dst, this.curr).length() / timeToReachInSecs;
         };
         this.update = function (timeDiffInMilliSecs) {
@@ -165,7 +165,7 @@ var musq = function () {
             if (vLength > 0.1) {
                 this.curr = vecMath.add(this.curr, vecMath.scale(v, distance / vLength));
             } else {
-                this.curr = this.dst;
+                this.curr = new vecMath.vector2d(this.dst.x, this.dst.y);
             }
         };
     }
@@ -506,7 +506,7 @@ var musq = function () {
         if (playerDst.y < viewPort.bottomRight.y + border) {
             newViewPortCenter.y = playerDst.y;
         }
-        data.game.viewPortCenter.setDestination(newViewPortCenter, 1.0);
+        data.game.viewPortCenter.setDesination(newViewPortCenter, 1.0);
     }
 
     function setLoginIncorrect() {
@@ -619,10 +619,11 @@ var musq = function () {
         }
         if (json.Function === "jump") {
             var player = new gameEntity(data.game.visuals[json.Params.Name]);
-            player.moveAnimation.initialize(new vecMath.vector2d(json.Params.X, json.Params.Y));
+            var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+            player.moveAnimation.initialize(pos);
             data.game.entities[json.Params.Name] = player;
             if (json.Params.Name === data.playerName) {
-                data.game.viewPortCenter.initialize(new vecMath.vector2d(0.0, 0.0));
+                data.game.viewPortCenter.initialize(pos);
             }
             return;
         }
