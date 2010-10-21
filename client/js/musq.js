@@ -232,8 +232,9 @@ var musq = function () {
     data.game.visuals = {};
     data.game.colors = {};
     data.game.colors["skin"] = ["#fff0c1", "#785d42"];
+    data.game.colors["scar"] = ["#c2b793", "#3c2f21"];
     data.game.colors["hair"] = ["#140d00"];
-    data.game.colors["eye"] = ["#000000", "#000044"];
+    data.game.colors["eyes"] = ["#000000", "#000044"];
 
     //## image/resource buffer management ##########################################################
 
@@ -721,7 +722,8 @@ var musq = function () {
             "entities/player01",
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][0]},
              {url: "images/faces/human/male/face01.svg", color: data.game.colors["skin"][0]},
-             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][1]},
+             {url: "images/faces/human/male/eyes02.svg", color: data.game.colors["eyes"][1]},
+             //{url: "images/faces/human/scar01.svg", color: data.game.colors["scar"][0]},
              {url: "images/faces/human/male/mouth01.svg"},
              {url: "images/faces/human/male/nose01.svg"},
              {url: "images/faces/human/male/hair01.svg", color: data.game.colors["hair"][0]}]);
@@ -729,7 +731,7 @@ var musq = function () {
             "entities/player02",
             [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][1]},
              {url: "images/faces/human/male/face02.svg", color: data.game.colors["skin"][1]},
-             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eye"][0]},
+             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eyes"][0]},
              {url: "images/faces/human/male/mouth01.svg"},
              {url: "images/faces/human/male/nose01.svg"},
              {url: "images/faces/human/glasses01.svg"}]);
