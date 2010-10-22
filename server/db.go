@@ -48,6 +48,18 @@ func db_isListMember(listname, value string) (bool, os.Error) {
 	return client.Sismember(listname, []byte(value))
 }
 
+func db_getSet(listname string) ([]string, os.Error) {
+	byteList, ok := client.Smembers(listname)
+	if ok != nil {
+		return nil, ok
+	}
+	strs := make([]string, len(byteList))
+	for i:=0;i<len(byteList);i++ {
+		strs[i] = string(byteList[i])
+	}
+	return strs, nil
+}
+
 func dbcon() {
 	
 }

@@ -15,7 +15,6 @@ type Player struct {
 	SVG         string
 	Pwd         string
 	Requests    vector.Vector
-	ChatChan    chan string
 	Active      bool
 	Destination Location
 }
@@ -38,6 +37,10 @@ func (p *Player) SaveToDB() os.Error {
 
 func (p *Player) CancelAllRequests() {
 	p.Requests.Cut(0, p.Requests.Len())
+}
+
+func (p *Player) JumpRequest() Request {
+	return Request{p.Name, map[string]string{"X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
 }
 
 func (p *Player) AddRequest(req *Request) {
@@ -64,6 +67,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 		chatSubChan <- subscription{wsReplyChan, false}
 		ReplySubChan <- subscription{wsReplyChan, false}
 		p.Active = false // to make the heartbeat routine stop
+		db_removeFromList("players", p.Name)
 	}()
 
 	for {
@@ -114,6 +118,17 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	ReplySubChan <- subscription{wsReplyChan, true}
 	fmt.Printf("%s logged in!\n", p.Name)
 	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": "0", "Y": "0"}}
+	players, ok := db_getSet("players")
+	if ok == nil {
+		for i:=0;i<len(players);i++ {
+			fmt.Printf("other player active: %s\n",players[i])
+			// get player from db by name... not sure how I'll build that
+			// need to account for visual requests (to be implemented) and how all of that is
+			// stored in the database.
+			// send the JumpRequest over wsReplyChan
+		}
+	}
+	db_addToList("players", p.Name)
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
