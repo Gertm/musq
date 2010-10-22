@@ -36,6 +36,14 @@ func db_getString(key string) (string,os.Error) {
 	return str, nil
 }
 
+func db_delString(key string) (bool,os.Error) {
+	return client.Del(key)
+}
+
+func db_keyExists(key string) (bool, os.Error) {
+	return client.Exists(key)
+}
+
 func db_addToList(listname, value string) (bool, os.Error) {
 	return client.Sadd(listname, []byte(value))
 }

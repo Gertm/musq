@@ -28,7 +28,11 @@ func (l *Location) Equals(p *Location) bool {
 }
 
 func (l *Location) String() string {
-	return fmt.Sprintf("%d,%d", l.x, l.y)
+	return LocKey(l.x, l.y)
+}
+
+func LocKey(x, y int) string {
+	return fmt.Sprintf("%d,%d", x, y)
 }
 
 func LocFromString(locstring string) Location {
@@ -74,6 +78,9 @@ func selectNextLoc(start, dest Location) Location {
 	curScore := 99999
 	nbScore := 0
 	for i := 0; i < len(nb); i++ {
+		if !isLocFree(nb[i].x, nb[i].y) {
+			continue
+		}
 		nbScore = nb[i].CalcScore(&start, &dest)
 		if nbScore <= curScore {
 			if nbScore == curScore {

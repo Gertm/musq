@@ -20,20 +20,42 @@ type Player struct {
 }
 
 
-func (p *Player) Move(x int, y int) (int, int) {
-	PlayerMoveToTile(p, x, y)
-	return p.X, p.Y
-}
-
 func (p *Player) CurrentTile() Tile {
 	return getTileAt(p.X, p.Y)
 }
 
+func (p *Player) CurrentLoc() Location {
+	return Location{x:p.X, y:p.Y}
+}
+
 func (p *Player) SaveToDB() os.Error {
-	// not going to implement db stuff just yet.
-	// let's get the rest working first.
+	db_setString(LocKey(p.X, p.Y), p.Name)
 	return nil
 }
+
+func (p *Player) getLocKey() string {
+	return fmt.Sprintf("%s:loc",p.Name)
+}
+
+func (p *Player) GetCurrentLoc() Location {
+	loc, ok := db_getString(p.getLocKey())
+	if ok != nil {
+		panic("can't get location of player")
+	}
+	return LocFromString(loc)
+}
+
+func (p *Player) MoveTo(x, y int) os.Error {
+	currentLoc := LocKey(p.X, p.Y)
+	destLoc := LocKey(x, y)
+	db_delString(currentLoc)
+	db_setString(destLoc, p.Name)
+	db_setString(p.getLocKey(),destLoc)
+	p.X = x
+	p.Y = y
+	return nil
+}
+
 
 func (p *Player) CancelAllRequests() {
 	p.Requests.Cut(0, p.Requests.Len())
@@ -129,6 +151,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 		}
 	}
 	db_addToList("players", p.Name)
+	
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
@@ -144,7 +167,7 @@ func DoMoveStep(p *Player) {
 	nextLoc := selectNextLoc(currentLoc, p.Destination)
 	r := Request{Function: "move", Params: map[string]string{"Name": p.Name, "X":strconv.Itoa(nextLoc.x), "Y": strconv.Itoa(nextLoc.y)}}
 	ReplyChan <- r
-	PlayerMoveToTile(p, nextLoc.x, nextLoc.y)
+	p.MoveTo(nextLoc.x, nextLoc.y)
 }
 
 func HandleTalk(p *Player, r *Request) {
