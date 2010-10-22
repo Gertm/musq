@@ -78,9 +78,9 @@ func selectNextLoc(start, dest Location) Location {
 	curScore := 99999
 	nbScore := 0
 	for i := 0; i < len(nb); i++ {
-		if !isLocFree(nb[i].x, nb[i].y) {
-			continue
-		}
+		//if !isLocFree(nb[i].x, nb[i].y) {
+		//	continue
+		//}
 		nbScore = nb[i].CalcScore(&start, &dest)
 		if nbScore <= curScore {
 			if nbScore == curScore {

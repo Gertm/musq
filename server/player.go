@@ -51,8 +51,8 @@ func (p *Player) MoveTo(x, y int) os.Error {
 	db_delString(currentLoc)
 	db_setString(destLoc, p.Name)
 	db_setString(p.getLocKey(),destLoc)
-	p.X = x
-	p.Y = y
+	p.X = x // the location data is stored in 2 locations this way
+	p.Y = y // pretty sure that's a bad idea... TO FIX
 	return nil
 }
 
@@ -143,11 +143,13 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	players, ok := db_getSet("players")
 	if ok == nil {
 		for i:=0;i<len(players);i++ {
-			fmt.Printf("other player active: %s\n",players[i])
-			// get player from db by name... not sure how I'll build that
-			// need to account for visual requests (to be implemented) and how all of that is
-			// stored in the database.
-			// send the JumpRequest over wsReplyChan
+			curPlayer := players[i]
+			fmt.Printf("other player active: %s\n",curPlayer)
+			LocKey := fmt.Sprintf("%s:loc",curPlayer)
+		    cpLocStr,_ := db_getString(LocKey)
+			cpLoc := LocFromString(cpLocStr)
+			rq := Request{curPlayer, map[string]string{"X": strconv.Itoa(cpLoc.x), "Y": strconv.Itoa(cpLoc.y)}}
+			MarshalAndSendRequest(&rq, wsReplyChan)
 		}
 	}
 	db_addToList("players", p.Name)

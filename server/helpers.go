@@ -16,7 +16,7 @@ func MarshalAndSendRequest(r *Request, RplyChan chan<- []byte) bool {
 	}
 	ok := RplyChan <- b
 	if !ok {
-		fmt.Println("Couldn't send the request back to the ReplyChan")
+		fmt.Println("Couldn't send the request back to the ReplyChan: ",string(b))
 	}
 	return ok
 }
