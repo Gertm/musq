@@ -13,11 +13,32 @@
    height="64"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.0 r9654"
+   inkscape:version="0.47 r22583"
    sodipodi:docname="scar01.svg"
    style="display:inline">
   <defs
-     id="defs4" />
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 32 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="64 : 32 : 1"
+       inkscape:persp3d-origin="32 : 21.333333 : 1"
+       id="perspective9" />
+    <filter
+       inkscape:collect="always"
+       id="filter3604"
+       x="-0.3357797"
+       width="1.6715595"
+       y="-0.047569536"
+       height="1.0951391"
+       color-interpolation-filters="sRGB">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.30032807"
+         id="feGaussianBlur3606" />
+    </filter>
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -26,15 +47,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.9195959"
-     inkscape:cx="11.963852"
-     inkscape:cy="36.592686"
+     inkscape:cx="15.997703"
+     inkscape:cy="36.340148"
      inkscape:document-units="px"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1440"
-     inkscape:window-height="848"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:window-height="732"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -50,17 +71,11 @@
   </metadata>
   <g
      inkscape:groupmode="layer"
-     id="layer2"
+     id="layer1"
      inkscape:label="scar">
     <path
-       style="fill:none;stroke:#badf0d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 40.911178,26.371817 c 0,0.168359 -0.03302,0.339987 0,0.505077 0.01167,0.05837 0.09965,0.07303 0.126269,0.126269 0.01882,0.03765 -0.01882,0.08862 0,0.126269 0.02662,0.05324 0.09965,0.07303 0.126269,0.126269 0.01882,0.03765 -0.02335,0.09125 0,0.126269 0.06604,0.09905 0.186503,0.153485 0.252539,0.252538 0.03666,0.05499 -0.03333,0.312155 0,0.378807 0.02662,0.05324 0.09965,0.07303 0.126269,0.126269 0.03765,0.07529 -0.03765,0.177246 0,0.252539 0.02662,0.05324 0.09965,0.07303 0.126269,0.126269 0.01632,0.03265 0,0.668114 0,0.757614 0,0.04209 0.02976,0.09651 0,0.126269 -0.02976,0.02976 -0.09651,-0.02976 -0.126269,0 -0.03039,0.03038 0.03038,0.474692 0,0.505076 -0.02976,0.02976 -0.09651,-0.02976 -0.126269,0 -0.0051,0.0051 0,0.458706 0,0.505077 0,0.547166 0,1.094332 0,1.641498 0,0.04209 0,0.08418 0,0.126269 0,0.04209 -0.02976,0.09651 0,0.126269 0.168358,0.168358 0.126269,-0.210449 0.126269,0.126269"
-       id="path4496"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:none;stroke:#badf0d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 42.805214,37.483496 c -0.128755,0.867004 0.990378,1.222652 0.995541,2.070779 0.127306,0.717463 -0.05506,1.437121 -0.406312,2.063464 -0.231588,0.797125 -0.0033,1.656192 -0.0862,2.480095 -0.142237,0.630182 0.494399,0.838875 0.507052,1.466882"
-       id="path4498"
-       inkscape:connector-curvature="0" />
+       style="fill:none;stroke:#badf0d;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter3604)"
+       d="m 41.289986,28.518392 c 0.314551,2.868716 -0.617006,6.121527 1.256483,8.623117 1.004413,2.026793 0.68874,4.352711 0.890125,6.529172"
+       id="path2816" />
   </g>
 </svg>
