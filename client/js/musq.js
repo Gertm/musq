@@ -80,6 +80,15 @@ var musq = function () {
             return stringReplaceRecursive(r, oldS, newS);
         }
 
+        function expandRc(rc, xborder, yborder) {
+            return {
+                x: rc.x - xborder,
+                y: rc.y - yborder,
+                width: rc.width + 2 * xborder,
+                height: rc.height + 2 * yborder
+            };
+        }
+
         return {
             toPx: toPx,
             fromPx: fromPx,
@@ -90,7 +99,8 @@ var musq = function () {
             ptInRc: ptInRc,
             inherit: inherit,
             now: now,
-            stringReplaceRecursive: stringReplaceRecursive
+            stringReplaceRecursive: stringReplaceRecursive,
+            expandRc: expandRc
         };
 
     } ();
@@ -211,6 +221,7 @@ var musq = function () {
     function gameEntity(key) {
         this.key = key;
         this.moveAnimation = new moveAnimation();
+        this.messages = [];
     }
 
     //## global data ###############################################################################
@@ -388,10 +399,37 @@ var musq = function () {
         cxt.fillRect(pt.x - 2, pt.y - 2, 4, 4);
     }
 
+    function drawTalk(cxt, entityPtLogic, message) {
+        var entityPtUi = logicalToVisual(entityPtLogic);
+        var txtoffset = { x: data.game.logicalToVisualFactor * 0.5, y: -data.game.logicalToVisualFactor * 0.5 };
+        var txtpt = vecMath.add(entityPtUi, txtoffset);
+        var txtwidth = cxt.measureText(message).width;
+        var txtheight = 20; // TODO
+        var txtrc = {
+            x: txtpt.x,
+            y: txtpt.y - txtheight,
+            width: txtwidth,
+            height: txtheight
+        };
+        var backrc = utils.expandRc(txtrc, 5, 5);
+        cxt.fillStyle = "#FFFFFF";
+        cxt.fillRect(backrc.x, backrc.y, backrc.width, backrc.height);
+        cxt.strokeStyle = "#000000";
+        cxt.strokeRect(backrc.x, backrc.y, backrc.width, backrc.height);
+        cxt.font = "12pt Arial";
+        cxt.textAlign = "left";
+        cxt.textBaseline = "bottom";
+        cxt.fillStyle = "#000000";
+        cxt.fillText(message, txtpt.x, txtpt.y);
+    }
+
     function drawGameEntities(cxt) {
         for (eI in data.game.entities) {
             var e = data.game.entities[eI];
             drawImageAroundLogic(cxt, e.key, e.moveAnimation.curr);
+            if (e.messages.length !== 0) {
+                drawTalk(cxt, e.moveAnimation.curr, e.messages[0]);
+            }
         }
     }
 
@@ -488,6 +526,15 @@ var musq = function () {
         data.game.talkedit.style.display = "none";
     }
 
+    function clearTalkMessage(playerName) {
+        var player = data.game.entities[playerName];
+        if (!player)
+            return;
+        if (player.messages.length === 0)
+            return;
+        player.messages = player.messages.slice(1);
+    }
+
     function ensurePlayerIsWithinViewPort() {
         var playerDst = data.game.entities[data.playerName].moveAnimation.dst;
         var viewPort = getLogicalViewPort();
@@ -548,7 +595,11 @@ var musq = function () {
     }
 
     function handleTalkJson(json) {
-        alert(json.Params.Name + " says: " + json.Params.Message);
+        var player = data.game.entities[json.Params.Name];
+        if (!player)
+            return;
+        player.messages.push(json.Params.Message);
+        setTimeout(function () { clearTalkMessage(json.Params.Name); }, 3000);
     }
 
     //## message handlers ##########################################################################
@@ -807,13 +858,13 @@ var musq = function () {
 
         function runTests() {
             test("replaceAll", ("testtest".replaceAll("test", "ba") === "baba"));
-            test("toPx", (utils.toPx(10) == "10px"));
-            test("fromPx", (utils.fromPx("10px") == 10));
-            test("lerp1", (utils.lerp(0.0, 10.0, 0.5) == 5.0));
-            test("lerp2", (utils.lerp(10.0, 30.0, 0.5) == 20.0));
-            test("lerp3", (utils.lerp(10.0, 30.0, 0.0) == 10.0));
-            test("lerp4", (utils.lerp(10.0, 30.0, 1.0) == 30.0));
-            test("removeTrailingEnter", (utils.removeTrailingEnter("test\n") == "test"));
+            test("toPx", (utils.toPx(10) === "10px"));
+            test("fromPx", (utils.fromPx("10px") === 10));
+            test("lerp1", (utils.lerp(0.0, 10.0, 0.5) === 5.0));
+            test("lerp2", (utils.lerp(10.0, 30.0, 0.5) === 20.0));
+            test("lerp3", (utils.lerp(10.0, 30.0, 0.0) === 10.0));
+            test("lerp4", (utils.lerp(10.0, 30.0, 1.0) === 30.0));
+            test("removeTrailingEnter", (utils.removeTrailingEnter("test\n") === "test"));
             test("ptInRc1", (utils.ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 60, y: 60 })));
             test("ptInRc2", (!utils.ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 40, y: 60 })));
         }
