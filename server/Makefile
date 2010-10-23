@@ -12,3 +12,14 @@ GOFILES=\
 	helpers.go\
 
 include $(GOROOT)/src/Make.cmd
+
+format:
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w player.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w db.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w heart.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w playingfield.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w chat.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w astar.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w helpers.go
+
+
