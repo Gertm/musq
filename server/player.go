@@ -19,10 +19,6 @@ type Player struct {
 }
 
 
-func (p *Player) CurrentTile() Tile {
-    return getTileAt(p.X, p.Y)
-}
-
 func (p *Player) CurrentLoc() Location {
     return Location{x: p.X, y: p.Y}
 }
@@ -54,6 +50,7 @@ func (p *Player) MoveTo(x, y int) os.Error {
     p.Y = y // pretty sure that's a bad idea... TO FIX
     return nil
 }
+
 
 
 func (p *Player) CancelAllRequests() {

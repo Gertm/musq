@@ -1,24 +1,51 @@
 package main
 
-import ()
+import (
+	"fmt"
+)
 
 type Tile struct {
-    player *Player
+	player *Player
 }
 
-var PlayingField = make(map[string]Tile)
 
-func getTileAt(x int, y int) Tile {
-    loc := Location{x, y}
-    return PlayingField[loc.String()]
+type LocRequest struct {
+	Loc       Location
+	isSet     bool
+	p         *Player
+	replyChan chan bool
 }
 
-func setTileAt(x int, y int, t *Tile) {
-    loc := Location{x, y}
-    PlayingField[loc.String()] = *t
+type LocMoveRequest struct {
+	From      Location
+	To        Location
+	p         *Player
+	replyChan chan bool
 }
 
-func isLocFree(x, y int) bool {
-    exists, _ := db_keyExists(LocKey(x, y))
-    return exists
+var MoveToTileChan = make(chan LocMoveRequest)
+var IsLocTakenChan = make(chan LocRequest)
+
+func PlayingFieldProvider() {
+	var PlayingField = make(map[string]Tile)
+	defer fmt.Println("PlayingFieldProvider exiting")
+	for {
+		select {
+		case r := <-MoveToTileChan:
+			FromLocKey := r.From.String()
+			ToLocKey := r.To.String()
+			// check if destination tile is available, if not reply false
+			// 1 -> does it exist?
+			tile, ok := PlayingField[ToLocKey]
+			if ok { // key exists, check what is in there
+				if tile.player != nil {
+					r.replyChan <- false
+					continue
+				}
+			}
+			PlayingField[FromLocKey] = Tile{nil}
+			PlayingField[ToLocKey] = Tile{r.p}
+			r.replyChan <- true
+		}
+	}
 }
