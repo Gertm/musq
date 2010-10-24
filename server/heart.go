@@ -43,6 +43,7 @@ var ReplySubChan = make(chan subscription)
 var ReplyChan = make(chan Request)
 
 func startLogic() {
+	testDBstuff()
     go RequestHub(chatSubChan, chatChan)
     go RequestHub(ReplySubChan, ReplyChan)
 }

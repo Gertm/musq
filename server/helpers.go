@@ -9,6 +9,7 @@ import (
 )
 
 func MarshalAndSendRequest(r *Request, RplyChan chan<- []byte) bool {
+	fmt.Printf("Sending %s\n",*r)
     b, err := json.Marshal(r)
     if err != nil {
         fmt.Println("Couldn't marshal this request")
