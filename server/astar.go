@@ -79,9 +79,9 @@ func selectNextLoc(start, dest Location) Location {
 	nbScore := 0
 	for i := 0; i < len(nb); i++ {
 		locContents, _ := db_getString(nb[i].String())
-		fmt.Printf("LocContents: [%s]\n", locContents)
+		// fmt.Printf("LocContents: [%s]\n", locContents)
 		if locContents != "" {
-			fmt.Printf("Loc[%s] isn't free\n", nb[i].String())
+			// fmt.Printf("Loc[%s] isn't free\n", nb[i].String())
 			continue
 		}
 		nbScore = nb[i].CalcScore(&start, &dest)

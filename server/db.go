@@ -28,24 +28,24 @@ func testDBstuff() {
 // simple wrapper functions for the db, make them a little easier to use
 
 func db_setString(key, value string) {
-	fmt.Printf("[DB] Setting string %s to %s\n",key, value)
+//	fmt.Printf("[DB] Setting string %s to %s\n",key, value)
     client.Set(key, []byte(value))
 }
 
 func db_getString(key string) (string, os.Error) {
-	fmt.Printf("[DB] Getting value of %s -> ",key)
+//	fmt.Printf("[DB] Getting value of %s -> ",key)
     bts, err := client.Get(key)
     if err != nil {
-		fmt.Println(err)
+//		fmt.Println(err)
         return "", err
     }
     str := string(bts)
-	fmt.Printf("%s\n",str)
+//	fmt.Printf("%s\n",str)
     return str, nil
 }
 
 func db_delString(key string) bool {
-	fmt.Printf("[DB] Deleting %s\n",key)
+//	fmt.Printf("[DB] Deleting %s\n",key)
 	ok, err := client.Del(key)
 	if err == nil {
 		return ok
@@ -59,12 +59,12 @@ func db_keyExists(key string) (bool, os.Error) {
 }
 
 func db_addToList(listname, value string) (bool, os.Error) {
-	fmt.Printf("[DB] Adding '%s' to list '%s'\n",value, listname)
+//	fmt.Printf("[DB] Adding '%s' to list '%s'\n",value, listname)
     return client.Sadd(listname, []byte(value))
 }
 
 func db_removeFromList(listname, value string) (bool, os.Error) {
-	fmt.Printf("[DB] Removing '%s' from list '%s'\n",value, listname)
+//	fmt.Printf("[DB] Removing '%s' from list '%s'\n",value, listname)
     return client.Srem(listname, []byte(value))
 }
 
@@ -73,7 +73,7 @@ func db_isListMember(listname, value string) (bool, os.Error) {
 }
 
 func db_getSet(listname string) ([]string, os.Error) {
-	fmt.Printf("[DB] Retrieving Set '%s'\n", listname)
+//	fmt.Printf("[DB] Retrieving Set '%s'\n", listname)
     byteList, ok := client.Smembers(listname)
     if ok != nil {
         return nil, ok
