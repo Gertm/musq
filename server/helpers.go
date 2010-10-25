@@ -6,6 +6,7 @@ import (
     "time"
     "json"
     "os"
+	"rand"
 )
 
 func MarshalAndSendRequest(r *Request, RplyChan chan<- []byte) bool {
@@ -59,4 +60,30 @@ func Log(str string) {
 
 type Requester interface {
     ToRequest() Request
+}
+
+type VisualImage struct {
+	Url string
+	Color string
+}
+
+type VisualRequest struct {
+	Function string
+	Params map[string][]VisualImage
+}
+
+func (v *VisualRequest) ToJsonBytes() []byte {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func RandomColor() string {
+	rand := rand.New(rand.NewSource(time.Seconds()))
+	r := rand.Intn(255)
+	g := rand.Intn(255)
+	b := rand.Intn(255)
+	return fmt.Sprintf("#%02X%02X%02X",r,g,b)
 }

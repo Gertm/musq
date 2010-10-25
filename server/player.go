@@ -193,3 +193,17 @@ func HandleTalk(p *Player, r *Request) {
 	AddPlayerNameToRequest(r, p)
 	chatChan <- *r
 }
+
+
+func (p *Player) VisualBytes() []byte {
+	eyes := VisualImage{"images/faces/human/male/eyes01.svg",RandomColor()}
+	mouth := VisualImage{"images/faces/human/male/mouth01.svg",RandomColor()}
+	nose := VisualImage{"images/faces/human/male/nose01.svg",RandomColor()}
+	hair := VisualImage{"images/faces/human/male/hair01.svg",RandomColor()}
+	ears := VisualImage{"images/faces/human/male/ears01.svg",RandomColor()}
+	face := VisualImage{"images/faces/human/male/face01.svg",RandomColor()}
+	glasses := VisualImage{"images/faces/human/male/glasses01.svg",RandomColor()}
+	ImageList := []VisualImage{eyes, mouth, nose, hair, ears, face, glasses}
+	vr := VisualRequest{"Visual", map[string][]VisualImage{"Images": ImageList}}
+	return vr.ToJsonBytes()
+}
