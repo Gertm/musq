@@ -21,6 +21,8 @@ func testDBstuff() {
     db_removeFromList("players", "randy")
     member, _ = db_isListMember("players", "randy")
     fmt.Printf("is member now? -> %s\n", member)
+	str, _ := db_getString("-13,-14")
+	fmt.Printf("[%s]", str)
 }
 
 // simple wrapper functions for the db, make them a little easier to use
@@ -34,7 +36,7 @@ func db_getString(key string) (string, os.Error) {
 	fmt.Printf("[DB] Getting value of %s -> ",key)
     bts, err := client.Get(key)
     if err != nil {
-		fmt.Printf("ERROR!!!\n")
+		fmt.Println(err)
         return "", err
     }
     str := string(bts)
