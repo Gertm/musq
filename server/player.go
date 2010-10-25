@@ -51,6 +51,23 @@ func (p *Player) MoveTo(x, y int) os.Error {
 	return nil
 }
 
+func (p *Player) RemoveFromPlayingField() {
+	currentLoc := LocKey(p.X, p.Y)
+	fmt.Printf("Removing %s from the playingfield (was at %s)\n",p.Name,currentLoc)
+	db_delString(currentLoc)
+}
+
+func (p *Player) PutOnLastKnownLocation() {
+	LocStr, ok := db_getString(p.getLocKey())
+	if ok != nil {
+		p.X = 0
+		p.Y = 0
+		return
+	}
+	Loc := LocFromString(LocStr)
+	p.X = Loc.x
+	p.Y = Loc.y
+}
 
 func (p *Player) CancelAllRequests() {
 	p.Requests.Cut(0, p.Requests.Len())
@@ -85,6 +102,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 		ReplySubChan <- subscription{wsReplyChan, false}
 		p.Active = false // to make the heartbeat routine stop
 		db_removeFromList("players", p.Name)
+		ReplyChan <- Request{"quit", map[string]string{"Name": p.Name}}
 	}()
 
 	for {
@@ -106,6 +124,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
 				p.Destination = Location{x, y}
 			case r.Function == "quit":
 				fmt.Printf("%s quitting...\n", p.Name)
+				// delete the player from the playingfield, but save the
+				// current location for later use.
+				p.RemoveFromPlayingField()
 				return
 			case true:
 				p.AddRequest(r)
@@ -134,7 +155,8 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	chatSubChan <- subscription{wsReplyChan, true}
 	ReplySubChan <- subscription{wsReplyChan, true}
 	fmt.Printf("%s logged in!\n", p.Name)
-	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": "0", "Y": "0"}}
+	p.PutOnLastKnownLocation()
+	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
 	players, ok := db_getSet("players")
 	if ok == nil {
 		for i := 0; i < len(players); i++ {
@@ -149,7 +171,6 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 		}
 	}
 	db_addToList("players", p.Name)
-
 }
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
