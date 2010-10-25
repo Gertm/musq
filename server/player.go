@@ -141,9 +141,10 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 			curPlayer := players[i]
 			fmt.Printf("other player active: %s\n", curPlayer)
 			LocKey := fmt.Sprintf("%s:loc", curPlayer)
+			fmt.Printf("Location of %s is %s\n",curPlayer, LocKey)
 			cpLocStr, _ := db_getString(LocKey)
 			cpLoc := LocFromString(cpLocStr)
-			rq := Request{curPlayer, map[string]string{"X": strconv.Itoa(cpLoc.x), "Y": strconv.Itoa(cpLoc.y)}}
+			rq := Request{"jump", map[string]string{"Name": curPlayer, "X": strconv.Itoa(cpLoc.x), "Y": strconv.Itoa(cpLoc.y)}}
 			MarshalAndSendRequest(&rq, wsReplyChan)
 		}
 	}
