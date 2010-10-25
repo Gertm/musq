@@ -151,12 +151,13 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	p.Pwd = r.Params["Password"]
 	// TODO: get player data from database
 	rply := Request{"login", map[string]string{"Success": "true"}}
-	MarshalAndSendRequest(&rply, wsReplyChan)
+	MarshalAndSendRequest(rply, wsReplyChan)
 	chatSubChan <- subscription{wsReplyChan, true}
 	ReplySubChan <- subscription{wsReplyChan, true}
 	fmt.Printf("%s logged in!\n", p.Name)
 	p.PutOnLastKnownLocation()
 	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
+	ReplyChan <- p.Visual()
 	players, ok := db_getSet("players")
 	if ok == nil {
 		for i := 0; i < len(players); i++ {
@@ -167,7 +168,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 			cpLocStr, _ := db_getString(LocKey)
 			cpLoc := LocFromString(cpLocStr)
 			rq := Request{"jump", map[string]string{"Name": curPlayer, "X": strconv.Itoa(cpLoc.x), "Y": strconv.Itoa(cpLoc.y)}}
-			MarshalAndSendRequest(&rq, wsReplyChan)
+			MarshalAndSendRequest(rq, wsReplyChan)
 		}
 	}
 	db_addToList("players", p.Name)
@@ -175,7 +176,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 
 func HandleKeepAlive(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	rply := Request{"keepalive", map[string]string{}}
-	MarshalAndSendRequest(&rply, wsReplyChan)
+	MarshalAndSendRequest(rply, wsReplyChan)
 }
 
 func DoMoveStep(p *Player) {
@@ -195,7 +196,7 @@ func HandleTalk(p *Player, r *Request) {
 }
 
 
-func (p *Player) VisualBytes() []byte {
+func (p *Player) Visual() VisualRequest {
 	eyes := VisualImage{"images/faces/human/male/eyes01.svg",RandomColor()}
 	mouth := VisualImage{"images/faces/human/male/mouth01.svg",RandomColor()}
 	nose := VisualImage{"images/faces/human/male/nose01.svg",RandomColor()}
@@ -204,6 +205,5 @@ func (p *Player) VisualBytes() []byte {
 	face := VisualImage{"images/faces/human/male/face01.svg",RandomColor()}
 	glasses := VisualImage{"images/faces/human/male/glasses01.svg",RandomColor()}
 	ImageList := []VisualImage{eyes, mouth, nose, hair, ears, face, glasses}
-	vr := VisualRequest{"Visual", map[string][]VisualImage{"Images": ImageList}}
-	return vr.ToJsonBytes()
+	return VisualRequest{"Visual", map[string][]VisualImage{"Images": ImageList}}
 }

@@ -9,13 +9,26 @@ import (
 	"rand"
 )
 
-func MarshalAndSendRequest(r *Request, RplyChan chan<- []byte) bool {
-	fmt.Printf("Sending %s\n",*r)
-    b, err := json.Marshal(r)
-    if err != nil {
-        fmt.Println("Couldn't marshal this request")
-        return false
-    }
+type Request struct {
+    Function string
+    Params   map[string]string
+}
+
+func (r Request) ToJson() []byte {
+	b, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+type ByteRequester interface {
+	ToJson() []byte
+}
+
+func MarshalAndSendRequest(r ByteRequester, RplyChan chan<- []byte) bool {
+	fmt.Printf("Sending %s\n",r)
+    b := r.ToJson()
     ok := RplyChan <- b
     if !ok {
         fmt.Println("Couldn't send the request back to the ReplyChan: ", string(b))
@@ -72,7 +85,7 @@ type VisualRequest struct {
 	Params map[string][]VisualImage
 }
 
-func (v *VisualRequest) ToJsonBytes() []byte {
+func (v VisualRequest) ToJson() []byte {
 	b, err := json.Marshal(v)
 	if err != nil {
 		panic(err)

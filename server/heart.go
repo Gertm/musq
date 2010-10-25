@@ -29,10 +29,6 @@ func Heart(p *Player, aorta chan<- bool) {
     }
 }
 
-type Request struct {
-    Function string
-    Params   map[string]string
-}
 
 type subscription struct {
     Chan      chan<- []byte
@@ -40,7 +36,7 @@ type subscription struct {
 }
 
 var ReplySubChan = make(chan subscription)
-var ReplyChan = make(chan Request)
+var ReplyChan = make(chan ByteRequester)
 
 func startLogic() {
 	testDBstuff()
@@ -50,7 +46,7 @@ func startLogic() {
 
 
 // simple multiplexer
-func RequestHub(subChan chan subscription, mainChan chan Request) {
+func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
     chans := make(map[chan<- []byte]int)
     defer fmt.Println("Hub shutting down!")
     for {
@@ -59,7 +55,7 @@ func RequestHub(subChan chan subscription, mainChan chan Request) {
             chans[subscription.Chan] = 0, subscription.subscribe
         case R := <-mainChan:
             for chn, _ := range chans {
-                ok := MarshalAndSendRequest(&R, chn)
+                ok := MarshalAndSendRequest(R, chn)
                 if !ok {
                     fmt.Println(R)
                     fmt.Printf("Stuff going wrong with sending on rcv channel!\n")
