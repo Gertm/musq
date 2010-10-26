@@ -1,14 +1,15 @@
 package main
 
 import (
-    "github.com/hoisie/redis.go"
-    "fmt"
+    //"github.com/hoisie/redis.go"
+    //"fmt"
     "os"
 )
 
-var client redis.Client
+//var client redis.Client
 
 func testDBstuff() {
+/*
     client.Addr = "127.0.0.1:6379" // [Gert 21/10/10] this version of driver doesn't use the standard port.
     fmt.Println("testing the db stuff")
     db_addToList("players", "randy")
@@ -21,42 +22,64 @@ func testDBstuff() {
     db_removeFromList("players", "randy")
     member, _ = db_isListMember("players", "randy")
     fmt.Printf("%s\n", member)
+*/
 }
 
 func db_setString(key, value string) {
+/*
     client.Set(key, []byte(value))
+*/
 }
 
 func db_getString(key string) (string, os.Error) {
+/*
     bts, err := client.Get(key)
     if err != nil {
         return "", err
     }
     str := string(bts)
     return str, nil
+*/
+	return "", nil
 }
 
 func db_delString(key string) (bool, os.Error) {
+/*
     return client.Del(key)
+*/
+	return false, nil
 }
 
 func db_keyExists(key string) (bool, os.Error) {
+/*
     return client.Exists(key)
+*/
+	return false, nil
 }
 
 func db_addToList(listname, value string) (bool, os.Error) {
+/*
     return client.Sadd(listname, []byte(value))
+*/
+	return false, nil
 }
 
 func db_removeFromList(listname, value string) (bool, os.Error) {
+/*
     return client.Srem(listname, []byte(value))
+*/
+	return false, nil
 }
 
 func db_isListMember(listname, value string) (bool, os.Error) {
+/*
     return client.Sismember(listname, []byte(value))
+*/
+	return false, nil
 }
 
 func db_getSet(listname string) ([]string, os.Error) {
+/*
     byteList, ok := client.Smembers(listname)
     if ok != nil {
         return nil, ok
@@ -66,6 +89,8 @@ func db_getSet(listname string) ([]string, os.Error) {
         strs[i] = string(byteList[i])
     }
     return strs, nil
+*/
+	return nil, nil
 }
 
 func dbcon() {
