@@ -67,6 +67,7 @@ func (p *Player) PutOnLastKnownLocation() {
 	Loc := LocFromString(LocStr)
 	p.X = Loc.x
 	p.Y = Loc.y
+	p.Destination = Loc
 }
 
 func (p *Player) CancelAllRequests() {
@@ -156,8 +157,8 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
 	ReplySubChan <- subscription{wsReplyChan, true}
 	fmt.Printf("%s logged in!\n", p.Name)
 	p.PutOnLastKnownLocation()
-	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
 	ReplyChan <- p.Visual()
+	ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
 	players, ok := db_getSet("players")
 	if ok == nil {
 		for i := 0; i < len(players); i++ {
