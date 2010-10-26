@@ -67,6 +67,7 @@ func (p *Player) PutOnLastKnownLocation() {
 	Loc := LocFromString(LocStr)
 	p.X = Loc.x
 	p.Y = Loc.y
+	p.Destination = Loc
 }
 
 func (p *Player) CancelAllRequests() {
