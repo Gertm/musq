@@ -94,7 +94,7 @@ func (v VisualRequest) ToJson() []byte {
 }
 
 func RandomColor() string {
-	rand := rand.New(rand.NewSource(time.Seconds()))
+	rand := rand.New(rand.NewSource(time.Nanoseconds()))
 	r := rand.Intn(255)
 	g := rand.Intn(255)
 	b := rand.Intn(255)
