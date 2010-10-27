@@ -218,8 +218,7 @@ var musq = function () {
 
     //## canvas elements ###########################################################################
 
-    function gameEntity(key) {
-        this.key = key;
+    function gameEntity() {
         this.moveAnimation = new moveAnimation();
         this.messages = [];
     }
@@ -240,7 +239,6 @@ var musq = function () {
     data.game.talking = false;
     data.game.logicalToVisualFactor = 70.0;
     data.game.entities = {};
-    data.game.visuals = {};
     data.game.colors = {};
     data.game.colors["skin"] = ["#fff0c1", "#785d42"];
     data.game.colors["scar"] = ["#8c846a", "#362a1e"];
@@ -265,7 +263,7 @@ var musq = function () {
             cxt.clearRect(0, 0, canvas.width, canvas.height);
             urlsAndColors.forEach(function (e, index, array) {
                                       var xmlHttp = new XMLHttpRequest();
-                                      xmlHttp.open("GET", e.url, false);
+                                      xmlHttp.open("GET", e.Url, false);
                                       xmlHttp.send();
                                       var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
                                       var width = parseInt(svg.getAttribute("width"), 10);
@@ -274,14 +272,14 @@ var musq = function () {
                                           canvas.setAttribute("width", utils.toPx(width));
                                           canvas.setAttribute("height", utils.toPx(height));
                                       }
-                                      var svgTxt = e.color ? xmlHttp.responseText.replaceAll("#badf0d", e.color) : xmlHttp.responseText;
+                                      var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
                                       cxt.drawSvg(svgTxt, 0, 0);
                                   });
             addImage(key, canvas.toDataURL());
         }
 
         function addSvg(key, url, color) {
-            addSvgs(key, [{url: url, color: color}]);
+            addSvgs(key, [{"Url": url, "Color": color}]);
         }
 
         function remove(key) {
@@ -426,7 +424,9 @@ var musq = function () {
     function drawGameEntities(cxt) {
         for (eI in data.game.entities) {
             var e = data.game.entities[eI];
-            drawImageAroundLogic(cxt, e.key, e.moveAnimation.curr);
+            if (e.imageKey) {
+                drawImageAroundLogic(cxt, e.imageKey, e.moveAnimation.curr);
+            }
             if (e.messages.length !== 0) {
                 drawTalk(cxt, e.moveAnimation.curr, e.messages[0]);
             }
@@ -574,32 +574,60 @@ var musq = function () {
     }
 
     function handleJumpJson(json) {
-        var player = new gameEntity(data.game.visuals[json.Params.Name]);
+        var player = new gameEntity();
         var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
         player.moveAnimation.initialize(pos);
         data.game.entities[json.Params.Name] = player;
         if (json.Params.Name === data.playerName) {
             data.game.viewPortCenter.initialize(pos);
         }
+
+        // TMP
+        handleVisualJson({
+                             "Function": "visual",
+                             "Params": {
+                                 "Name": json.Params.Name,
+                                 "Images": [
+                                     { "Url": "images/faces/human/male/ears01.svg", "Color": data.game.colors["skin"][0] },
+                                     { "Url": "images/faces/human/male/face01.svg", "Color": data.game.colors["skin"][0]},
+                                     { "Url": "images/faces/human/scar01.svg", "Color": data.game.colors["scar"][0]},
+                                     { "Url": "images/faces/human/male/eyes02.svg", "Color": data.game.colors["eyes"][1]},
+                                     { "Url": "images/faces/human/male/mouth01.svg"},
+                                     { "Url": "images/faces/human/male/nose01.svg"},
+                                     { "Url": "images/faces/human/male/hair01.svg", "Color": data.game.colors["hair"][0]}
+                                 ]
+                             }
+                         });
     }
 
     function handleMoveJson(json) {
         var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
         var player = data.game.entities[json.Params.Name];
-        if (player) {
-            player.moveAnimation.setDestination(newDestination, 1.0);
-            if (json.Params.Name === data.playerName) {
-                ensurePlayerIsWithinViewPort();
-            }
+        if (!player) {
+            return;
+        }
+        player.moveAnimation.setDestination(newDestination, 1.0);
+        if (json.Params.Name === data.playerName) {
+            ensurePlayerIsWithinViewPort();
         }
     }
 
     function handleTalkJson(json) {
         var player = data.game.entities[json.Params.Name];
-        if (!player)
+        if (!player) {
             return;
+        }
         player.messages.push(json.Params.Message);
         setTimeout(function () { clearTalkMessage(json.Params.Name); }, 3000);
+    }
+
+    function handleVisualJson(json) {
+        var player = data.game.entities[json.Params.Name];
+        if (!player) {
+            return;
+        }
+        player.imageKey = "entities/" + json.Params.Name;
+        resourceBuffer.addSvgs(player.imageKey, json.Params.Images);
     }
 
     //## message handlers ##########################################################################
@@ -711,6 +739,10 @@ var musq = function () {
             handleTalkJson(json);
             return;
         }
+        if (json.Function === "visual") {
+            handleVisualJson(json);
+            return;
+        }
     }
 
     //## page layout ###############################################################################
@@ -769,26 +801,6 @@ var musq = function () {
         //resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
         resourceBuffer.addImage("login/logo", "images/logo.png");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
-        resourceBuffer.addSvgs(
-            "entities/player01",
-            [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][0]},
-             {url: "images/faces/human/male/face01.svg", color: data.game.colors["skin"][0]},
-             {url: "images/faces/human/scar01.svg", color: data.game.colors["scar"][0]},
-             {url: "images/faces/human/male/eyes02.svg", color: data.game.colors["eyes"][1]},
-             {url: "images/faces/human/male/mouth01.svg"},
-             {url: "images/faces/human/male/nose01.svg"},
-             {url: "images/faces/human/male/hair01.svg", color: data.game.colors["hair"][0]}]);
-        resourceBuffer.addSvgs(
-            "entities/player02",
-            [{url: "images/faces/human/male/ears01.svg", color: data.game.colors["skin"][1]},
-             {url: "images/faces/human/male/face02.svg", color: data.game.colors["skin"][1]},
-             {url: "images/faces/human/male/eyes01.svg", color: data.game.colors["eyes"][0]},
-             {url: "images/faces/human/male/mouth01.svg"},
-             {url: "images/faces/human/male/nose01.svg"},
-             {url: "images/faces/human/glasses01.svg"}]);
-        // TMP stuff
-        data.game.visuals["gert"] = "entities/player01";
-        data.game.visuals["randy"] = "entities/player02";
     }
 
     function initializeGameHud() {
