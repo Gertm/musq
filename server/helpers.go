@@ -6,14 +6,29 @@ import (
     "time"
     "json"
     "os"
+	"rand"
 )
 
-func MarshalAndSendRequest(r *Request, RplyChan chan<- []byte) bool {
-    b, err := json.Marshal(r)
-    if err != nil {
-        fmt.Println("Couldn't marshal this request")
-        return false
-    }
+type Request struct {
+    Function string
+    Params   map[string]string
+}
+
+func (r Request) ToJson() []byte {
+	b, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+type ByteRequester interface {
+	ToJson() []byte
+}
+
+func MarshalAndSendRequest(r ByteRequester, RplyChan chan<- []byte) bool {
+	fmt.Printf("Sending %s\n",r)
+    b := r.ToJson()
     ok := RplyChan <- b
     if !ok {
         fmt.Println("Couldn't send the request back to the ReplyChan: ", string(b))
@@ -58,4 +73,35 @@ func Log(str string) {
 
 type Requester interface {
     ToRequest() Request
+}
+
+type VisualImage struct {
+	Url string
+	Color string
+}
+
+type VisualRequest struct {
+	Function string
+	Params VisualParams
+}
+
+type VisualParams struct {
+	Name string
+	Images []VisualImage
+}
+
+func (v VisualRequest) ToJson() []byte {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+func RandomColor() string {
+	rand := rand.New(rand.NewSource(time.Nanoseconds()))
+	r := rand.Intn(255)
+	g := rand.Intn(255)
+	b := rand.Intn(255)
+	return fmt.Sprintf("#%02X%02X%02X",r,g,b)
 }

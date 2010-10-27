@@ -19,4 +19,4 @@ func (c chatMessage) ToRequest() Request {
 }
 
 var chatSubChan = make(chan subscription)
-var chatChan = make(chan Request)
+var chatChan = make(chan ByteRequester)
