@@ -206,5 +206,5 @@ func (p *Player) Visual() VisualRequest {
 	face := VisualImage{"images/faces/human/male/face01.svg",RandomColor()}
 	glasses := VisualImage{"images/faces/human/male/glasses01.svg",RandomColor()}
 	ImageList := []VisualImage{eyes, mouth, nose, hair, ears, face, glasses}
-	return VisualRequest{"Visual", map[string][]VisualImage{"Images": ImageList}}
+	return VisualRequest{"visual", VisualParams{p.Name, ImageList}}
 }

@@ -82,7 +82,12 @@ type VisualImage struct {
 
 type VisualRequest struct {
 	Function string
-	Params map[string][]VisualImage
+	Params VisualParams
+}
+
+type VisualParams struct {
+	Name string
+	Images []VisualImage
 }
 
 func (v VisualRequest) ToJson() []byte {
