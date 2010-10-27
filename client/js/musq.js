@@ -573,31 +573,23 @@ var musq = function () {
         }
     }
 
-    function handleJumpJson(json) {
+    function handleVisualJson(json) {
         var player = new gameEntity();
+        player.imageKey = "entities/" + json.Params.Name;
+        resourceBuffer.addSvgs(player.imageKey, json.Params.Images);
+        data.game.entities[json.Params.Name] = player;
+    }
+
+    function handleJumpJson(json) {
+        var player = data.game.entities[json.Params.Name];
+        if (!player) {
+            return;
+        }
         var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
         player.moveAnimation.initialize(pos);
-        data.game.entities[json.Params.Name] = player;
         if (json.Params.Name === data.playerName) {
             data.game.viewPortCenter.initialize(pos);
         }
-
-        // TMP
-        handleVisualJson({
-                             "Function": "visual",
-                             "Params": {
-                                 "Name": json.Params.Name,
-                                 "Images": [
-                                     { "Url": "images/faces/human/male/ears01.svg", "Color": data.game.colors["skin"][0] },
-                                     { "Url": "images/faces/human/male/face01.svg", "Color": data.game.colors["skin"][0]},
-                                     { "Url": "images/faces/human/scar01.svg", "Color": data.game.colors["scar"][0]},
-                                     { "Url": "images/faces/human/male/eyes02.svg", "Color": data.game.colors["eyes"][1]},
-                                     { "Url": "images/faces/human/male/mouth01.svg"},
-                                     { "Url": "images/faces/human/male/nose01.svg"},
-                                     { "Url": "images/faces/human/male/hair01.svg", "Color": data.game.colors["hair"][0]}
-                                 ]
-                             }
-                         });
     }
 
     function handleMoveJson(json) {
@@ -619,15 +611,6 @@ var musq = function () {
         }
         player.messages.push(json.Params.Message);
         setTimeout(function () { clearTalkMessage(json.Params.Name); }, 3000);
-    }
-
-    function handleVisualJson(json) {
-        var player = data.game.entities[json.Params.Name];
-        if (!player) {
-            return;
-        }
-        player.imageKey = "entities/" + json.Params.Name;
-        resourceBuffer.addSvgs(player.imageKey, json.Params.Images);
     }
 
     //## message handlers ##########################################################################
