@@ -6,7 +6,7 @@ import (
     "time"
     "json"
     "os"
-	"rand"
+    "rand"
 )
 
 type Request struct {
@@ -15,19 +15,19 @@ type Request struct {
 }
 
 func (r Request) ToJson() []byte {
-	b, err := json.Marshal(r)
-	if err != nil {
-		panic(err)
-	}
-	return b
+    b, err := json.Marshal(r)
+    if err != nil {
+        panic(err)
+    }
+    return b
 }
 
 type ByteRequester interface {
-	ToJson() []byte
+    ToJson() []byte
 }
 
 func MarshalAndSendRequest(r ByteRequester, RplyChan chan<- []byte) bool {
-	fmt.Printf("Sending %s\n",r)
+    fmt.Printf("Sending %s\n", r)
     b := r.ToJson()
     ok := RplyChan <- b
     if !ok {
@@ -76,32 +76,32 @@ type Requester interface {
 }
 
 type VisualImage struct {
-	Url string
-	Color string
+    Url   string
+    Color string
 }
 
 type VisualRequest struct {
-	Function string
-	Params VisualParams
+    Function string
+    Params   VisualParams
 }
 
 type VisualParams struct {
-	Name string
-	Images []VisualImage
+    Name   string
+    Images []VisualImage
 }
 
 func (v VisualRequest) ToJson() []byte {
-	b, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	return b
+    b, err := json.Marshal(v)
+    if err != nil {
+        panic(err)
+    }
+    return b
 }
 
 func RandomColor() string {
-	rand := rand.New(rand.NewSource(time.Nanoseconds()))
-	r := rand.Intn(255)
-	g := rand.Intn(255)
-	b := rand.Intn(255)
-	return fmt.Sprintf("#%02X%02X%02X",r,g,b)
+    rand := rand.New(rand.NewSource(time.Nanoseconds()))
+    r := rand.Intn(255)
+    g := rand.Intn(255)
+    b := rand.Intn(255)
+    return fmt.Sprintf("#%02X%02X%02X", r, g, b)
 }
