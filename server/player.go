@@ -28,6 +28,14 @@ func (p *Player) SaveToDB() os.Error {
     return nil
 }
 
+func (p *Player) GetProp(key string) string {
+	return ""
+}
+
+func (p *Player) SetProp(key string) string {
+	return ""
+}
+
 func (p *Player) getLocKey() string {
     return fmt.Sprintf("%s:loc", p.Name)
 }
@@ -163,9 +171,8 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
     if ok == nil {
         for i := 0; i < len(players); i++ {
             curPlayer := players[i]
-            fmt.Printf("other player active: %s\n", curPlayer)
             LocKey := fmt.Sprintf("%s:loc", curPlayer)
-            fmt.Printf("Location of %s is %s\n", curPlayer, LocKey)
+			MarshalAndSendRequest(getVisualForName(curPlayer), wsReplyChan)
             cpLocStr, _ := db_getString(LocKey)
             cpLoc := LocFromString(cpLocStr)
             rq := Request{"jump", map[string]string{"Name": curPlayer, "X": strconv.Itoa(cpLoc.x), "Y": strconv.Itoa(cpLoc.y)}}
@@ -198,13 +205,17 @@ func HandleTalk(p *Player, r *Request) {
 
 
 func (p *Player) Visual() VisualRequest {
-    ears := VisualImage{"images/faces/human/male/ears01.svg", ColorFor(p.Name+"ears")}
-    face := VisualImage{"images/faces/human/male/face01.svg", ColorFor(p.Name+"face")}
-    eyes := VisualImage{"images/faces/human/male/eyes01.svg", ColorFor(p.Name+"eyes")}
-    mouth := VisualImage{"images/faces/human/male/mouth01.svg", ColorFor(p.Name+"mouth")}
-    nose := VisualImage{"images/faces/human/male/nose01.svg", ColorFor(p.Name+"nose")}
-    hair := VisualImage{"images/faces/human/male/hair01.svg", ColorFor(p.Name+"hair")}
-    glasses := VisualImage{"images/faces/human/glasses01.svg", ColorFor(p.Name+"glasses")}
+	return getVisualForName(p.Name)
+}
+
+func getVisualForName(Name string) VisualRequest {
+    ears := VisualImage{"images/faces/human/male/ears01.svg", ColorFor(Name+"ears")}
+    face := VisualImage{"images/faces/human/male/face01.svg", ColorFor(Name+"face")}
+    eyes := VisualImage{"images/faces/human/male/eyes01.svg", ColorFor(Name+"eyes")}
+    mouth := VisualImage{"images/faces/human/male/mouth01.svg", ColorFor(Name+"mouth")}
+    nose := VisualImage{"images/faces/human/male/nose01.svg", ColorFor(Name+"nose")}
+    hair := VisualImage{"images/faces/human/male/hair01.svg", ColorFor(Name+"hair")}
+    glasses := VisualImage{"images/faces/human/glasses01.svg", ColorFor(Name+"glasses")}
     ImageList := []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
-    return VisualRequest{"visual", VisualParams{p.Name, ImageList}}
+    return VisualRequest{"visual", VisualParams{Name, ImageList}}
 }
