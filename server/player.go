@@ -198,13 +198,13 @@ func HandleTalk(p *Player, r *Request) {
 
 
 func (p *Player) Visual() VisualRequest {
-    ears := VisualImage{"images/faces/human/male/ears01.svg", RandomColor()}
-    face := VisualImage{"images/faces/human/male/face01.svg", RandomColor()}
-    eyes := VisualImage{"images/faces/human/male/eyes01.svg", RandomColor()}
-    mouth := VisualImage{"images/faces/human/male/mouth01.svg", RandomColor()}
-    nose := VisualImage{"images/faces/human/male/nose01.svg", RandomColor()}
-    hair := VisualImage{"images/faces/human/male/hair01.svg", RandomColor()}
-    glasses := VisualImage{"images/faces/human/glasses01.svg", RandomColor()}
+    ears := VisualImage{"images/faces/human/male/ears01.svg", ColorFor(p.Name+"ears")}
+    face := VisualImage{"images/faces/human/male/face01.svg", ColorFor(p.Name+"face")}
+    eyes := VisualImage{"images/faces/human/male/eyes01.svg", ColorFor(p.Name+"eyes")}
+    mouth := VisualImage{"images/faces/human/male/mouth01.svg", ColorFor(p.Name+"mouth")}
+    nose := VisualImage{"images/faces/human/male/nose01.svg", ColorFor(p.Name+"nose")}
+    hair := VisualImage{"images/faces/human/male/hair01.svg", ColorFor(p.Name+"hair")}
+    glasses := VisualImage{"images/faces/human/glasses01.svg", ColorFor(p.Name+"glasses")}
     ImageList := []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
     return VisualRequest{"visual", VisualParams{p.Name, ImageList}}
 }

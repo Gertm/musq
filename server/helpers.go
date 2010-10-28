@@ -105,3 +105,11 @@ func RandomColor() string {
     b := rand.Intn(255)
     return fmt.Sprintf("#%02X%02X%02X", r, g, b)
 }
+
+func ColorFor(name string) string {
+	number := 1
+	for pos, char := range name {
+		number = number * (char+pos)
+	}
+	return "#"+fmt.Sprintf("%07X",number)[1:7]
+}
