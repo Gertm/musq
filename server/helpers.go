@@ -113,3 +113,4 @@ func ColorFor(name string) string {
 	}
 	return "#"+fmt.Sprintf("%07X",number)[1:7]
 }
+
