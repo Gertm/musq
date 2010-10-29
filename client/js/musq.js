@@ -779,10 +779,7 @@ var musq = function () {
     //## initialization ############################################################################
 
     function preloadResources() {
-        // [Randy 14/10/2010] PATCH: logo.svg causes an exception in canvg.
-        // Maybe because the font doesn't exist here?
-        //resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
-        resourceBuffer.addImage("login/logo", "images/logo.png");
+        resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
     }
 
