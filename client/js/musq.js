@@ -399,7 +399,7 @@ var musq = function () {
 
     function drawTalk(cxt, entityPtLogic, message) {
         var entityPtUi = logicalToVisual(entityPtLogic);
-        var txtoffset = { x: data.game.logicalToVisualFactor * 0.5, y: -data.game.logicalToVisualFactor * 0.5 };
+        var txtoffset = { x: data.game.logicalToVisualFactor * 0.3, y: -data.game.logicalToVisualFactor * 0.4 };
         var txtpt = vecMath.add(entityPtUi, txtoffset);
         var txtwidth = cxt.measureText(message).width;
         var txtheight = 20; // TODO
@@ -410,10 +410,34 @@ var musq = function () {
             height: txtheight
         };
         var backrc = utils.expandRc(txtrc, 5, 5);
+        var drawBackPath = function () {
+            var corner = 8;
+            cxt.beginPath();
+            cxt.moveTo(backrc.x, backrc.y + corner);
+            cxt.arcTo(backrc.x, backrc.y, backrc.x + corner, backrc.y, corner);
+            cxt.lineTo(backrc.x + backrc.width - corner, backrc.y);
+            cxt.arcTo(backrc.x + backrc.width, backrc.y, backrc.x + backrc.width, backrc.y + corner, corner);
+            cxt.lineTo(backrc.x + backrc.width, backrc.y + backrc.height - corner);
+            cxt.arcTo(backrc.x + backrc.width, backrc.y + backrc.height, backrc.x + backrc.width - corner, backrc.y + backrc.height, corner);
+            cxt.lineTo(backrc.x + corner + 10, backrc.y + backrc.height);
+            cxt.lineTo(backrc.x + corner + 5, backrc.y + backrc.height + 10);
+            cxt.lineTo(backrc.x + corner + 5, backrc.y + backrc.height);
+            cxt.lineTo(backrc.x + corner, backrc.y + backrc.height);
+            cxt.arcTo(backrc.x, backrc.y + backrc.height, backrc.x, backrc.y + backrc.height - corner, corner);
+            cxt.lineTo(backrc.x, backrc.y + corner);
+        };
+        cxt.save();
         cxt.fillStyle = "#FFFFFF";
-        cxt.fillRect(backrc.x, backrc.y, backrc.width, backrc.height);
+        cxt.shadowOffsetX = 4;
+        cxt.shadowOffsetY = 4;
+        cxt.shadowBlur = 3;
+        cxt.shadowColor = "#222222";
+        drawBackPath();
+        cxt.fill();
+        cxt.restore();
         cxt.strokeStyle = "#000000";
-        cxt.strokeRect(backrc.x, backrc.y, backrc.width, backrc.height);
+        drawBackPath();
+        cxt.stroke();
         cxt.font = "12pt Arial";
         cxt.textAlign = "left";
         cxt.textBaseline = "bottom";
