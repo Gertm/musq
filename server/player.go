@@ -213,6 +213,7 @@ func HandleTalk(p *Player, r *Request) {
 
 
 func (p *Player) Visual() VisualRequest {
+	p.setVisual()
 	return getVisualForName(p.Name)
 }
 
