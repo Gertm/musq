@@ -60,7 +60,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 			// handling function below.
 			return
 		}
-		fmt.Printf("Received: %s\n", buf[0:n])
+		//fmt.Printf("Received: %s\n", buf[0:n])
 		wsChan <- buf[0:n]
 	}
 }
@@ -69,6 +69,14 @@ func WebSocketHandler(ws *websocket.Conn) {
 // this might need to move elsewhere later.
 func main() {
 	startLogic()
+	fmt.Println("Checking whether the db works")
+	db_setString("musqstarting","ok")
+	dbsize, ok := client.Dbsize()
+	if ok != nil {
+		fmt.Println("db doesn't seem to work, exiting!")
+		return
+	}
+	fmt.Println("OK! size of db: ",dbsize)
 	fmt.Println("Starting MUSQ server...")
 	http.HandleFunc("/", data_handler)
 	http.HandleFunc("/js/musqconfig.js", config_handler)

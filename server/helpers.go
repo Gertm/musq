@@ -27,7 +27,7 @@ type ByteRequester interface {
 }
 
 func MarshalAndSendRequest(r ByteRequester, RplyChan chan<- []byte) bool {
-    fmt.Printf("Sending %s\n", r)
+    //fmt.Printf("Sending %s\n", r)
     b := r.ToJson()
     ok := RplyChan <- b
     if !ok {

@@ -8,13 +8,13 @@ import (
 
 var client redis.Client
 
-func testDBstuff() {
-    client.Addr = "127.0.0.1:6379" // [Gert 21/10/10] this version of driver doesn't use the standard port.
+func testDBstuff() bool {
     fmt.Println("testing the db stuff")
     db_addToList("players", "randy")
     member, ok := db_isListMember("players", "randy")
     if ok != nil {
-        fmt.Println(ok)
+		// can't connect to the db probably.
+		return false
     }
     fmt.Println("expecting true->")
     fmt.Printf("is member? -> %s\n", member)
@@ -23,6 +23,7 @@ func testDBstuff() {
     fmt.Printf("is member now? -> %s\n", member)
     str, _ := db_getString("-13,-14")
     fmt.Printf("[%s]", str)
+	return true
 }
 
 // simple wrapper functions for the db, make them a little easier to use
