@@ -7,24 +7,23 @@ body
     background-repeat: repeat-x;
 }
 
-.rounded-corners {
+.rounded-corners
+{
+    border-radius: 20px;
     -moz-border-radius: 20px;
     -webkit-border-radius: 20px;
     -khtml-border-radius: 20px;
-    border-radius: 20px;
 }
 
-.drop-shadow {
-    background-image: url('../images/dropshadow.png');
+.drop-shadow
+{
+    box-shadow: 5px 5px 5px rgba(0,0,0,.5);
+    -webkit-box-shadow: 5px 5px 5px rgba(0,0,0,.5);
 }
 
 #logincontainer
 {
     display: none;
-}
-
-#loginmain
-{
     background-color: #ffffff;
 }
 
