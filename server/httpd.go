@@ -23,8 +23,8 @@ func WebSocketHandler(ws *websocket.Conn) {
 	// temporary player -- need to have logins later 
 	var reqs vector.Vector
 	p := Player{"UnnamedPlayer", 0, 0, "human01", "bsdsdcwe", reqs, true, Location{0,0}}
-	var wsChan = make(chan []byte)
-	var wsReplyChan = make(chan []byte)
+	var wsChan = make(chan []byte, 10)
+	var wsReplyChan = make(chan []byte, 10)
 
 	defer func() {
 		wsChan <- []byte("{\"Function\":\"quit\"}")
