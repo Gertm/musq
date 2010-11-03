@@ -13,8 +13,8 @@ func testDBstuff() bool {
     db_addToList("players", "randy")
     member, ok := db_isListMember("players", "randy")
     if ok != nil {
-		// can't connect to the db probably.
-		return false
+        // can't connect to the db probably.
+        return false
     }
     fmt.Println("expecting true->")
     fmt.Printf("is member? -> %s\n", member)
@@ -23,7 +23,7 @@ func testDBstuff() bool {
     fmt.Printf("is member now? -> %s\n", member)
     str, _ := db_getString("-13,-14")
     fmt.Printf("[%s]", str)
-	return true
+    return true
 }
 
 // simple wrapper functions for the db, make them a little easier to use

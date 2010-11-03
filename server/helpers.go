@@ -107,10 +107,9 @@ func RandomColor() string {
 }
 
 func ColorFor(name string) string {
-	number := 1
-	for pos, char := range name {
-		number = number * (char+pos)
-	}
-	return "#"+fmt.Sprintf("%07X",number)[1:7]
+    number := 1
+    for pos, char := range name {
+        number = number * (char + pos)
+    }
+    return "#" + fmt.Sprintf("%07X", number)[1:7]
 }
-

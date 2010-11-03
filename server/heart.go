@@ -38,10 +38,10 @@ var ReplySubChan = make(chan subscription)
 var ReplyChan = make(chan ByteRequester)
 
 func startLogic() {
-	// [Gert 21/10/10] this version of driver doesn't use the standard port.
-	client.Addr = "127.0.0.1:6379" 
-	go RequestHub(chatSubChan, chatChan)
-	go RequestHub(ReplySubChan, ReplyChan)
+    // [Gert 21/10/10] this version of driver doesn't use the standard port.
+    client.Addr = "127.0.0.1:6379"
+    go RequestHub(chatSubChan, chatChan)
+    go RequestHub(ReplySubChan, ReplyChan)
 }
 
 
@@ -61,7 +61,7 @@ func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
                     fmt.Printf("Stuff going wrong with sending on rcv channel!\n")
                 }
             }
-            fmt.Printf("* %v\n",R)
+            fmt.Printf("* %v\n", R)
         }
     }
 }
