@@ -402,14 +402,14 @@ var musq = function () {
         var txtoffset = { x: data.game.logicalToVisualFactor * 0.3, y: -data.game.logicalToVisualFactor * 0.4 };
         var txtpt = vecMath.add(entityPtUi, txtoffset);
         var txtwidth = cxt.measureText(message).width;
-        var txtheight = 20; // TODO
+        var textLineHeight = 15;
         var txtrc = {
             x: txtpt.x,
-            y: txtpt.y - txtheight,
+            y: txtpt.y - textLineHeight,
             width: txtwidth,
-            height: txtheight
+            height: textLineHeight
         };
-        var backrc = utils.expandRc(txtrc, 5, 5);
+        var backrc = utils.expandRc(txtrc, 5, 8);
         var drawBackPath = function () {
             var corner = 8;
             cxt.beginPath();
@@ -438,7 +438,7 @@ var musq = function () {
         cxt.strokeStyle = "#000000";
         drawBackPath();
         cxt.stroke();
-        cxt.font = "12px SmackAttackBB";
+        cxt.font = textLineHeight + "px SmackAttackBB";
         cxt.textAlign = "left";
         cxt.textBaseline = "bottom";
         cxt.fillStyle = "#000000";
