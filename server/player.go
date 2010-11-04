@@ -226,9 +226,8 @@ func (p *Player) setVisual() {
 }
 
 func getVisualForName(Name string) VisualRequest {
-    ears_color, _ := db_getString(Name + ":color:ears")
-    ears := VisualImage{"images/faces/human/male/ears01.svg", ears_color}
     face_color, _ := db_getString(Name + ":color:face")
+    ears := VisualImage{"images/faces/human/male/ears01.svg", face_color}
     face := VisualImage{"images/faces/human/male/face01.svg", face_color}
     eyes_color, _ := db_getString(Name + ":color:eyes")
     eyes := VisualImage{"images/faces/human/male/eyes01.svg", eyes_color}
@@ -238,8 +237,14 @@ func getVisualForName(Name string) VisualRequest {
     nose := VisualImage{"images/faces/human/male/nose01.svg", nose_color}
     hair_color, _ := db_getString(Name + ":color:hair")
     hair := VisualImage{"images/faces/human/male/hair01.svg", hair_color}
-    glasses_color, _ := db_getString(Name + ":color:face")
-    glasses := VisualImage{"images/faces/human/glasses01.svg", glasses_color}
-    ImageList := []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
+	glasses := VisualImage{}
+	ImageList := []VisualImage{}
+	if len(Name) % 2 == 1 {
+		glasses_color, _ := db_getString(Name + ":color:face")
+		glasses = VisualImage{"images/faces/human/glasses01.svg", glasses_color}
+		ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
+	} else {
+		ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair}
+	}
     return VisualRequest{"visual", VisualParams{Name, ImageList}}
 }
