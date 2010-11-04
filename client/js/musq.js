@@ -438,7 +438,7 @@ var musq = function () {
         cxt.strokeStyle = "#000000";
         drawBackPath();
         cxt.stroke();
-        cxt.font = "12pt Arial";
+        cxt.font = "12px SmackAttackBB";
         cxt.textAlign = "left";
         cxt.textBaseline = "bottom";
         cxt.fillStyle = "#000000";
@@ -754,6 +754,12 @@ var musq = function () {
 
     //## page layout ###############################################################################
 
+    function positionBackground() {
+        data.background.style.position = "fixed";
+        data.background.style.width = utils.toPx(window.innerWidth);
+        data.background.style.height = utils.toPx(window.innerHeight);
+    }
+
     function positionLogin() {
         var width = 500;
         var height = 230;
@@ -785,6 +791,7 @@ var musq = function () {
     }
 
     function layoutPage() {
+        positionBackground();
         positionLogin();
         positionGameCanvas();
         positionFooter();
@@ -837,6 +844,7 @@ var musq = function () {
     }
 
     function onWindowLoad() {
+        data.background = document.getElementById("background");
         data.footer = document.getElementById("footer");
         preloadResources();
         initializeLogin();

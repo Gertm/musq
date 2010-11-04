@@ -1,10 +1,13 @@
+@font-face
+{
+    font-family: 'SmackAttackBB';
+    src: url('../fonts/smackattackbb_bld.otf');
+}
+
 body
 {
     margin: 0px;
     padding: 0px;
-    background-color: #000040;
-    background-image: url('../images/background.png');
-    background-repeat: repeat-x;
 }
 
 .rounded-corners
@@ -19,6 +22,11 @@ body
 {
     box-shadow: 5px 5px 5px rgba(0,0,0,.5);
     -webkit-box-shadow: 5px 5px 5px rgba(0,0,0,.5);
+}
+
+#background
+{
+    background: -webkit-gradient(linear, left top, left bottom, from(#000033), to(#000040));
 }
 
 #logincontainer
@@ -56,11 +64,11 @@ body
 #footer
 {
     background-color: #000022;
-    color: #888888;
-    font-size: 0.7em;
-    font-family: "DejaVu Sans Mono", Monospace;
     padding: 5px 0px 5px 50px;
     border-top: 1px solid #888888;
+    color: #888888;
+    font-size: 0.7em;
+    font-family: 'SmackAttackBB';
 }
 
 #svg2pngcanvas
