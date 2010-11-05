@@ -226,6 +226,7 @@ var musq = function () {
     //## global data ###############################################################################
 
     var data = {};
+    data.onWindowLoaded = false;
     data.state = "init";
     data.playerName = "";
     data.login = {};
@@ -855,9 +856,13 @@ var musq = function () {
         initializeWebSocket();
         layoutPage();
         layoutGameHud();
+        data.onWindowLoaded = true;
     }
 
     function onWindowResize() {
+        if (!data.onWindowLoaded) {
+            onWindowLoad();
+        }
         layoutPage();
         layoutGameHud();
         drawGameCanvas();
