@@ -210,15 +210,15 @@ func DoMoveStep(p *Player) {
 
 func HandleTalk(p *Player, r *Request) {
     AddPlayerNameToRequest(r, p)
-	chatHistoryAddChan <- fmt.Sprintf("<%s> %s",r.Params["Name"], r.Params["Message"])
+	chatHistoryAddChan <- chatMessage{r.Params["Name"],r.Params["Message"]}
     chatChan <- *r
 }
 
 func HandleChatHistory(wsReplyChan chan<- []byte) {
-	var histChan = make(chan []string)
+	var histChan = make(chan []chatMessage)
 	chatHistoryGetChan <- histChan
 	chatLines := <-histChan
-	hist := ChatHistory{"chatHistory",map[string][]string{"Lines": chatLines}}
+	hist := ChatHistory{"chatHistory",map[string][]chatMessage{"Lines": chatLines}}
 	wsReplyChan <- ToJSON(hist)
 }
 

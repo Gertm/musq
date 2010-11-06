@@ -12,7 +12,7 @@ type chatMessage struct {
 
 type ChatHistory struct {
 	Function string
-	Params map[string][]string
+	Params map[string][]chatMessage
 }
 
 func (c chatMessage) String() string {
@@ -26,11 +26,11 @@ func (c chatMessage) ToRequest() Request {
 var chatSubChan = make(chan subscription)
 var chatChan = make(chan ByteRequester)
 
-var chatHistoryAddChan = make(chan string,10)
-var chatHistoryGetChan = make(chan chan []string)
+var chatHistoryAddChan = make(chan chatMessage,10)
+var chatHistoryGetChan = make(chan chan []chatMessage)
 
 func chatHistoryProvider() {
-	cache := [50]string{}
+	cache := [50]chatMessage{}
 	pointer := 0
 	defer fmt.Println("chatHistoryProvider going down!")
 	for {
