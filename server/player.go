@@ -145,6 +145,8 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
                 // current location for later use.
                 p.RemoveFromPlayingField()
                 return
+			case r.Function == "chatHistory":
+				HandleChatHistory(wsReplyChan)
             case true:
                 p.AddRequest(r)
             }
@@ -211,6 +213,13 @@ func HandleTalk(p *Player, r *Request) {
     chatChan <- *r
 }
 
+func HandleChatHistory(wsReplyChan chan<- []byte) {
+	var histChan = make(chan []string)
+	chatHistoryGetChan <- histChan
+	chatLines := <-histChan
+	hist := ChatHistory{"chatHistory",map[string][]string{"Lines": chatLines}}
+	wsReplyChan <- ToJSON(hist)
+}
 
 func (p *Player) Visual() VisualRequest {
     p.setVisual()

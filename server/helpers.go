@@ -26,9 +26,9 @@ type ByteRequester interface {
     ToJson() []byte
 }
 
-func MarshalAndSendRequest(r ByteRequester, RplyChan chan<- []byte) bool {
+func MarshalAndSendRequest(r interface{}, RplyChan chan<- []byte) bool {
     //fmt.Printf("Sending %s\n", r)
-    b := r.ToJson()
+    b := ToJSON(r)
     ok := RplyChan <- b
     if !ok {
         fmt.Println("Couldn't send the request back to the ReplyChan: ", string(b))
@@ -91,11 +91,7 @@ type VisualParams struct {
 }
 
 func (v VisualRequest) ToJson() []byte {
-    b, err := json.Marshal(v)
-    if err != nil {
-        panic(err)
-    }
-    return b
+	return ToJSON(v)
 }
 
 func RandomColor() string {
@@ -112,4 +108,12 @@ func ColorFor(name string) string {
         number = number * (char + pos)
     }
     return "#" + fmt.Sprintf("%07X", number)[1:7]
+}
+
+func ToJSON(a interface{}) []byte {
+	b, err := json.Marshal(a)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }

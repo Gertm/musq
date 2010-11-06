@@ -65,3 +65,4 @@ func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
         }
     }
 }
+
