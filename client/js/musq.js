@@ -213,6 +213,10 @@ var musq = function () {
         this.height = image.height;
         this.draw = function (cxt) {
             cxt.drawImage(image, this.x, this.y);
+            // [Randy 06/11/2010] PATCH: Sometimes the image isn't loaded directly and
+            // as a result the width and height weren't correctly transferred.
+            this.width = image.width;
+            this.height = image.height;
         };
     }
 
@@ -716,7 +720,7 @@ var musq = function () {
 
     function onWebSocketOpened() {
         log("WebSocket opened.");
-        setInterval(sendKeepAliv, 10000);
+        setInterval(sendKeepAliv, 30000);
     }
 
     function onWebSocketClosed() {
@@ -868,7 +872,7 @@ var musq = function () {
 
     function onWindowResize() {
         if (!data.onWindowLoaded) {
-            onWindowLoad();
+            return;
         }
         layoutPage();
         layoutGameHud();
