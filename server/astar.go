@@ -7,7 +7,6 @@ import (
 )
 
 func TileDistance(x1, y1, x2, y2 int) int {
-    // it may be better to use the Manhattan distance here
     distance := abs(x2-x1) + abs(y2-y1)
     return distance
 }
@@ -39,7 +38,6 @@ func LocFromString(locstring string) Location {
     strList := strings.Split(locstring, ",", -1)
     xx, _ := strconv.Atoi(strList[0])
     yy, _ := strconv.Atoi(strList[1])
-    //fmt.Printf("Returning location{ x: %d, y: %d } for string '%s'\n", xx, yy, locstring)
     return Location{x: xx, y: yy}
 }
 
