@@ -210,6 +210,7 @@ func DoMoveStep(p *Player) {
 
 func HandleTalk(p *Player, r *Request) {
     AddPlayerNameToRequest(r, p)
+	chatHistoryAddChan <- fmt.Sprintf("<%s> %s",r.Params["Name"], r.Params["Message"])
     chatChan <- *r
 }
 
