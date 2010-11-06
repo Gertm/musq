@@ -264,17 +264,24 @@ var musq = function () {
             cxt.clearRect(0, 0, canvas.width, canvas.height);
             urlsAndColors.forEach(function (e, index, array) {
                                       var xmlHttp = new XMLHttpRequest();
+                                      if (xmlHttp.overrideMimeType) {
+                                          xmlHttp.overrideMimeType('text/xml');
+                                      }
+                                      xmlHttp.onreadystatechange = function () {
+                                          if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+                                              var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
+                                              var width = parseInt(svg.getAttribute("width"), 10);
+                                              var height = parseInt(svg.getAttribute("height"), 10);
+                                              if (canvas.width !== width || canvas.height !== height) {
+                                                  canvas.setAttribute("width", utils.toPx(width));
+                                                  canvas.setAttribute("height", utils.toPx(height));
+                                              }
+                                              var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
+                                              cxt.drawSvg(svgTxt, 0, 0);
+                                          }
+                                      };
                                       xmlHttp.open("GET", e.Url, false);
                                       xmlHttp.send();
-                                      var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
-                                      var width = parseInt(svg.getAttribute("width"), 10);
-                                      var height = parseInt(svg.getAttribute("height"), 10);
-                                      if (canvas.width !== width || canvas.height !== height) {
-                                          canvas.setAttribute("width", utils.toPx(width));
-                                          canvas.setAttribute("height", utils.toPx(height));
-                                      }
-                                      var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
-                                      cxt.drawSvg(svgTxt, 0, 0);
                                   });
             addImage(key, canvas.toDataURL());
         }
