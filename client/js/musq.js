@@ -646,7 +646,8 @@ var musq = function () {
             return;
         }
         player.messages.push(json.Params.Message);
-        setTimeout(function () { clearTalkMessage(json.Params.Name); }, 3000);
+        var timeout = 4000 + json.Params.Message.length * 100;
+        setTimeout(function () { clearTalkMessage(json.Params.Name); }, timeout);
     }
 
     //## message handlers ##########################################################################
