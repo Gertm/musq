@@ -650,6 +650,10 @@ var musq = function () {
         setTimeout(function () { clearTalkMessage(json.Params.Name); }, timeout);
     }
 
+    function handleQuitJson(json) {
+        data.game.entities[json.Params.Name] = undefined;
+    }
+
     //## message handlers ##########################################################################
 
     function onLoginButton() {
@@ -761,6 +765,10 @@ var musq = function () {
         }
         if (json.Function === "visual") {
             handleVisualJson(json);
+            return;
+        }
+        if (json.Function === "quit") {
+            handleQuitJson(json);
             return;
         }
     }
