@@ -651,7 +651,7 @@ var musq = function () {
     }
 
     function handleQuitJson(json) {
-        data.game.entities[json.Params.Name] = undefined;
+        delete data.game.entities[json.Params.Name];
     }
 
     //## message handlers ##########################################################################
