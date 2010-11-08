@@ -39,7 +39,7 @@ var ReplyChan = make(chan ByteRequester)
 
 func startLogic() {
     // [Gert 21/10/10] this version of driver doesn't use the standard port.
-    client.Addr = "127.0.0.1:6379"
+	db_init()
     go RequestHub(chatSubChan, chatChan)
     go RequestHub(ReplySubChan, ReplyChan)
 }
