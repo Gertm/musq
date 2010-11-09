@@ -539,8 +539,7 @@ var musq = function () {
         data.game.talkedit.style.position = "fixed";
         data.game.talkedit.style.top = utils.toPx(utils.fromPx(data.game.canvas.style.top) + data.game.canvas.height - data.game.talkedit.clientHeight);
         data.game.talkedit.style.left = data.game.canvas.style.left;
-        // [Randy 08/10/2010] TODO: Determine the number of columns correctly.
-        data.game.talkedit.setAttribute("cols", Math.round(data.game.canvas.width / 8.2));
+        data.game.talkedit.style.width = utils.toPx(data.game.canvas.width);
         data.game.talkedit.focus();
     }
 
