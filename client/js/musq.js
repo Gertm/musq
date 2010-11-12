@@ -536,10 +536,9 @@ var musq = function () {
     function startTalking() {
         data.game.talking = true;
         data.game.talkedit.style.display = "block";
-        data.game.talkedit.style.position = "fixed";
-        data.game.talkedit.style.top = utils.toPx(utils.fromPx(data.game.canvas.style.top) + data.game.canvas.height - data.game.talkedit.clientHeight);
-        data.game.talkedit.style.left = data.game.canvas.style.left;
-        data.game.talkedit.style.width = utils.toPx(data.game.canvas.width);
+        // [Randy 12/11/2010] PATCH: ClientHeight only seems to be filled if the element
+        // is really visible.
+        positionTalkEdit();
         data.game.talkedit.focus();
     }
 
@@ -810,11 +809,19 @@ var musq = function () {
         data.footer.style.left = utils.toPx(0);
     }
 
+    function positionTalkEdit() {
+        data.game.talkedit.style.position = "fixed";
+        data.game.talkedit.style.top = utils.toPx(utils.fromPx(data.game.canvas.style.top) + data.game.canvas.height - data.game.talkedit.clientHeight);
+        data.game.talkedit.style.left = data.game.canvas.style.left;
+        data.game.talkedit.style.width = utils.toPx(data.game.canvas.width);
+    }
+
     function layoutPage() {
         positionBackground();
         positionLogin();
         positionGameCanvas();
         positionFooter();
+        positionTalkEdit();
     }
 
     function layoutGameHud() {
@@ -876,6 +883,9 @@ var musq = function () {
         layoutPage();
         layoutGameHud();
         data.onWindowLoaded = true;
+        // [Randy 12/11/2010] PATCH: ClientHeight of elements doesn't seem to be calculated yet.
+        // So the layout must happen again when they are.
+        setTimeout(layoutPage, 500);
     }
 
     function onWindowResize() {
