@@ -30,6 +30,7 @@ var chatHistoryAddChan = make(chan chatMessage,10)
 var chatHistoryGetChan = make(chan chan []chatMessage)
 
 func chatHistoryProvider() {
+	fmt.Println("Starting up the chatHistoryProvider")
 	cache := [50]chatMessage{}
 	pointer := 0
 	defer fmt.Println("chatHistoryProvider going down!")

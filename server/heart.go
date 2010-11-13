@@ -42,6 +42,7 @@ func startLogic() {
     client.Addr = "127.0.0.1:6379"
     go RequestHub(chatSubChan, chatChan)
     go RequestHub(ReplySubChan, ReplyChan)
+	go chatHistoryProvider()
 }
 
 
