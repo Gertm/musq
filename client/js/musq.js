@@ -668,7 +668,7 @@ var musq = function () {
     }
 
     function handleTalkJson(json) {
-        pushFront(data.game.talkhistory, { From: json.Params.Name, Msg: json.Params.Message });
+		data.game.talkhistory.push({ From: json.Params.Name, Msg: json.Params.Message });
         data.game.talkhistory.length = Math.min(data.game.talkhistory.length, 20);
         var player = data.game.entities[json.Params.Name];
         if (!player) {
@@ -685,7 +685,7 @@ var musq = function () {
 
     function handleChatHistory(json) {
         data.game.talkhistory = json.Params.Lines;
-        data.game.talkhistory.reverse();
+        //data.game.talkhistory.reverse();
     }
 
     //## message handlers ##########################################################################
