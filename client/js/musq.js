@@ -2,117 +2,99 @@ var musq = function () {
 
     //## generic utilities that have no dependencies ###############################################
 
-    var utils = function () {
+    function toPx(i) {
+        return i + "px";
+    }
 
-        function toPx(i) {
-            return i + "px";
+    function fromPx(s) {
+        return parseInt(s.substr(0, s.length - 2), 10);
+    }
+
+    function lerp(i1, i2, f) {
+        return i1 + (i2 - i1) * f;
+    }
+
+    function onclickOffset(evt, axis, obj) {
+        // [Randy 02/10/2010] REMARK: offsetX/Y isn't available in FireFox.
+        var offsetAxis = evt["offset" + axis];
+        if (offsetAxis) {
+            return offsetAxis;
         }
-
-        function fromPx(s) {
-            return parseInt(s.substr(0, s.length - 2), 10);
+        else if (axis == "X") {
+            return evt.clientX - fromPx(obj.style.left);
         }
-
-        function lerp(i1, i2, f) {
-            return i1 + (i2 - i1) * f;
+        else {
+            return evt.clientY - fromPx(obj.style.top);
         }
+    }
 
-        function onclickOffset(evt, axis, obj) {
-            // [Randy 02/10/2010] REMARK: offsetX/Y isn't available in FireFox.
-            var offsetAxis = evt["offset" + axis];
-            if (offsetAxis) {
-                return offsetAxis;
-            }
-            else if (axis == "X") {
-                return evt.clientX - fromPx(obj.style.left);
-            }
-            else {
-                return evt.clientY - fromPx(obj.style.top);
-            }
-        }
+    function onkeyKey(evt) {
+        var e = window.event || evt;
+        var keyunicode = e.charCode || e.keyCode;
+        return keyunicode;
+    }
 
-        function onkeyKey(evt) {
-            var e = window.event || evt;
-            var keyunicode = e.charCode || e.keyCode;
-            return keyunicode;
-        }
-
-        function removeTrailingEnter(s) {
-            if (s === "") {
-                return s;
-            }
-            if (s.charAt(s.length - 1) == '\n') {
-                return s.substr(0, s.length - 1);
-            }
+    function removeTrailingEnter(s) {
+        if (s === "") {
             return s;
         }
-
-        function ptInRc(rc, pt) {
-            if (pt.x < rc.x) {
-                return false;
-            }
-            if (pt.x >= rc.x + rc.width) {
-                return false;
-            }
-            if (pt.y < rc.y) {
-                return false;
-            }
-            if (pt.y >= rc.y + rc.height) {
-                return false;
-            }
-            return true;
+        if (s.charAt(s.length - 1) == '\n') {
+            return s.substr(0, s.length - 1);
         }
+        return s;
+    }
 
-        function inherit(instance, baseConstructor) {
-            var base = new baseConstructor();
-            for (var member in base) {
-                instance[member] = base[member];
-            }
+    function ptInRc(rc, pt) {
+        if (pt.x < rc.x) {
+            return false;
         }
-
-        function now() {
-            return (new Date()).getTime();
+        if (pt.x >= rc.x + rc.width) {
+            return false;
         }
-
-        function stringReplaceRecursive(s, oldS, newS) {
-            var r = s.replace(oldS, newS);
-            if (r === s)
-                return r;
-            return stringReplaceRecursive(r, oldS, newS);
+        if (pt.y < rc.y) {
+            return false;
         }
-
-        function expandRc(rc, xborder, yborder) {
-            return {
-                x: rc.x - xborder,
-                y: rc.y - yborder,
-                width: rc.width + 2 * xborder,
-                height: rc.height + 2 * yborder
-            };
+        if (pt.y >= rc.y + rc.height) {
+            return false;
         }
+        return true;
+    }
 
+    function inherit(instance, baseConstructor) {
+        var base = new baseConstructor();
+        for (var member in base) {
+            instance[member] = base[member];
+        }
+    }
+
+    function now() {
+        return (new Date()).getTime();
+    }
+
+    function stringReplaceRecursive(s, oldS, newS) {
+        var r = s.replace(oldS, newS);
+        if (r === s)
+            return r;
+        return stringReplaceRecursive(r, oldS, newS);
+    }
+
+    String.prototype.replaceAll = function (oldS, newS) {
+        return stringReplaceRecursive(this, oldS, newS);
+    };
+
+    function expandRc(rc, xborder, yborder) {
         return {
-            toPx: toPx,
-            fromPx: fromPx,
-            lerp: lerp,
-            onclickOffset: onclickOffset,
-            onkeyKey: onkeyKey,
-            removeTrailingEnter: removeTrailingEnter,
-            ptInRc: ptInRc,
-            inherit: inherit,
-            now: now,
-            stringReplaceRecursive: stringReplaceRecursive,
-            expandRc: expandRc
+            x: rc.x - xborder,
+            y: rc.y - yborder,
+            width: rc.width + 2 * xborder,
+            height: rc.height + 2 * yborder
         };
-
-    } ();
+    }
 
     function log(txt) {
         if (console.log)
             console.log("MUSQ: " + txt);
     }
-
-    String.prototype.replaceAll = function (oldS, newS) {
-        return utils.stringReplaceRecursive(this, oldS, newS);
-    };
 
     //## 2D vector math utilities ##################################################################
 
@@ -196,7 +178,7 @@ var musq = function () {
                 width: this.width,
                 height: this.height
             };
-            return utils.ptInRc(rc, pt);
+            return ptInRc(rc, pt);
         };
         this.onMouseClick = function (pt) {
             if (this.hitTest(pt)) {
@@ -208,7 +190,7 @@ var musq = function () {
     }
 
     function gameHudImageElement(image) {
-        utils.inherit(this, gameHudElement);
+        inherit(this, gameHudElement);
         this.width = image.width;
         this.height = image.height;
         this.draw = function (cxt) {
@@ -234,13 +216,13 @@ var musq = function () {
     data.state = "init";
     data.playerName = "";
     data.login = {};
-    data.login.lastUpdateTime = utils.now();
+    data.login.lastUpdateTime = now();
     data.login.scaleFactor = 1.0;
     data.login.scaleDirection = -1.0;
     data.game = {};
     data.game.fps = 30;
     data.game.viewPortCenter = new moveAnimation();
-    data.game.lastUpdateTime = utils.now();
+    data.game.lastUpdateTime = now();
     data.game.talking = false;
     data.game.logicalToVisualFactor = 70.0;
     data.game.entities = {};
@@ -277,8 +259,8 @@ var musq = function () {
                                               var width = parseInt(svg.getAttribute("width"), 10);
                                               var height = parseInt(svg.getAttribute("height"), 10);
                                               if (canvas.width !== width || canvas.height !== height) {
-                                                  canvas.setAttribute("width", utils.toPx(width));
-                                                  canvas.setAttribute("height", utils.toPx(height));
+                                                  canvas.setAttribute("width", toPx(width));
+                                                  canvas.setAttribute("height", toPx(height));
                                               }
                                               var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
                                               cxt.drawSvg(svgTxt, 0, 0);
@@ -421,7 +403,7 @@ var musq = function () {
             width: txtwidth,
             height: textLineHeight
         };
-        var backrc = utils.expandRc(txtrc, 5, 8);
+        var backrc = expandRc(txtrc, 5, 8);
         var drawBackPath = function () {
             var corner = 8;
             cxt.beginPath();
@@ -491,7 +473,7 @@ var musq = function () {
         if (data.state !== "login") {
             return;
         }
-        var newUpdateTime = utils.now();
+        var newUpdateTime = now();
         data.login.scaleFactor += data.login.scaleDirection * (newUpdateTime - data.login.lastUpdateTime) * 0.001 * 0.3;
         if (data.login.scaleFactor > 1.0) {
             data.login.scaleFactor = 1.0;
@@ -508,7 +490,7 @@ var musq = function () {
         if (data.state !== "game") {
             return;
         }
-        var newUpdateTime = utils.now();
+        var newUpdateTime = now();
         var timeDiffInMs = newUpdateTime - data.game.lastUpdateTime;
         data.game.viewPortCenter.update(timeDiffInMs);
         for (eI in data.game.entities) {
@@ -543,7 +525,7 @@ var musq = function () {
     }
 
     function sendTalkMessage() {
-        var message = utils.removeTrailingEnter(data.game.talkedit.value);
+        var message = removeTrailingEnter(data.game.talkedit.value);
         if (message !== "") {
             wsSend({
                        "Function": "talk",
@@ -669,8 +651,8 @@ var musq = function () {
     }
 
     function onGameCanvasClick(evt) {
-        var offsetX = utils.onclickOffset(evt, "X", data.game.canvas);
-        var offsetY = utils.onclickOffset(evt, "Y", data.game.canvas);
+        var offsetX = onclickOffset(evt, "X", data.game.canvas);
+        var offsetY = onclickOffset(evt, "Y", data.game.canvas);
         var pt = new vecMath.vector2d(offsetX, offsetY);
         if (data.game.hudTalk.onMouseClick(pt)) {
             return;
@@ -686,7 +668,7 @@ var musq = function () {
     }
 
     function onCanvasKeyup(evt) {
-        var keyunicode = utils.onkeyKey(evt);
+        var keyunicode = onkeyKey(evt);
         //alert(keyunicode);
         if (data.state === "login") {
             if (keyunicode == 13 /* enter */) {
@@ -775,19 +757,19 @@ var musq = function () {
 
     function positionBackground() {
         data.background.style.position = "fixed";
-        data.background.style.width = utils.toPx(window.innerWidth);
-        data.background.style.height = utils.toPx(window.innerHeight);
+        data.background.style.width = toPx(window.innerWidth);
+        data.background.style.height = toPx(window.innerHeight);
     }
 
     function positionLogin() {
         var width = 500;
         var height = 230;
         data.login.container.style.position = "fixed";
-        data.login.container.style.width = utils.toPx(width);
-        data.login.container.style.height = utils.toPx(height);
-        data.login.container.style.top = utils.toPx((window.innerHeight - height) / 2);
-        data.login.container.style.left = utils.toPx((window.innerWidth - width) / 2);
-        data.login.controls.style.marginTop = utils.toPx((height - data.login.controls.clientHeight) / 2);
+        data.login.container.style.width = toPx(width);
+        data.login.container.style.height = toPx(height);
+        data.login.container.style.top = toPx((window.innerHeight - height) / 2);
+        data.login.container.style.left = toPx((window.innerWidth - width) / 2);
+        data.login.controls.style.marginTop = toPx((height - data.login.controls.clientHeight) / 2);
     }
 
     function positionGameCanvas() {
@@ -795,25 +777,25 @@ var musq = function () {
         var yPadding = 20;
         data.game.canvas.style.position = "fixed";
         var newWidth = window.innerWidth - xPadding * 2;
-        data.game.canvas.setAttribute("width", utils.toPx(newWidth));
+        data.game.canvas.setAttribute("width", toPx(newWidth));
         var newHeight = window.innerHeight - yPadding * 2 - data.footer.clientHeight;
-        data.game.canvas.setAttribute("height", utils.toPx(newHeight));
-        data.game.canvas.style.top = utils.toPx(yPadding);
-        data.game.canvas.style.left = utils.toPx(xPadding);
+        data.game.canvas.setAttribute("height", toPx(newHeight));
+        data.game.canvas.style.top = toPx(yPadding);
+        data.game.canvas.style.left = toPx(xPadding);
     }
 
     function positionFooter() {
         data.footer.style.position = "fixed";
-        data.footer.style.width = utils.toPx(window.innerWidth);
-        data.footer.style.top = utils.toPx(window.innerHeight - data.footer.clientHeight);
-        data.footer.style.left = utils.toPx(0);
+        data.footer.style.width = toPx(window.innerWidth);
+        data.footer.style.top = toPx(window.innerHeight - data.footer.clientHeight);
+        data.footer.style.left = toPx(0);
     }
 
     function positionTalkEdit() {
         data.game.talkedit.style.position = "fixed";
-        data.game.talkedit.style.top = utils.toPx(utils.fromPx(data.game.canvas.style.top) + data.game.canvas.height - data.game.talkedit.clientHeight);
+        data.game.talkedit.style.top = toPx(fromPx(data.game.canvas.style.top) + data.game.canvas.height - data.game.talkedit.clientHeight);
         data.game.talkedit.style.left = data.game.canvas.style.left;
-        data.game.talkedit.style.width = utils.toPx(data.game.canvas.width);
+        data.game.talkedit.style.width = toPx(data.game.canvas.width);
     }
 
     function layoutPage() {
@@ -909,15 +891,15 @@ var musq = function () {
 
         function runTests() {
             test("replaceAll", ("testtest".replaceAll("test", "ba") === "baba"));
-            test("toPx", (utils.toPx(10) === "10px"));
-            test("fromPx", (utils.fromPx("10px") === 10));
-            test("lerp1", (utils.lerp(0.0, 10.0, 0.5) === 5.0));
-            test("lerp2", (utils.lerp(10.0, 30.0, 0.5) === 20.0));
-            test("lerp3", (utils.lerp(10.0, 30.0, 0.0) === 10.0));
-            test("lerp4", (utils.lerp(10.0, 30.0, 1.0) === 30.0));
-            test("removeTrailingEnter", (utils.removeTrailingEnter("test\n") === "test"));
-            test("ptInRc1", (utils.ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 60, y: 60 })));
-            test("ptInRc2", (!utils.ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 40, y: 60 })));
+            test("toPx", (toPx(10) === "10px"));
+            test("fromPx", (fromPx("10px") === 10));
+            test("lerp1", (lerp(0.0, 10.0, 0.5) === 5.0));
+            test("lerp2", (lerp(10.0, 30.0, 0.5) === 20.0));
+            test("lerp3", (lerp(10.0, 30.0, 0.0) === 10.0));
+            test("lerp4", (lerp(10.0, 30.0, 1.0) === 30.0));
+            test("removeTrailingEnter", (removeTrailingEnter("test\n") === "test"));
+            test("ptInRc1", (ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 60, y: 60 })));
+            test("ptInRc2", (!ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 40, y: 60 })));
         }
 
         return {
