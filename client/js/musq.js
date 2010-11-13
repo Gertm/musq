@@ -91,6 +91,12 @@ var musq = function () {
         };
     }
 
+    function pushFront(a, e) {
+        a.reverse();
+        a.push(e);
+        a.reverse();
+    }
+
     function log(txt) {
         if (console.log)
             console.log("MUSQ: " + txt);
@@ -224,7 +230,10 @@ var musq = function () {
     data.game.viewPortCenter = new moveAnimation();
     data.game.lastUpdateTime = now();
     data.game.talking = false;
+    data.game.showtalkhistory = false;
+    data.game.talkhistory = [];
     data.game.logicalToVisualFactor = 70.0;
+    data.game.hudelements = {};
     data.game.entities = {};
     data.game.colors = {};
     data.game.colors["skin"] = ["#fff0c1", "#785d42"];
@@ -337,7 +346,9 @@ var musq = function () {
     }
 
     function wsSend(obj) {
-        data.ws.send(JSON.stringify(obj));
+        var json = JSON.stringify(obj);
+        log("Sending " + json + ".");
+        data.ws.send(json);
     }
 
     function sendKeepAliv(obj) {
@@ -366,7 +377,7 @@ var musq = function () {
 
     function drawGameBackground(cxt) {
         cxt.fillStyle = "#88FF88";
-        cxt.fillRect(0, 0, data.game.canvas.width - 1, data.game.canvas.height - 1);
+        cxt.fillRect(0, 0, data.game.canvas.width, data.game.canvas.height);
     }
 
     function drawGameGrid(cxt) {
@@ -451,8 +462,24 @@ var musq = function () {
         }
     }
 
+    function drawTalkHistory(cxt) {
+        if (!data.game.showtalkhistory) {
+            return;
+        }
+        var canvasrc = { x: 0, y: 0, width: data.game.canvas.width, height: data.game.canvas.height };
+        var rc = expandRc(canvasrc, -50, -50);
+        cxt.save();
+        cxt.fillStyle = "rgba(0, 0, 0, 0.5)";
+        cxt.fillRect(rc.x, rc.y, rc.width, rc.height);
+        cxt.restore();
+    }
+
     function drawGameHud(cxt) {
-        data.game.hudTalk.draw(cxt);
+        for (eI in data.game.hudelements) {
+            var e = data.game.hudelements[eI];
+            e.draw(cxt);
+        }
+        drawTalkHistory(cxt);
     }
 
     function drawGameCanvas() {
@@ -577,6 +604,13 @@ var musq = function () {
         data.login.username.focus();
     }
 
+    function requestTalkHistory() {
+        wsSend({
+                   "Function": "chatHistory",
+                   "Params": {}
+               });
+    }
+
     function handleLoginJson(json) {
         if (json.Params.Success === "true") {
             data.playerName = data.login.username.value;
@@ -584,6 +618,8 @@ var musq = function () {
             data.login.password.style.backgroundColor = "#FFFFFF";
             data.game.entities = {};
             setStateToGame();
+            // [Randy 13/11/2010] TODO: Causes clogged arteries as the server doesn't implement it yet.
+            //requestTalkHistory();
         } else {
             setLoginIncorrect();
         }
@@ -621,6 +657,8 @@ var musq = function () {
     }
 
     function handleTalkJson(json) {
+        pushFront(data.game.talkhistory, { From: json.Params.Name, Msg: json.Params.Message });
+        data.game.talkhistory.length = Math.min(data.game.talkhistory.length, 20);
         var player = data.game.entities[json.Params.Name];
         if (!player) {
             return;
@@ -632,6 +670,11 @@ var musq = function () {
 
     function handleQuitJson(json) {
         delete data.game.entities[json.Params.Name];
+    }
+
+    function handleChatHistory(json) {
+        data.game.talkhistory = json.Params.Lines;
+        data.game.talkhistory.reverse();
     }
 
     //## message handlers ##########################################################################
@@ -654,8 +697,11 @@ var musq = function () {
         var offsetX = onclickOffset(evt, "X", data.game.canvas);
         var offsetY = onclickOffset(evt, "Y", data.game.canvas);
         var pt = new vecMath.vector2d(offsetX, offsetY);
-        if (data.game.hudTalk.onMouseClick(pt)) {
-            return;
+        for (eI in data.game.hudelements) {
+            var e = data.game.hudelements[eI];
+            if (e.onMouseClick(pt)) {
+                return;
+            }
         }
         var newPosition = visualToLogic(pt);
         wsSend({
@@ -701,6 +747,10 @@ var musq = function () {
         } else {
             stopTalking();
         }
+    }
+
+    function onGameHudTalkHistoryClick() {
+        data.game.showtalkhistory = !data.game.showtalkhistory;
     }
 
     function onWebSocketOpened() {
@@ -749,6 +799,10 @@ var musq = function () {
         }
         if (json.Function === "quit") {
             handleQuitJson(json);
+            return;
+        }
+        if (json.Function === "chatHistory") {
+            handleChatHistory(json);
             return;
         }
     }
@@ -807,8 +861,11 @@ var musq = function () {
     }
 
     function layoutGameHud() {
-        data.game.hudTalk.x = 20;
-        data.game.hudTalk.y = 20;
+        // [Randy 13/11/2010] TODO: Implement a vertical stack layout (so these values aren't hardcoded).
+        data.game.hudelements.talk.x = 20;
+        data.game.hudelements.talk.y = 20;
+        data.game.hudelements.talkhistory.x = 20;
+        data.game.hudelements.talkhistory.y = 50;
     }
 
     //## initialization ############################################################################
@@ -816,11 +873,14 @@ var musq = function () {
     function preloadResources() {
         resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
+        resourceBuffer.addSvg("hud/talkhistory", "images/hud/talkhistory.svg", "");
     }
 
     function initializeGameHud() {
-        data.game.hudTalk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
-        data.game.hudTalk.onClick = onGameHudTalkClick;
+        data.game.hudelements.talk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
+        data.game.hudelements.talk.onClick = onGameHudTalkClick;
+        data.game.hudelements.talkhistory = new gameHudImageElement(resourceBuffer.get("hud/talkhistory"));
+        data.game.hudelements.talkhistory.onClick = onGameHudTalkHistoryClick;
     }
 
     function initializeWebSocket() {
@@ -900,6 +960,7 @@ var musq = function () {
             test("removeTrailingEnter", (removeTrailingEnter("test\n") === "test"));
             test("ptInRc1", (ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 60, y: 60 })));
             test("ptInRc2", (!ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 40, y: 60 })));
+            test("pushFront", function () { var a = []; pushFront(a, 0); pushFront(a, 1); pushFront(a, 2); return a === [2, 1, 0]; });
         }
 
         return {
