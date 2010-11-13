@@ -42,7 +42,7 @@ func startLogic() {
     client.Addr = "127.0.0.1:6379"
     go RequestHub(chatSubChan, chatChan)
     go RequestHub(ReplySubChan, ReplyChan)
-	go chatHistoryProvider()
+    go chatHistoryProvider()
 }
 
 
@@ -66,4 +66,3 @@ func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
         }
     }
 }
-

@@ -91,7 +91,7 @@ type VisualParams struct {
 }
 
 func (v VisualRequest) ToJson() []byte {
-	return ToJSON(v)
+    return ToJSON(v)
 }
 
 func RandomColor() string {
@@ -111,9 +111,9 @@ func ColorFor(name string) string {
 }
 
 func ToJSON(a interface{}) []byte {
-	b, err := json.Marshal(a)
-	if err != nil {
-		panic(err)
-	}
-	return b
+    b, err := json.Marshal(a)
+    if err != nil {
+        panic(err)
+    }
+    return b
 }

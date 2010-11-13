@@ -145,8 +145,8 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
                 // current location for later use.
                 p.RemoveFromPlayingField()
                 return
-			case r.Function == "chatHistory":
-				HandleChatHistory(wsReplyChan)
+            case r.Function == "chatHistory":
+                HandleChatHistory(wsReplyChan)
             case true:
                 p.AddRequest(r)
             }
@@ -210,16 +210,16 @@ func DoMoveStep(p *Player) {
 
 func HandleTalk(p *Player, r *Request) {
     AddPlayerNameToRequest(r, p)
-	chatHistoryAddChan <- chatMessage{r.Params["Name"],r.Params["Message"]}
+    chatHistoryAddChan <- chatMessage{r.Params["Name"], r.Params["Message"]}
     chatChan <- *r
 }
 
 func HandleChatHistory(wsReplyChan chan<- []byte) {
-	var histChan = make(chan []chatMessage)
-	chatHistoryGetChan <- histChan
-	chatLines := <-histChan
-	hist := ChatHistory{"chatHistory",map[string][]chatMessage{"Lines": chatLines}}
-	wsReplyChan <- ToJSON(hist)
+    var histChan = make(chan []chatMessage)
+    chatHistoryGetChan <- histChan
+    chatLines := <-histChan
+    hist := ChatHistory{"chatHistory", map[string][]chatMessage{"Lines": chatLines}}
+    wsReplyChan <- ToJSON(hist)
 }
 
 func (p *Player) Visual() VisualRequest {
@@ -247,14 +247,14 @@ func getVisualForName(Name string) VisualRequest {
     nose := VisualImage{"images/faces/human/male/nose01.svg", nose_color}
     hair_color, _ := db_getString(Name + ":color:hair")
     hair := VisualImage{"images/faces/human/male/hair01.svg", hair_color}
-	glasses := VisualImage{}
-	ImageList := []VisualImage{}
-	if len(Name) % 2 == 1 {
-		glasses_color, _ := db_getString(Name + ":color:face")
-		glasses = VisualImage{"images/faces/human/glasses01.svg", glasses_color}
-		ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
-	} else {
-		ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair}
-	}
+    glasses := VisualImage{}
+    ImageList := []VisualImage{}
+    if len(Name)%2 == 1 {
+        glasses_color, _ := db_getString(Name + ":color:face")
+        glasses = VisualImage{"images/faces/human/glasses01.svg", glasses_color}
+        ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
+    } else {
+        ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair}
+    }
     return VisualRequest{"visual", VisualParams{Name, ImageList}}
 }
