@@ -471,6 +471,18 @@ var musq = function () {
         cxt.save();
         cxt.fillStyle = "rgba(0, 0, 0, 0.5)";
         cxt.fillRect(rc.x, rc.y, rc.width, rc.height);
+        var textlineheight = 12;
+        var textseparator = 5;
+        cxt.font = textlineheight + "px SmackAttackBB";
+        cxt.textAlign = "left";
+        cxt.textBaseline = "top";
+        data.game.talkhistory.forEach(function (e, ei, a) {
+            cxt.fillStyle = "#ffffff";
+            var yoffset = (textlineheight + textseparator) * ei;
+            if (yoffset + textlineheight < rc.y + rc.height) {
+                cxt.fillText(e.From + ": " + e.Msg, rc.x + 10, rc.y + 10 + yoffset);
+            }
+        });
         cxt.restore();
     }
 
@@ -618,8 +630,7 @@ var musq = function () {
             data.login.password.style.backgroundColor = "#FFFFFF";
             data.game.entities = {};
             setStateToGame();
-            // [Randy 13/11/2010] TODO: Causes clogged arteries as the server doesn't implement it yet.
-            //requestTalkHistory();
+            requestTalkHistory();
         } else {
             setLoginIncorrect();
         }
