@@ -473,16 +473,24 @@ var musq = function () {
         cxt.fillRect(rc.x, rc.y, rc.width, rc.height);
         var textlineheight = 12;
         var textseparator = 5;
+        var textfulllineheight = textlineheight + textseparator;
+        var textfullheight = textfulllineheight * data.game.talkhistory.length;
+        var ylimitmin = rc.y + 10;
+        var ylimitmax = rc.y + rc.height - 10;
         cxt.font = textlineheight + "px SmackAttackBB";
         cxt.textAlign = "left";
         cxt.textBaseline = "top";
+        var yoffset = ylimitmin;
+        if (yoffset + textfullheight > ylimitmax) {
+            yoffset = ylimitmax - textfullheight;
+        }
         data.game.talkhistory.forEach(function (e, ei, a) {
-            cxt.fillStyle = "#ffffff";
-            var yoffset = (textlineheight + textseparator) * ei;
-            if (yoffset + textlineheight < rc.y + rc.height) {
-                cxt.fillText(e.From + ": " + e.Msg, rc.x + 10, rc.y + 10 + yoffset);
-            }
-        });
+                                          cxt.fillStyle = "#ffffff";
+                                          if (yoffset >= ylimitmin) {
+                                              cxt.fillText(e.From + ": " + e.Msg, rc.x + 10, yoffset);
+                                          }
+                                          yoffset += textfulllineheight;
+                                      });
         cxt.restore();
     }
 
@@ -624,7 +632,7 @@ var musq = function () {
     }
 
     function swapShowTalkHistory() {
-        data.game.showtalkhistory = !data.game.showtalkhistory;        
+        data.game.showtalkhistory = !data.game.showtalkhistory;
     }
 
     function handleLoginJson(json) {
@@ -672,7 +680,7 @@ var musq = function () {
     }
 
     function handleTalkJson(json) {
-		data.game.talkhistory.push({ From: json.Params.Name, Msg: json.Params.Message });
+        data.game.talkhistory.push({ From: json.Params.Name, Msg: json.Params.Message });
         data.game.talkhistory.length = Math.min(data.game.talkhistory.length, 20);
         var player = data.game.entities[json.Params.Name];
         if (!player) {
