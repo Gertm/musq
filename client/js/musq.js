@@ -623,6 +623,10 @@ var musq = function () {
                });
     }
 
+    function swapShowTalkHistory() {
+        data.game.showtalkhistory = !data.game.showtalkhistory;        
+    }
+
     function handleLoginJson(json) {
         if (json.Params.Success === "true") {
             data.playerName = data.login.username.value;
@@ -735,6 +739,12 @@ var musq = function () {
             return;
         }
         if (data.state === "game") {
+            if (keyunicode == 72 /* h */) {
+                if (!data.game.talking) {
+                    swapShowTalkHistory();
+                }
+                return;
+            }
             if (keyunicode == 84 /* t */) {
                 if (!data.game.talking) {
                     startTalking();
@@ -761,7 +771,7 @@ var musq = function () {
     }
 
     function onGameHudTalkHistoryClick() {
-        data.game.showtalkhistory = !data.game.showtalkhistory;
+        swapShowTalkHistory();
     }
 
     function onWebSocketOpened() {
