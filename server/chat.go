@@ -32,7 +32,7 @@ var chatHistoryGetChan = make(chan chan []chatMessage)
 func chatHistoryProvider() {
     fmt.Println("Starting up the chatHistoryProvider")
     cache := [50]chatMessage{}
-	for i := 0; i < 50; i++ {
+    for i := 0; i < 50; i++ {
         cache[i] = chatMessage{}
     }
     pointer := 0
@@ -43,7 +43,7 @@ func chatHistoryProvider() {
             cache[pointer] = line2add
             pointer++
         case hr := <-chatHistoryGetChan:
-			// fmt.Printf("Sending the chat history:\n%v\n",cache[0:pointer])
+            // fmt.Printf("Sending the chat history:\n%v\n",cache[0:pointer])
             hr <- cache[0:pointer]
         }
         if pointer == 50 {

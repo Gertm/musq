@@ -144,6 +144,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
                 // delete the player from the playingfield, but save the
                 // current location for later use.
                 p.RemoveFromPlayingField()
+                db_removeFromList("players", p.Name)
                 return
             case r.Function == "chatHistory":
                 HandleChatHistory(wsReplyChan)
