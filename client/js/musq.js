@@ -232,7 +232,7 @@ var musq = function () {
     data.game.talking = false;
     data.game.showtalkhistory = false;
     data.game.talkhistory = [];
-    data.game.logicalToVisualFactor = 70.0;
+    data.game.logicalToVisualFactor = 64.0;
     data.game.hudelements = {};
     data.game.entities = {};
     data.game.colors = {};
@@ -382,13 +382,12 @@ var musq = function () {
 
     function drawGameGrid(cxt) {
         var viewPort = getLogicalViewPort();
+        var grass01 = resourceBuffer.get("tiles/grass01");
         for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
             for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
-                var rcCenter = logicalToVisual(new vecMath.vector2d(x, y));
-                var halfTile = data.game.logicalToVisualFactor * 0.5;
-                var rcTopLeft = vecMath.subtract(rcCenter, new vecMath.vector2d(halfTile, halfTile));
-                cxt.strokeStyle = "#AAAAAA";
-                cxt.strokeRect(rcTopLeft.x, rcTopLeft.y, data.game.logicalToVisualFactor, data.game.logicalToVisualFactor);
+                var uipt = logicalToVisual({ x: x, y: y });
+                // TODO: Set scale depending on data.game.logicalToVisualFactor andn image.width.
+                cxt.drawImage(grass01, uipt.x, uipt.y);
             }
         }
     }
@@ -903,6 +902,7 @@ var musq = function () {
         resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
         resourceBuffer.addSvg("hud/talkhistory", "images/hud/talkhistory.svg", "");
+        resourceBuffer.addImage("tiles/grass01", "images/tiles/surfaces/grass01.png");
     }
 
     function initializeGameHud() {
