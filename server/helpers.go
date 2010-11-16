@@ -7,6 +7,7 @@ import (
     "json"
     "os"
     "rand"
+    "path"
 )
 
 type Request struct {
@@ -94,6 +95,15 @@ func (v VisualRequest) ToJson() []byte {
     return ToJSON(v)
 }
 
+type FilesRequest struct {
+    Function string
+    Params   map[string][]string
+}
+
+func NewFilesRequest(function, listname string, list []string) FilesRequest {
+    return FilesRequest{function, map[string][]string{listname: list}}
+}
+
 func RandomColor() string {
     rand := rand.New(rand.NewSource(time.Nanoseconds()))
     r := rand.Intn(255)
@@ -116,4 +126,25 @@ func ToJSON(a interface{}) []byte {
         panic(err)
     }
     return b
+}
+
+func GetFiles(basepath, wildcard string) ([]string, os.Error) {
+    d, err := os.Open(path.Join("../client/", basepath), os.O_RDONLY, 0)
+    if err != nil {
+        return nil,err
+    }
+    var results []string
+    names, err := d.Readdirnames(-1)
+    for _, name := range names {
+        //fmt.Printf("%d, %s\n", i, name)
+        isMatch, err := path.Match(wildcard, name)
+        if err != nil {
+            return nil, err
+        }
+        if isMatch {
+            //fmt.Println("Found a match! -> ", name)
+            results = append(results, name)
+        }
+    }
+    return results, nil
 }

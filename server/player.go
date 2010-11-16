@@ -148,6 +148,8 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
                 return
             case r.Function == "chatHistory":
                 HandleChatHistory(wsReplyChan)
+            case r.Function == "getFiles":
+                HandleGetFiles(r, wsReplyChan)
             case true:
                 p.AddRequest(r)
             }
@@ -221,6 +223,16 @@ func HandleChatHistory(wsReplyChan chan<- []byte) {
     chatLines := <-histChan
     hist := ChatHistory{"chatHistory", map[string][]chatMessage{"Lines": chatLines}}
     wsReplyChan <- ToJSON(hist)
+}
+
+func HandleGetFiles(r *Request, wsReplyChan chan<- []byte) {
+    list, err := GetFiles(r.Params["BasePath"], r.Params["wildcard"])
+    if err != nil {
+        rply := NewFilesRequest("getFiles", "Images", []string{})
+        wsReplyChan <- ToJSON(rply)
+    }
+    rply := NewFilesRequest("getFiles", "Images", list)
+    wsReplyChan <- ToJSON(rply)
 }
 
 func (p *Player) Visual() VisualRequest {
