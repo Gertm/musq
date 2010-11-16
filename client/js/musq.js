@@ -386,8 +386,8 @@ var musq = function () {
         for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
             for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
                 var uipt = logicalToVisual({ x: x, y: y });
-                // TODO: Set scale depending on data.game.logicalToVisualFactor andn image.width.
-                cxt.drawImage(defaulttile, uipt.x, uipt.y);
+                // TODO: Set scale depending on data.game.logicalToVisualFactor and image.width.
+                cxt.drawImage(defaulttile, uipt.x - defaulttile.width / 2, uipt.y - defaulttile.height / 2);
             }
         }
     }
