@@ -8,6 +8,7 @@ import (
     "os"
     "rand"
     "path"
+	"strings"
 )
 
 type Request struct {
@@ -129,6 +130,11 @@ func ToJSON(a interface{}) []byte {
 }
 
 func GetFiles(basepath, wildcard string) ([]string, os.Error) {
+	// [Gert 16/11/2010] Need to 'jail' this in the client dir, so they can't
+	// read the OS files. For now, this will do:
+	if strings.Contains(basepath,"..") {
+		return nil, os.NewError("ACCESS DENIED")
+	}
     d, err := os.Open(path.Join("../client/", basepath), os.O_RDONLY, 0)
     if err != nil {
         return nil,err
