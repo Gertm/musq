@@ -382,12 +382,12 @@ var musq = function () {
 
     function drawGameGrid(cxt) {
         var viewPort = getLogicalViewPort();
-        var grass01 = resourceBuffer.get("tiles/grass01");
+        var defaulttile = resourceBuffer.get("tiles/default");
         for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
             for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
                 var uipt = logicalToVisual({ x: x, y: y });
-                // TODO: Set scale depending on data.game.logicalToVisualFactor andn image.width.
-                cxt.drawImage(grass01, uipt.x, uipt.y);
+                // TODO: Set scale depending on data.game.logicalToVisualFactor and image.width.
+                cxt.drawImage(defaulttile, uipt.x - defaulttile.width / 2, uipt.y - defaulttile.height / 2);
             }
         }
     }
@@ -902,7 +902,7 @@ var musq = function () {
         resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
         resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
         resourceBuffer.addSvg("hud/talkhistory", "images/hud/talkhistory.svg", "");
-        resourceBuffer.addImage("tiles/grass01", "images/tiles/surfaces/grass01.png");
+        resourceBuffer.addImage("tiles/default", "images/tiles/surfaces/earth01.png");
     }
 
     function initializeGameHud() {
