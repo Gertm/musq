@@ -49,6 +49,13 @@ body
     margin: 20px;
 }
 
+#logincreateaccountlink
+{
+    margin-top: 15px;
+    font-size: 0.5em;
+    font-family: 'SmackAttackBB';
+}
+
 #gamecontainer
 {
     display: none;
@@ -63,13 +70,28 @@ body
     display: none;
 }
 
+#createaccountcontainer
+{
+    display: none;
+    background-color: #ffffff;
+    margin: 10px 10px;
+    padding: 10px 10px;
+    font-size: 0.7em;
+    font-family: 'SmackAttackBB';
+}
+
+#createaccountcanvas
+{
+    float: right;
+}
+
 #footer
 {
     background-color: #000022;
     padding: 5px 0px 5px 50px;
     border-top: 1px solid #888888;
     color: #888888;
-    font-size: 0.7em;
+    font-size: 0.6em;
     font-family: 'SmackAttackBB';
 }
 

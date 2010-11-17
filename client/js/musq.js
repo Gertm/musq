@@ -240,6 +240,7 @@ var musq = function () {
     data.game.colors["scar"] = ["#8c846a", "#362a1e"];
     data.game.colors["hair"] = ["#140d00"];
     data.game.colors["eyes"] = ["#000000", "#000044"];
+    data.createaccount = {};
 
     //## image/resource buffer management ##########################################################
 
@@ -551,6 +552,7 @@ var musq = function () {
     function setStateToLogin() {
         data.login.container.style.display = "block";
         data.game.container.style.display = "none";
+        data.createaccount.container.style.display = "none";
         data.state = "login";
         data.login.username.focus();
     }
@@ -558,7 +560,16 @@ var musq = function () {
     function setStateToGame() {
         data.login.container.style.display = "none";
         data.game.container.style.display = "block";
+        data.createaccount.container.style.display = "none";
         data.state = "game";
+    }
+
+    function setStateToCreateAccount() {
+        data.login.container.style.display = "none";
+        data.game.container.style.display = "none";
+        data.createaccount.container.style.display = "block";
+        data.state = "createaccount";
+        data.createaccount.username.focus();
     }
 
     function startTalking() {
@@ -694,9 +705,16 @@ var musq = function () {
         delete data.game.entities[json.Params.Name];
     }
 
-    function handleChatHistory(json) {
+    function handleChatHistoryJson(json) {
         data.game.talkhistory = json.Params.Lines;
-        //data.game.talkhistory.reverse();
+    }
+
+    function handleCreateAccountJson(json) {
+        if (json.Params.Success === "true") {
+            setStateToLogin();
+        } else {
+            alert("Account creation failed: " + json.Params.Reason);
+        }
     }
 
     //## message handlers ##########################################################################
@@ -715,7 +733,36 @@ var musq = function () {
                });
     }
 
+    function onCreateAccountButton() {
+        if (data.createaccount.password1.value !== data.createaccount.password2.value) {
+            alert("Passwords don't match!");
+            return;
+        }
+        wsSend({
+                   "Function": "createAccount",
+                   "Params":
+                   {
+                       "Username": data.createaccount.username.value,
+                       "Password": data.createaccount.password1.value,
+                       "Email": data.createaccount.email.value,
+                       "Images":
+                       [
+                           { "Url": "images/faces/human/male/ears01.svg", "Color": data.game.colors["skin"][0] },
+                           { "Url": "images/faces/human/male/face01.svg", "Color": data.game.colors["skin"][0] },
+                           { "Url": "images/faces/human/scar01.svg", "Color": data.game.colors["scar"][0] },
+                           { "Url": "images/faces/human/male/eyes02.svg", "Color": data.game.colors["eyes"][1] },
+                           { "Url": "images/faces/human/male/mouth01.svg" },
+                           { "Url": "images/faces/human/male/nose01.svg" },
+                           { "Url": "images/faces/human/male/hair01.svg", "Color": data.game.colors["hair"][0] }
+                       ]
+                   }
+               });
+    }
+
     function onGameCanvasClick(evt) {
+        if (data.state !== "game") {
+            return;
+        }
         var offsetX = onclickOffset(evt, "X", data.game.canvas);
         var offsetY = onclickOffset(evt, "Y", data.game.canvas);
         var pt = new vecMath.vector2d(offsetX, offsetY);
@@ -830,7 +877,11 @@ var musq = function () {
             return;
         }
         if (json.Function === "chatHistory") {
-            handleChatHistory(json);
+            handleChatHistoryJson(json);
+            return;
+        }
+        if (json.Function === "createAccount") {
+            handleCreateAccountJson(json);
             return;
         }
     }
@@ -941,12 +992,23 @@ var musq = function () {
         data.game.canvas.onclick = onGameCanvasClick;
     }
 
+    function initializeCreateAccount() {
+        data.createaccount.container = document.getElementById("createaccountcontainer");
+        data.createaccount.username = document.getElementById("createaccountusername");
+        data.createaccount.button = document.getElementById("createaccountbutton");
+        data.createaccount.button.onclick = onCreateAccountButton;
+        data.createaccount.password1 = document.getElementById("createaccountpassword1");
+        data.createaccount.password2 = document.getElementById("createaccountpassword2");
+        data.createaccount.email = document.getElementById("createaccountemail");
+    }
+
     function onWindowLoad() {
         data.background = document.getElementById("background");
         data.footer = document.getElementById("footer");
         preloadResources();
         initializeLogin();
         initializeGame();
+        initializeCreateAccount();
         // [Randy 08/10/2010] REMARK: Attaching to the canvas doesn't seem to work.
         document.onkeyup = onCanvasKeyup;
         setStateToLogin();
@@ -1001,6 +1063,7 @@ var musq = function () {
     return {
         onWindowLoad: onWindowLoad,
         onWindowResize: onWindowResize,
+        setStateToCreateAccount: setStateToCreateAccount,
         testing: testing
     };
 

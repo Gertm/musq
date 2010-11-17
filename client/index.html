@@ -28,12 +28,38 @@
           <div><input type="text" id="loginusername" /></div>
           <div><input type="password" id="loginpassword" /></div>
           <div><button type="button" id="loginbutton">Login</button></div>
+          <div id="logincreateaccountlink"><a href="javascript:musq.setStateToCreateAccount();">Click here to create an account!</a></div>
         </div>
       </div>
 
       <div id="gamecontainer">
         <canvas id="gamecanvas"></canvas>
         <input type="text" id="gametalkedit" />
+      </div>
+
+      <div id="createaccountcontainer" class="rounded-corners drop-shadow">
+        <div id="createaccountcontrols">
+          <table>
+            <tr>
+              <td>Username:</td>
+              <td><input type="text" id="createaccountusername" /></td>
+            </tr>
+            <tr>
+              <td>Password:</td>
+              <td><input type="password" id="createaccountpassword1" /></td>
+            </tr>
+            <tr>
+              <td>Password (confirmation):</td>
+              <td><input type="password" id="createaccountpassword2" /></td>
+            </tr>
+            <tr>
+              <td>Email Address:</td>
+              <td><input type="text" id="createaccountemail" /></td>
+            </tr>
+          </table>
+          <button type="button" id="createaccountbutton">Create</button>
+        </div>
+        <canvas id="createaccountcanvas" width="128px" height="128px"></canvas>
       </div>
 
       <div id="footer">Copyright © 2010 Randy Voet&lt;crimson13&gt;, Gert Meulyzer&lt;@G3rtm on Twitter&gt;.</div>
