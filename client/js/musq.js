@@ -350,7 +350,7 @@ var musq = function () {
                    "Function": "getFiles",
                    "Params": {
                        "BasePath": baseurl,
-                       "Wildcard": wildcard
+                       "WildCard": wildcard
                    }
                });
     }
