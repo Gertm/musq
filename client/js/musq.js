@@ -252,6 +252,7 @@ var musq = function () {
     data.createaccount.faces.human.male = {};
     data.createaccount.faces.human.male.faces = [];
     data.createaccount.faces.human.male.ears = [];
+    data.createaccount.faces.human.male.eyes = [];
     data.createaccount.faces.human.male.hairs = [];
     data.createaccount.faces.human.male.mouths = [];
     data.createaccount.faces.human.male.noses = [];
@@ -567,7 +568,8 @@ var musq = function () {
         data.createaccount.username.focus();
         if (data.createaccount.faces.human.male.faces.length === 0) {
             requestImageUrls("images/faces/human/male/", "face*.svg", data.createaccount.faces.human.male.faces);
-            requestImageUrls("images/faces/human/male/", "ear*.svg", data.createaccount.faces.human.male.ears);
+            requestImageUrls("images/faces/human/male/", "ears*.svg", data.createaccount.faces.human.male.ears);
+            requestImageUrls("images/faces/human/male/", "eyes*.svg", data.createaccount.faces.human.male.eyes);
             requestImageUrls("images/faces/human/male/", "hair*.svg", data.createaccount.faces.human.male.hairs);
             requestImageUrls("images/faces/human/male/", "mouth*.svg", data.createaccount.faces.human.male.mouths);
             requestImageUrls("images/faces/human/male/", "nose*.svg", data.createaccount.faces.human.male.noses);
