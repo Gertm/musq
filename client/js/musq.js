@@ -241,12 +241,22 @@ var musq = function () {
     data.game.logicalToVisualFactor = 64.0;
     data.game.hudelements = {};
     data.game.entities = {};
-    data.game.colors = {};
-    data.game.colors["skin"] = ["#fff0c1", "#785d42"];
-    data.game.colors["scar"] = ["#8c846a", "#362a1e"];
-    data.game.colors["hair"] = ["#140d00"];
-    data.game.colors["eyes"] = ["#000000", "#000044"];
     data.createaccount = {};
+    data.createaccount.colors = {};
+    data.createaccount.colors["skin"] = ["#fff0c1", "#785d42"];
+    data.createaccount.colors["scar"] = ["#8c846a", "#362a1e"];
+    data.createaccount.colors["hair"] = ["#140d00"];
+    data.createaccount.colors["eyes"] = ["#000000", "#000044"];
+    data.createaccount.faces = {};
+    data.createaccount.faces.human = {};
+    data.createaccount.faces.human.male = {};
+    data.createaccount.faces.human.male.faces = [];
+    data.createaccount.faces.human.male.ears = [];
+    data.createaccount.faces.human.male.hairs = [];
+    data.createaccount.faces.human.male.mouths = [];
+    data.createaccount.faces.human.male.noses = [];
+    data.createaccount.faces.human.extra = [];
+    data.createaccount.faces.requestQueue = [];
 
     //## utilities that depend on the global data ##################################################
 
@@ -331,6 +341,17 @@ var musq = function () {
         wsSend({
                    "Function": "keepalive",
                    "Params": {}
+               });
+    }
+
+    function requestImageUrls(baseurl, wildcard, targetarray) {
+        data.createaccount.faces.requestQueue.push(targetarray);
+        wsSend({
+                   "Function": "getFiles",
+                   "Params": {
+                       "BasePath": baseurl,
+                       "WildCard": wildcard
+                   }
                });
     }
 
@@ -544,6 +565,14 @@ var musq = function () {
         data.createaccount.container.style.display = "block";
         data.state = "createaccount";
         data.createaccount.username.focus();
+        if (data.createaccount.faces.human.male.faces.length === 0) {
+            requestImageUrls("images/faces/human/", "face*.svg", data.createaccount.faces.human.male.faces);
+            requestImageUrls("images/faces/human/", "ear*.svg", data.createaccount.faces.human.male.ears);
+            requestImageUrls("images/faces/human/", "hair*.svg", data.createaccount.faces.human.male.hairs);
+            requestImageUrls("images/faces/human/", "mouth*.svg", data.createaccount.faces.human.male.mouths);
+            requestImageUrls("images/faces/human/", "nose*.svg", data.createaccount.faces.human.male.noses);
+            requestImageUrls("images/faces/", "*.svg", data.createaccount.faces.human.extra);
+        }
     }
 
     function startTalking() {
@@ -690,6 +719,18 @@ var musq = function () {
         }
     }
 
+    function handleGetFilesJson(json) {
+        if (data.createaccount.faces.requestQueue.length === 0) {
+            log("Received unexpected getFiles.");
+            return;
+        }
+        var array = data.createaccount.faces.requestQueue[0];
+        for (url in json.Params.Images) {
+            array.push(url);
+        }
+        data.createaccount.faces.requestQueue = data.createaccount.faces.requestQueue.slice(1);
+    }
+
     //## message handlers ##########################################################################
 
     function onLoginButton() {
@@ -720,13 +761,13 @@ var musq = function () {
                        "Email": data.createaccount.email.value,
                        "Images":
                        [
-                           { "Url": "images/faces/human/male/ears01.svg", "Color": data.game.colors["skin"][0] },
-                           { "Url": "images/faces/human/male/face01.svg", "Color": data.game.colors["skin"][0] },
-                           { "Url": "images/faces/human/scar01.svg", "Color": data.game.colors["scar"][0] },
-                           { "Url": "images/faces/human/male/eyes02.svg", "Color": data.game.colors["eyes"][1] },
+                           { "Url": "images/faces/human/male/ears01.svg", "Color": data.createaccount.colors["skin"][0] },
+                           { "Url": "images/faces/human/male/face01.svg", "Color": data.createaccount.colors["skin"][0] },
+                           { "Url": "images/faces/human/scar01.svg", "Color": data.createaccount.colors["scar"][0] },
+                           { "Url": "images/faces/human/male/eyes02.svg", "Color": data.createaccount.colors["eyes"][1] },
                            { "Url": "images/faces/human/male/mouth01.svg" },
                            { "Url": "images/faces/human/male/nose01.svg" },
-                           { "Url": "images/faces/human/male/hair01.svg", "Color": data.game.colors["hair"][0] }
+                           { "Url": "images/faces/human/male/hair01.svg", "Color": data.createaccount.colors["hair"][0] }
                        ]
                    }
                });
@@ -855,6 +896,10 @@ var musq = function () {
         }
         if (json.Function === "createAccount") {
             handleCreateAccountJson(json);
+            return;
+        }
+        if (json.Function === "getFiles") {
+            handleGetFilesJson(json);
             return;
         }
     }
