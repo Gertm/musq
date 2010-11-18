@@ -97,6 +97,12 @@ var musq = function () {
         a.reverse();
     }
 
+    function loadImage(url) {
+        var image = new Image();
+        image.src = url;
+        return image;
+    }
+
     function log(txt) {
         if (console.log)
             console.log("MUSQ: " + txt);
@@ -242,69 +248,39 @@ var musq = function () {
     data.game.colors["eyes"] = ["#000000", "#000044"];
     data.createaccount = {};
 
-    //## image/resource buffer management ##########################################################
-
-    var resourceBuffer = function () {
-
-        var container = {};
-
-        function addImage(key, url) {
-            var image = new Image();
-            image.src = url;
-            container[key] = image;
-        }
-
-        function addSvgs(key, urlsAndColors) {
-            var canvas = document.getElementById("svg2pngcanvas");
-            var cxt = canvas.getContext("2d");
-            cxt.clearRect(0, 0, canvas.width, canvas.height);
-            urlsAndColors.forEach(function (e, index, array) {
-                                      var xmlHttp = new XMLHttpRequest();
-                                      if (xmlHttp.overrideMimeType) {
-                                          xmlHttp.overrideMimeType('text/xml');
-                                      }
-                                      xmlHttp.onreadystatechange = function () {
-                                          if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-                                              var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
-                                              var width = parseInt(svg.getAttribute("width"), 10);
-                                              var height = parseInt(svg.getAttribute("height"), 10);
-                                              if (canvas.width !== width || canvas.height !== height) {
-                                                  canvas.setAttribute("width", toPx(width));
-                                                  canvas.setAttribute("height", toPx(height));
-                                              }
-                                              var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
-                                              cxt.drawSvg(svgTxt, 0, 0);
-                                          }
-                                      };
-                                      xmlHttp.open("GET", e.Url, false);
-                                      xmlHttp.send();
-                                  });
-            addImage(key, canvas.toDataURL());
-        }
-
-        function addSvg(key, url, color) {
-            addSvgs(key, [{"Url": url, "Color": color}]);
-        }
-
-        function remove(key) {
-            container[key] = undefined;
-        }
-
-        function get(key) {
-            return container[key];
-        }
-
-        return {
-            addImage: addImage,
-            addSvg: addSvg,
-            addSvgs: addSvgs,
-            remove: remove,
-            get: get
-        };
-
-    } ();
-
     //## utilities that depend on the global data ##################################################
+
+    function convertSvgs(urlsAndColors) {
+        var canvas = document.getElementById("svg2pngcanvas");
+        var cxt = canvas.getContext("2d");
+        cxt.clearRect(0, 0, canvas.width, canvas.height);
+        urlsAndColors.forEach(function (e, index, array) {
+                                  var xmlHttp = new XMLHttpRequest();
+                                  if (xmlHttp.overrideMimeType) {
+                                      xmlHttp.overrideMimeType('text/xml');
+                                  }
+                                  xmlHttp.onreadystatechange = function () {
+                                      if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+                                          var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
+                                          var width = parseInt(svg.getAttribute("width"), 10);
+                                          var height = parseInt(svg.getAttribute("height"), 10);
+                                          if (canvas.width !== width || canvas.height !== height) {
+                                              canvas.setAttribute("width", toPx(width));
+                                              canvas.setAttribute("height", toPx(height));
+                                          }
+                                          var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
+                                          cxt.drawSvg(svgTxt, 0, 0);
+                                      }
+                                  };
+                                  xmlHttp.open("GET", e.Url, false);
+                                  xmlHttp.send();
+                              });
+        return loadImage(canvas.toDataURL());
+    }
+
+    function convertSvg(url, color) {
+        return convertSvgs([{"Url": url, "Color": color}]);
+    }
 
     function logicalToVisual(xy) {
         var viewPortCenter = data.game.viewPortCenter.curr;
@@ -327,23 +303,22 @@ var musq = function () {
         };
     }
 
-    function drawImageAroundUi(cxt, key, pt) {
-        var image = resourceBuffer.get(key);
+    function drawImageAroundUi(cxt, image, pt) {
         var width = image.width;
         var height = image.height;
         cxt.drawImage(image, pt.x - width / 2, pt.y - height / 2);
     }
 
-    function drawImageAroundLogic(cxt, key, pt) {
-        drawImageAroundUi(cxt, key, logicalToVisual(pt));
+    function drawImageAroundLogic(cxt, image, pt) {
+        drawImageAroundUi(cxt, image, logicalToVisual(pt));
     }
 
-    function drawImageAtUi(cxt, key, pt) {
-        cxt.drawImage(resourceBuffer.get(key), pt.x, pt.y);
+    function drawImageAtUi(cxt, image, pt) {
+        cxt.drawImage(image, pt.x, pt.y);
     }
 
-    function drawImageAtLogic(cxt, key, pt) {
-        drawImageAtUi(cxt, key, logicalToVisual(pt));
+    function drawImageAtLogic(cxt, image, pt) {
+        drawImageAtUi(cxt, image, logicalToVisual(pt));
     }
 
     function wsSend(obj) {
@@ -368,7 +343,7 @@ var musq = function () {
         var cxt = data.login.canvas.getContext("2d");
         cxt.save();
         cxt.clearRect(0, 0, data.login.canvas.width, data.login.canvas.height);
-        var image = resourceBuffer.get("login/logo");
+        var image = data.login.logo;
         var newWidth = image.width * data.login.scaleFactor;
         cxt.translate((image.width - newWidth) / 2.0, 0.0);
         cxt.scale(data.login.scaleFactor, 1.0);
@@ -383,12 +358,11 @@ var musq = function () {
 
     function drawGameGrid(cxt) {
         var viewPort = getLogicalViewPort();
-        var defaulttile = resourceBuffer.get("tiles/default");
         for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
             for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
                 var uipt = logicalToVisual({ x: x, y: y });
                 // TODO: Set scale depending on data.game.logicalToVisualFactor and image.width.
-                cxt.drawImage(defaulttile, uipt.x - defaulttile.width / 2, uipt.y - defaulttile.height / 2);
+                cxt.drawImage(data.game.defaulttile, uipt.x - data.game.defaulttile.width / 2, uipt.y - data.game.defaulttile.height / 2);
             }
         }
     }
@@ -453,8 +427,8 @@ var musq = function () {
     function drawGameEntities(cxt) {
         for (eI in data.game.entities) {
             var e = data.game.entities[eI];
-            if (e.imageKey) {
-                drawImageAroundLogic(cxt, e.imageKey, e.moveAnimation.curr);
+            if (e.image) {
+                drawImageAroundLogic(cxt, e.image, e.moveAnimation.curr);
             }
             if (e.messages.length !== 0) {
                 drawTalk(cxt, e.moveAnimation.curr, e.messages[0]);
@@ -660,8 +634,7 @@ var musq = function () {
 
     function handleVisualJson(json) {
         var player = new gameEntity();
-        player.imageKey = "entities/" + json.Params.Name;
-        resourceBuffer.addSvgs(player.imageKey, json.Params.Images);
+        player.image = convertSvgs(json.Params.Images);
         data.game.entities[json.Params.Name] = player;
     }
 
@@ -949,17 +922,10 @@ var musq = function () {
 
     //## initialization ############################################################################
 
-    function preloadResources() {
-        resourceBuffer.addSvg("login/logo", "images/logo.svg", "");
-        resourceBuffer.addSvg("hud/talk", "images/hud/talk.svg", "");
-        resourceBuffer.addSvg("hud/talkhistory", "images/hud/talkhistory.svg", "");
-        resourceBuffer.addImage("tiles/default", "images/tiles/surfaces/earth01.png");
-    }
-
     function initializeGameHud() {
-        data.game.hudelements.talk = new gameHudImageElement(resourceBuffer.get("hud/talk"));
+        data.game.hudelements.talk = new gameHudImageElement(convertSvg("images/hud/talk.svg", ""));
         data.game.hudelements.talk.onClick = onGameHudTalkClick;
-        data.game.hudelements.talkhistory = new gameHudImageElement(resourceBuffer.get("hud/talkhistory"));
+        data.game.hudelements.talkhistory = new gameHudImageElement(convertSvg("images/hud/talkhistory.svg", ""));
         data.game.hudelements.talkhistory.onClick = onGameHudTalkHistoryClick;
     }
 
@@ -978,6 +944,7 @@ var musq = function () {
         data.login.password = document.getElementById("loginpassword");
         data.login.button = document.getElementById("loginbutton");
         data.login.button.onclick = onLoginButton;
+        data.login.logo = convertSvg("images/logo.svg", "");
         setInterval(updateLoginAnimation, 30);
         setInterval(drawLoginCanvas, 30);
     }
@@ -986,6 +953,7 @@ var musq = function () {
         data.game.container = document.getElementById("gamecontainer");
         data.game.canvas = document.getElementById("gamecanvas");
         data.game.talkedit = document.getElementById("gametalkedit");
+        data.game.defaulttile = loadImage("images/tiles/surfaces/earth01.png");
         initializeGameHud();
         setInterval(updateGameUiData, 1000 / data.game.fps);
         setInterval(drawGameCanvas, 1000 / data.game.fps);
@@ -1005,7 +973,6 @@ var musq = function () {
     function onWindowLoad() {
         data.background = document.getElementById("background");
         data.footer = document.getElementById("footer");
-        preloadResources();
         initializeLogin();
         initializeGame();
         initializeCreateAccount();
