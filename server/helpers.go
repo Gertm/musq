@@ -42,7 +42,7 @@ func getRequestFromJSON(bson []byte) (*Request, os.Error) {
     var req = new(Request)
     err := json.Unmarshal(bson, req)
     if err != nil {
-        fmt.Println(err)
+        fmt.Printf("RAW JSON: %s\n",bson)
         fmt.Println("Woops! That wasn't a valid JSON string!")
     }
     return req, err
@@ -135,8 +135,10 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
     if strings.Contains(basepath, "..") {
         return nil, os.NewError("ACCESS DENIED")
     }
+	fmt.Printf("opening dir: %s\n",path.Join("../client/",basepath))
     d, err := os.Open(path.Join("../client/", basepath), os.O_RDONLY, 0)
     if err != nil {
+		fmt.Println("cannot open directory!")
         return nil, err
     }
     var results []string
@@ -149,7 +151,7 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
         }
         if isMatch {
             //fmt.Println("Found a match! -> ", name)
-            results = append(results, name)
+            results = append(results, basepath + name)
         }
     }
     return results, nil

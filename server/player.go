@@ -226,7 +226,7 @@ func HandleChatHistory(wsReplyChan chan<- []byte) {
 }
 
 func HandleGetFiles(r *Request, wsReplyChan chan<- []byte) {
-    list, err := GetFiles(r.Params["BasePath"], r.Params["wildcard"])
+    list, err := GetFiles(r.Params["BasePath"], r.Params["WildCard"])
     if err != nil {
         rply := NewFilesRequest("getFiles", "Images", []string{err.String()})
         wsReplyChan <- ToJSON(rply)
