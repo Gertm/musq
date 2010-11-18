@@ -43,7 +43,7 @@ func getRequestFromJSON(bson []byte) (*Request, os.Error) {
     err := json.Unmarshal(bson, req)
     if err != nil {
         fmt.Printf("RAW JSON: %s\n",bson)
-        fmt.Println("Woops! That wasn't a valid JSON string!")
+        fmt.Println("Wasn't a valid JSON Request string!")
     }
     return req, err
 }
@@ -155,4 +155,8 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
         }
     }
     return results, nil
+}
+
+func FigureOutJSON(b []byte) {
+	
 }
