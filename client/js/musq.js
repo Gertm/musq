@@ -103,6 +103,19 @@ var musq = function () {
         return image;
     }
 
+    function drawIfExists(cxt, image, x, y) {
+        if (image) {
+            cxt.drawImage(image, x, y);
+        }
+    }
+
+    function randomElement(array) {
+        if (array.length === 0) {
+            return undefined;
+        }
+        return array[Math.round(Math.random() * (array.length - 1))];
+    }
+
     function log(txt) {
         if (console.log)
             console.log("MUSQ: " + txt);
@@ -242,21 +255,28 @@ var musq = function () {
     data.game.hudelements = {};
     data.game.entities = {};
     data.createaccount = {};
-    data.createaccount.colors = {};
-    data.createaccount.colors["skin"] = ["#fff0c1", "#785d42"];
-    data.createaccount.colors["scar"] = ["#8c846a", "#362a1e"];
-    data.createaccount.colors["hair"] = ["#140d00"];
-    data.createaccount.colors["eyes"] = ["#000000", "#000044"];
     data.createaccount.faces = {};
+    data.createaccount.faces.buffers = [];
     data.createaccount.faces.human = {};
     data.createaccount.faces.human.male = {};
-    data.createaccount.faces.human.male.faces = [];
-    data.createaccount.faces.human.male.ears = [];
-    data.createaccount.faces.human.male.eyes = [];
-    data.createaccount.faces.human.male.hairs = [];
-    data.createaccount.faces.human.male.mouths = [];
-    data.createaccount.faces.human.male.noses = [];
-    data.createaccount.faces.human.extra = [];
+    data.createaccount.faces.human.male.ears = {};
+    data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.ears);
+    data.createaccount.faces.human.male.ears.colors = ["#fff0c1", "#785d42"];
+    data.createaccount.faces.human.male.faces = {};
+    data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.faces);
+    data.createaccount.faces.human.male.faces.colors = ["#fff0c1", "#785d42"];
+    data.createaccount.faces.human.male.eyes = {};
+    data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.eyes);
+    data.createaccount.faces.human.male.eyes.colors = ["#000000", "#000044"];
+    data.createaccount.faces.human.male.hairs = {};
+    data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.hairs);
+    data.createaccount.faces.human.male.hairs.colors = ["#140d00"];
+    data.createaccount.faces.human.male.mouths = {};
+    data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.mouths);
+    data.createaccount.faces.human.male.mouths.colors = [];
+    data.createaccount.faces.human.male.noses = {};
+    data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.noses);
+    data.createaccount.faces.human.male.noses.colors = [];
     data.createaccount.faces.requestQueue = [];
 
     //## utilities that depend on the global data ##################################################
@@ -356,6 +376,13 @@ var musq = function () {
                });
     }
 
+    function toVisualPart(buffer) {
+        if (buffer.color) {
+            return { "Url": buffer.url, "Color": buffer.color };
+        }
+        return { "Url": buffer.url };
+    }
+
     //## drawing ###################################################################################
 
     function drawLoginCanvas() {
@@ -447,7 +474,7 @@ var musq = function () {
     }
 
     function drawGameEntities(cxt) {
-        for (eI in data.game.entities) {
+        for (var eI in data.game.entities) {
             var e = data.game.entities[eI];
             if (e.image) {
                 drawImageAroundLogic(cxt, e.image, e.moveAnimation.curr);
@@ -491,7 +518,7 @@ var musq = function () {
     }
 
     function drawGameHud(cxt) {
-        for (eI in data.game.hudelements) {
+        for (var eI in data.game.hudelements) {
             var e = data.game.hudelements[eI];
             e.draw(cxt);
         }
@@ -508,6 +535,22 @@ var musq = function () {
         drawGameMoveTarget(cxt);
         drawGameEntities(cxt);
         drawGameHud(cxt);
+    }
+
+    function drawCreateAccountCanvas() {
+        if (data.state !== "createaccount") {
+            return;
+        }
+        var canvas = data.createaccount.canvas;
+        var cxt = canvas.getContext("2d");
+        cxt.save();
+        cxt.clearRect(0, 0, canvas.width, canvas.height);
+        cxt.fillStyle = "#ff0000";
+        for (var bufferI in data.createaccount.faces.buffers) {
+            var buffer = data.createaccount.faces.buffers[bufferI];
+            drawIfExists(cxt, buffer.image, 0, 0);            
+        }
+        cxt.restore();
     }
 
     //## updating ##################################################################################
@@ -536,7 +579,7 @@ var musq = function () {
         var newUpdateTime = now();
         var timeDiffInMs = newUpdateTime - data.game.lastUpdateTime;
         data.game.viewPortCenter.update(timeDiffInMs);
-        for (eI in data.game.entities) {
+        for (var eI in data.game.entities) {
             var e = data.game.entities[eI];
             e.moveAnimation.update(timeDiffInMs);
         }
@@ -566,14 +609,13 @@ var musq = function () {
         data.createaccount.container.style.display = "block";
         data.state = "createaccount";
         data.createaccount.username.focus();
-        if (data.createaccount.faces.human.male.faces.length === 0) {
+        if (!data.createaccount.faces.human.male.faces.urls) {
             requestImageUrls("images/faces/human/male/", "face*.svg", data.createaccount.faces.human.male.faces);
             requestImageUrls("images/faces/human/male/", "ears*.svg", data.createaccount.faces.human.male.ears);
             requestImageUrls("images/faces/human/male/", "eyes*.svg", data.createaccount.faces.human.male.eyes);
             requestImageUrls("images/faces/human/male/", "hair*.svg", data.createaccount.faces.human.male.hairs);
             requestImageUrls("images/faces/human/male/", "mouth*.svg", data.createaccount.faces.human.male.mouths);
             requestImageUrls("images/faces/human/male/", "nose*.svg", data.createaccount.faces.human.male.noses);
-            requestImageUrls("images/faces/human/", "*.svg", data.createaccount.faces.human.extra);
         }
     }
 
@@ -726,10 +768,11 @@ var musq = function () {
             log("Received unexpected getFiles.");
             return;
         }
-        var array = data.createaccount.faces.requestQueue[0];
-        for (url in json.Params.Images) {
-            array.push(url);
-        }
+        var buffer = data.createaccount.faces.requestQueue[0];
+        buffer.urls = json.Params.Images;
+        buffer.url = randomElement(buffer.urls);
+        buffer.color = randomElement(buffer.colors);
+        buffer.image = convertSvg(buffer.url, buffer.color);
         data.createaccount.faces.requestQueue = data.createaccount.faces.requestQueue.slice(1);
     }
 
@@ -761,16 +804,7 @@ var musq = function () {
                        "Username": data.createaccount.username.value,
                        "Password": data.createaccount.password1.value,
                        "Email": data.createaccount.email.value,
-                       "Images":
-                       [
-                           { "Url": "images/faces/human/male/ears01.svg", "Color": data.createaccount.colors["skin"][0] },
-                           { "Url": "images/faces/human/male/face01.svg", "Color": data.createaccount.colors["skin"][0] },
-                           { "Url": "images/faces/human/scar01.svg", "Color": data.createaccount.colors["scar"][0] },
-                           { "Url": "images/faces/human/male/eyes02.svg", "Color": data.createaccount.colors["eyes"][1] },
-                           { "Url": "images/faces/human/male/mouth01.svg" },
-                           { "Url": "images/faces/human/male/nose01.svg" },
-                           { "Url": "images/faces/human/male/hair01.svg", "Color": data.createaccount.colors["hair"][0] }
-                       ]
+                       "Images": data.createaccount.faces.buffers.map(toVisualPart)
                    }
                });
     }
@@ -782,7 +816,7 @@ var musq = function () {
         var offsetX = onclickOffset(evt, "X", data.game.canvas);
         var offsetY = onclickOffset(evt, "Y", data.game.canvas);
         var pt = new vecMath.vector2d(offsetX, offsetY);
-        for (eI in data.game.hudelements) {
+        for (var eI in data.game.hudelements) {
             var e = data.game.hudelements[eI];
             if (e.onMouseClick(pt)) {
                 return;
@@ -1015,6 +1049,8 @@ var musq = function () {
         data.createaccount.password1 = document.getElementById("createaccountpassword1");
         data.createaccount.password2 = document.getElementById("createaccountpassword2");
         data.createaccount.email = document.getElementById("createaccountemail");
+        data.createaccount.canvas = document.getElementById("createaccountcanvas");
+        setInterval(drawCreateAccountCanvas, 500);
     }
 
     function onWindowLoad() {
