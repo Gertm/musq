@@ -44,12 +44,7 @@ function setStateToCreateAccount() {
     data.state = "createaccount";
     createaccount.username.focus();
     if (!createaccount.faces.human.male.faces.urls) {
-        requestImageUrls("images/faces/human/male/", "face*.svg", createaccount.faces.human.male.faces);
-        requestImageUrls("images/faces/human/male/", "ears*.svg", createaccount.faces.human.male.ears);
-        requestImageUrls("images/faces/human/male/", "eyes*.svg", createaccount.faces.human.male.eyes);
-        requestImageUrls("images/faces/human/male/", "hair*.svg", createaccount.faces.human.male.hairs);
-        requestImageUrls("images/faces/human/male/", "mouth*.svg", createaccount.faces.human.male.mouths);
-        requestImageUrls("images/faces/human/male/", "nose*.svg", createaccount.faces.human.male.noses);
+        createAccountInitializeImages();
     }
 }
 

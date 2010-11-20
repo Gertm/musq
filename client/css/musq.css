@@ -80,6 +80,11 @@ body
     font-family: 'SmackAttackBB';
 }
 
+#createaccountcontent
+{
+    margin: 0px auto;
+}
+
 #createaccountcanvas
 {
 }

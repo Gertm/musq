@@ -58,13 +58,6 @@ function ptInRc(rc, pt) {
     return true;
 }
 
-function inherit(instance, baseConstructor) {
-    var base = new baseConstructor();
-    for (var member in base) {
-        instance[member] = base[member];
-    }
-}
-
 function now() {
     return (new Date()).getTime();
 }

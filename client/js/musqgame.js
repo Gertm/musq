@@ -54,7 +54,6 @@ function gameHudElement() {
 }
 
 function gameHudImageElement(image) {
-    inherit(this, gameHudElement);
     this.width = image.width;
     this.height = image.height;
     this.draw = function (cxt) {
@@ -65,6 +64,7 @@ function gameHudImageElement(image) {
         this.height = image.height;
     };
 }
+gameHudImageElement.prototype = new gameHudElement();
 
 //## canvas elements ###########################################################################
 

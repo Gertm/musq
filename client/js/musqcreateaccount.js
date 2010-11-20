@@ -14,15 +14,24 @@ createaccount.faces.human.male.faces.colors = ["#fff0c1", "#785d42"];
 createaccount.faces.human.male.eyes = {};
 createaccount.faces.buffers.push(createaccount.faces.human.male.eyes);
 createaccount.faces.human.male.eyes.colors = ["#000000", "#000044"];
-createaccount.faces.human.male.hairs = {};
-createaccount.faces.buffers.push(createaccount.faces.human.male.hairs);
-createaccount.faces.human.male.hairs.colors = ["#140d00"];
 createaccount.faces.human.male.mouths = {};
 createaccount.faces.buffers.push(createaccount.faces.human.male.mouths);
 createaccount.faces.human.male.mouths.colors = [];
 createaccount.faces.human.male.noses = {};
 createaccount.faces.buffers.push(createaccount.faces.human.male.noses);
 createaccount.faces.human.male.noses.colors = [];
+createaccount.faces.human.scars = {};
+createaccount.faces.human.scars.urls = [undefined];
+createaccount.faces.buffers.push(createaccount.faces.human.scars);
+createaccount.faces.human.scars.colors = ["#8c846a", "#362a1e"];
+createaccount.faces.human.glasses = {};
+createaccount.faces.human.glasses.urls = [undefined];
+createaccount.faces.buffers.push(createaccount.faces.human.glasses);
+createaccount.faces.human.glasses.colors = [];
+createaccount.faces.human.male.hairs = {};
+createaccount.faces.human.male.hairs.urls = [undefined];
+createaccount.faces.buffers.push(createaccount.faces.human.male.hairs);
+createaccount.faces.human.male.hairs.colors = ["#140d00"];
 createaccount.faces.requestQueue = [];
 
 //## utilities that depend on the global data ##################################################
@@ -73,16 +82,37 @@ function handleCreateAccountJson(json) {
     }
 }
 
+function createAccountAddVisualControlSlider() {
+    //createaccount.visualcontrols
+}
+
+function createAccountVisualRandomHelper(buffer) {
+    if (buffer.urls) {
+        buffer.url = randomElement(buffer.urls);
+    } else {
+        delete buffer.url;
+    }
+    if (buffer.colors) {
+        buffer.color = randomElement(buffer.colors);
+    } else {
+        delete buffer.color;
+    }
+    if (buffer.url) {
+        buffer.image = convertSvg(buffer.url, buffer.color);
+    }    
+}
+
 function handleGetFilesJson(json) {
     if (createaccount.faces.requestQueue.length === 0) {
         log("Received unexpected getFiles.");
         return;
     }
     var buffer = createaccount.faces.requestQueue[0];
-    buffer.urls = json.Params.Images;
-    buffer.url = randomElement(buffer.urls);
-    buffer.color = randomElement(buffer.colors);
-    buffer.image = convertSvg(buffer.url, buffer.color);
+    if (!buffer.urls) {
+        buffer.urls = [];
+    }
+    buffer.urls = buffer.urls.concat(json.Params.Images);
+    createAccountVisualRandomHelper(buffer);
     createaccount.faces.requestQueue = createaccount.faces.requestQueue.slice(1);
 }
 
@@ -93,16 +123,23 @@ function onCreateAccountButton() {
         alert("Passwords don't match!");
         return;
     }
+    var validpart = function (buffer) { return buffer.url; };
     wsSend({
                "Function": "createAccount",
-               "Params":
-               {
+               "Params": {
                    "Username": createaccount.username.value,
                    "Password": createaccount.password1.value,
                    "Email": createaccount.email.value,
-                   "Images": createaccount.faces.buffers.map(toVisualPart)
+                   "Images": createaccount.faces.buffers.filter(validpart).map(toVisualPart)
                }
            });
+}
+
+function onCreateAccountVisualRandom() {
+    for (var bufferI in createaccount.faces.buffers) {
+        var buffer = createaccount.faces.buffers[bufferI];
+        createAccountVisualRandomHelper(buffer);
+    }    
 }
 
 //## initialization ############################################################################
@@ -116,5 +153,18 @@ function initializeCreateAccount() {
     createaccount.password2 = document.getElementById("createaccountpassword2");
     createaccount.email = document.getElementById("createaccountemail");
     createaccount.canvas = document.getElementById("createaccountcanvas");
+    createaccount.visualcontrols = document.getElementById("createaccountvisualcontrols");
+    document.getElementById("createaccountvisualrandom").onclick = onCreateAccountVisualRandom;
     setInterval(drawCreateAccountCanvas, 500);
+}
+
+function createAccountInitializeImages() {
+    requestImageUrls("images/faces/human/male/", "face*.svg", createaccount.faces.human.male.faces);
+    requestImageUrls("images/faces/human/male/", "ears*.svg", createaccount.faces.human.male.ears);
+    requestImageUrls("images/faces/human/male/", "eyes*.svg", createaccount.faces.human.male.eyes);
+    requestImageUrls("images/faces/human/male/", "hair*.svg", createaccount.faces.human.male.hairs);
+    requestImageUrls("images/faces/human/male/", "mouth*.svg", createaccount.faces.human.male.mouths);
+    requestImageUrls("images/faces/human/male/", "nose*.svg", createaccount.faces.human.male.noses);
+    requestImageUrls("images/faces/human/", "scar*.svg", createaccount.faces.human.scars);
+    requestImageUrls("images/faces/human/", "glasses*.svg", createaccount.faces.human.glasses);
 }
