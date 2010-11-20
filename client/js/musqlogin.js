@@ -108,7 +108,7 @@ function initializeLogin() {
     login.password = document.getElementById("loginpassword");
     login.button = document.getElementById("loginbutton");
     login.button.onclick = onLoginButton;
-    login.logo = convertSvg("images/logo.svg", "");
+    login.logo = convertSvg("images/logo.svg");
     setInterval(updateLoginAnimation, 30);
     setInterval(drawLoginCanvas, 30);
 }

@@ -492,9 +492,9 @@ function layoutGameHud() {
 //## initialization ############################################################################
 
 function initializeGameHud() {
-    game.hudelements.talk = new gameHudImageElement(convertSvg("images/hud/talk.svg", ""));
+    game.hudelements.talk = new gameHudImageElement(convertSvg("images/hud/talk.svg"));
     game.hudelements.talk.onClick = onGameHudTalkClick;
-    game.hudelements.talkhistory = new gameHudImageElement(convertSvg("images/hud/talkhistory.svg", ""));
+    game.hudelements.talkhistory = new gameHudImageElement(convertSvg("images/hud/talkhistory.svg"));
     game.hudelements.talkhistory.onClick = onGameHudTalkHistoryClick;
 }
 

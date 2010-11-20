@@ -112,10 +112,9 @@ function log(txt) {
         console.log("MUSQ: " + txt);
 }
 
-function convertSvgs(urlsAndColors) {
+function convertSvgs(urlsAndColors, scale) {
     var canvas = document.getElementById("svg2pngcanvas");
     var cxt = canvas.getContext("2d");
-    cxt.clearRect(0, 0, canvas.width, canvas.height);
     urlsAndColors.forEach(function (e, index, array) {
                               var xmlHttp = new XMLHttpRequest();
                               if (xmlHttp.overrideMimeType) {
@@ -125,10 +124,21 @@ function convertSvgs(urlsAndColors) {
                                   if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
                                       var svg = xmlHttp.responseXML.getElementsByTagName("svg")[0];
                                       var width = parseInt(svg.getAttribute("width"), 10);
+                                      if (scale) {
+                                          width *= scale;
+                                      }
                                       var height = parseInt(svg.getAttribute("height"), 10);
-                                      if (canvas.width !== width || canvas.height !== height) {
+                                      if (scale) {
+                                          height *= scale;
+                                      }
+                                      if (index === 0) {
                                           canvas.setAttribute("width", toPx(width));
                                           canvas.setAttribute("height", toPx(height));
+                                          cxt.clearRect(0, 0, width, height);
+                                          cxt.save();
+                                          if (scale) {
+                                              cxt.scale(scale, scale);
+                                          }
                                       }
                                       var svgTxt = e.Color ? xmlHttp.responseText.replaceAll("#badf0d", e.Color) : xmlHttp.responseText;
                                       cxt.drawSvg(svgTxt, 0, 0);
@@ -137,11 +147,13 @@ function convertSvgs(urlsAndColors) {
                               xmlHttp.open("GET", e.Url, false);
                               xmlHttp.send();
                           });
-    return loadImage(canvas.toDataURL());
+    var image = loadImage(canvas.toDataURL());
+    cxt.restore();
+    return image;
 }
 
-function convertSvg(url, color) {
-    return convertSvgs([{"Url": url, "Color": color}]);
+function convertSvg(url, color, scale) {
+    return convertSvgs([{"Url": url, "Color": color}], scale);
 }
 
 //## 2D vector math utilities ##################################################################

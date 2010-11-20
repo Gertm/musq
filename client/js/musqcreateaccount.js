@@ -87,6 +87,7 @@ function createAccountAddVisualControlSlider() {
 }
 
 function createAccountVisualRandomHelper(buffer) {
+    var canvas = createaccount.canvas;
     if (buffer.urls) {
         buffer.url = randomElement(buffer.urls);
     } else {
@@ -98,7 +99,7 @@ function createAccountVisualRandomHelper(buffer) {
         delete buffer.color;
     }
     if (buffer.url) {
-        buffer.image = convertSvg(buffer.url, buffer.color);
+        buffer.image = convertSvg(buffer.url, buffer.color, 2.0);
     }    
 }
 
