@@ -237,12 +237,12 @@ function drawTalkHistory(cxt) {
         yoffset = ylimitmax - textfullheight;
     }
     game.talkhistory.forEach(function (e, ei, a) {
-                                      cxt.fillStyle = "#ffffff";
-                                      if (yoffset >= ylimitmin) {
-                                          cxt.fillText(e.From + ": " + e.Msg, rc.x + 10, yoffset);
-                                      }
-                                      yoffset += textfulllineheight;
-                                  });
+                                 cxt.fillStyle = "#ffffff";
+                                 if (yoffset >= ylimitmin) {
+                                     cxt.fillText(e.From + ": " + e.Msg, rc.x + 10, yoffset);
+                                 }
+                                 yoffset += textfulllineheight;
+                             });
     cxt.restore();
 }
 
@@ -436,6 +436,28 @@ function onGameHudTalkClick() {
 
 function onGameHudTalkHistoryClick() {
     swapShowTalkHistory();
+}
+
+function onGameKeyUp(keyunicode) {
+    if (keyunicode == 72 /* h */) {
+        if (!game.talking) {
+            swapShowTalkHistory();
+        }
+        return;
+    }
+    if (keyunicode == 84 /* t */) {
+        if (!game.talking) {
+            startTalking();
+        }
+        return;
+    }
+    if (keyunicode == 13 /* enter */) {
+        if (game.talking) {
+            sendTalkMessage();
+            stopTalking();
+        }
+        return;
+    }
 }
 
 //## page layout ###############################################################################

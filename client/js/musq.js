@@ -59,32 +59,11 @@ function onCanvasKeyup(evt) {
     var keyunicode = onkeyKey(evt);
     //alert(keyunicode);
     if (data.state === "login") {
-        if (keyunicode == 13 /* enter */) {
-            onLoginButton();
-            return;
-        }
+        onLoginKeyUp(keyunicode);
         return;
     }
     if (data.state === "game") {
-        if (keyunicode == 72 /* h */) {
-            if (!game.talking) {
-                swapShowTalkHistory();
-            }
-            return;
-        }
-        if (keyunicode == 84 /* t */) {
-            if (!game.talking) {
-                startTalking();
-            }
-            return;
-        }
-        if (keyunicode == 13 /* enter */) {
-            if (game.talking) {
-                sendTalkMessage();
-                stopTalking();
-            }
-            return;
-        }
+        onGameKeyUp(keyunicode);
         return;
     }
 }

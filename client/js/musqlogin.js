@@ -78,6 +78,13 @@ function onLoginButton() {
            });
 }
 
+function onLoginKeyUp(keyunicode) {
+    if (keyunicode == 13 /* enter */) {
+        onLoginButton();
+        return;
+    }
+}
+
 //## page layout ###############################################################################
 
 function positionLogin() {
