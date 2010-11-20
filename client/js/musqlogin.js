@@ -54,7 +54,7 @@ function handleLoginJson(json) {
         data.playerName = login.username.value;
         login.username.style.backgroundColor = "#FFFFFF";
         login.password.style.backgroundColor = "#FFFFFF";
-        data.game.entities = {};
+        game.entities = {};
         setStateToGame();
         requestTalkHistory();
     } else {
