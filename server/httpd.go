@@ -62,6 +62,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 			return
 		}
 		fmt.Printf("<= %s\n", buf[0:n])
+		determineRequestType(buf[0:n])
 		wsChan <- buf[0:n]
 	}
 }

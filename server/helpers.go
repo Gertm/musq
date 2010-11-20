@@ -9,12 +9,14 @@ import (
     "rand"
     "path"
     "strings"
+    "bytes"
 )
 
 type Request struct {
     Function string
     Params   map[string]string
 }
+
 
 func (r Request) ToJson() []byte {
     b, err := json.Marshal(r)
@@ -38,11 +40,27 @@ func MarshalAndSendRequest(r interface{}, RplyChan chan<- []byte) bool {
     return ok
 }
 
+func determineRequestType(bson []byte) (interface{}, os.Error) {
+    b := bytes.SplitAfter(bson, []byte{44}, 2)[0]
+    if len(b) < 14 {
+        return nil, os.NewError("probably not a correct request")
+    }
+    f := bytes.SplitAfter(b, []byte{58}, 2)[1]
+    fn := bytes.NewBuffer(bytes.Trim(f, "\" ,")).String()
+    switch fn {
+    case "login", "keepalive", "quit", "talk", "move", "chatHistory", "getFiles":
+        r := Request{}
+        err := json.Unmarshal(bson, r)
+        return r, err
+    }
+    return nil, os.NewError("Didn't find request type")
+}
+
 func getRequestFromJSON(bson []byte) (*Request, os.Error) {
     var req = new(Request)
     err := json.Unmarshal(bson, req)
     if err != nil {
-        fmt.Printf("RAW JSON: %s\n",bson)
+        fmt.Printf("RAW JSON: %s\n", bson)
         fmt.Println("Wasn't a valid JSON Request string!")
     }
     return req, err
@@ -135,10 +153,10 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
     if strings.Contains(basepath, "..") {
         return nil, os.NewError("ACCESS DENIED")
     }
-	fmt.Printf("opening dir: %s\n",path.Join("../client/",basepath))
+    fmt.Printf("opening dir: %s\n", path.Join("../client/", basepath))
     d, err := os.Open(path.Join("../client/", basepath), os.O_RDONLY, 0)
     if err != nil {
-		fmt.Println("cannot open directory!")
+        fmt.Println("cannot open directory!")
         return nil, err
     }
     var results []string
@@ -151,12 +169,12 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
         }
         if isMatch {
             //fmt.Println("Found a match! -> ", name)
-            results = append(results, basepath + name)
+            results = append(results, basepath+name)
         }
     }
     return results, nil
 }
 
 func FigureOutJSON(b []byte) {
-	
+
 }

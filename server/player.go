@@ -128,7 +128,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
             r, rerr := getRequestFromJSON(rcvB)
             if rerr != nil {
                 fmt.Printf("Not a real Request: %s\nDispatching to secondary handler\n", rerr)
-				FigureOutJSON(rcvB)
+                FigureOutJSON(rcvB)
                 continue
             }
             switch {
