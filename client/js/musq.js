@@ -89,30 +89,6 @@ data.game.talkhistory = [];
 data.game.logicalToVisualFactor = 64.0;
 data.game.hudelements = {};
 data.game.entities = {};
-data.createaccount = {};
-data.createaccount.faces = {};
-data.createaccount.faces.buffers = [];
-data.createaccount.faces.human = {};
-data.createaccount.faces.human.male = {};
-data.createaccount.faces.human.male.ears = {};
-data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.ears);
-data.createaccount.faces.human.male.ears.colors = ["#fff0c1", "#785d42"];
-data.createaccount.faces.human.male.faces = {};
-data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.faces);
-data.createaccount.faces.human.male.faces.colors = ["#fff0c1", "#785d42"];
-data.createaccount.faces.human.male.eyes = {};
-data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.eyes);
-data.createaccount.faces.human.male.eyes.colors = ["#000000", "#000044"];
-data.createaccount.faces.human.male.hairs = {};
-data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.hairs);
-data.createaccount.faces.human.male.hairs.colors = ["#140d00"];
-data.createaccount.faces.human.male.mouths = {};
-data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.mouths);
-data.createaccount.faces.human.male.mouths.colors = [];
-data.createaccount.faces.human.male.noses = {};
-data.createaccount.faces.buffers.push(data.createaccount.faces.human.male.noses);
-data.createaccount.faces.human.male.noses.colors = [];
-data.createaccount.faces.requestQueue = [];
 
 //## utilities that depend on the global data ##################################################
 
@@ -166,24 +142,6 @@ function sendKeepAliv(obj) {
                "Function": "keepalive",
                "Params": {}
            });
-}
-
-function requestImageUrls(baseurl, wildcard, targetarray) {
-    data.createaccount.faces.requestQueue.push(targetarray);
-    wsSend({
-               "Function": "getFiles",
-               "Params": {
-                   "BasePath": baseurl,
-                   "WildCard": wildcard
-               }
-           });
-}
-
-function toVisualPart(buffer) {
-    if (buffer.color) {
-        return { "Url": buffer.url, "Color": buffer.color };
-    }
-    return { "Url": buffer.url };
 }
 
 //## drawing ###################################################################################
@@ -325,22 +283,6 @@ function drawGameCanvas() {
     drawGameHud(cxt);
 }
 
-function drawCreateAccountCanvas() {
-    if (data.state !== "createaccount") {
-        return;
-    }
-    var canvas = data.createaccount.canvas;
-    var cxt = canvas.getContext("2d");
-    cxt.save();
-    cxt.clearRect(0, 0, canvas.width, canvas.height);
-    cxt.fillStyle = "#ff0000";
-    for (var bufferI in data.createaccount.faces.buffers) {
-        var buffer = data.createaccount.faces.buffers[bufferI];
-        drawIfExists(cxt, buffer.image, 0, 0);
-    }
-    cxt.restore();
-}
-
 //## updating ##################################################################################
 
 function updateGameUiData() {
@@ -362,7 +304,7 @@ function updateGameUiData() {
 function setStateToLogin() {
     login.container.style.display = "block";
     data.game.container.style.display = "none";
-    data.createaccount.container.style.display = "none";
+    createaccount.container.style.display = "none";
     data.state = "login";
     login.username.focus();
 }
@@ -370,23 +312,23 @@ function setStateToLogin() {
 function setStateToGame() {
     login.container.style.display = "none";
     data.game.container.style.display = "block";
-    data.createaccount.container.style.display = "none";
+    createaccount.container.style.display = "none";
     data.state = "game";
 }
 
 function setStateToCreateAccount() {
     login.container.style.display = "none";
     data.game.container.style.display = "none";
-    data.createaccount.container.style.display = "block";
+    createaccount.container.style.display = "block";
     data.state = "createaccount";
-    data.createaccount.username.focus();
-    if (!data.createaccount.faces.human.male.faces.urls) {
-        requestImageUrls("images/faces/human/male/", "face*.svg", data.createaccount.faces.human.male.faces);
-        requestImageUrls("images/faces/human/male/", "ears*.svg", data.createaccount.faces.human.male.ears);
-        requestImageUrls("images/faces/human/male/", "eyes*.svg", data.createaccount.faces.human.male.eyes);
-        requestImageUrls("images/faces/human/male/", "hair*.svg", data.createaccount.faces.human.male.hairs);
-        requestImageUrls("images/faces/human/male/", "mouth*.svg", data.createaccount.faces.human.male.mouths);
-        requestImageUrls("images/faces/human/male/", "nose*.svg", data.createaccount.faces.human.male.noses);
+    createaccount.username.focus();
+    if (!createaccount.faces.human.male.faces.urls) {
+        requestImageUrls("images/faces/human/male/", "face*.svg", createaccount.faces.human.male.faces);
+        requestImageUrls("images/faces/human/male/", "ears*.svg", createaccount.faces.human.male.ears);
+        requestImageUrls("images/faces/human/male/", "eyes*.svg", createaccount.faces.human.male.eyes);
+        requestImageUrls("images/faces/human/male/", "hair*.svg", createaccount.faces.human.male.hairs);
+        requestImageUrls("images/faces/human/male/", "mouth*.svg", createaccount.faces.human.male.mouths);
+        requestImageUrls("images/faces/human/male/", "nose*.svg", createaccount.faces.human.male.noses);
     }
 }
 
@@ -507,45 +449,7 @@ function handleChatHistoryJson(json) {
     data.game.talkhistory = json.Params.Lines;
 }
 
-function handleCreateAccountJson(json) {
-    if (json.Params.Success === "true") {
-        setStateToLogin();
-    } else {
-        alert("Account creation failed: " + json.Params.Reason);
-    }
-}
-
-function handleGetFilesJson(json) {
-    if (data.createaccount.faces.requestQueue.length === 0) {
-        log("Received unexpected getFiles.");
-        return;
-    }
-    var buffer = data.createaccount.faces.requestQueue[0];
-    buffer.urls = json.Params.Images;
-    buffer.url = randomElement(buffer.urls);
-    buffer.color = randomElement(buffer.colors);
-    buffer.image = convertSvg(buffer.url, buffer.color);
-    data.createaccount.faces.requestQueue = data.createaccount.faces.requestQueue.slice(1);
-}
-
 //## message handlers ##########################################################################
-
-function onCreateAccountButton() {
-    if (data.createaccount.password1.value !== data.createaccount.password2.value) {
-        alert("Passwords don't match!");
-        return;
-    }
-    wsSend({
-               "Function": "createAccount",
-               "Params":
-               {
-                   "Username": data.createaccount.username.value,
-                   "Password": data.createaccount.password1.value,
-                   "Email": data.createaccount.email.value,
-                   "Images": data.createaccount.faces.buffers.map(toVisualPart)
-               }
-           });
-}
 
 function onGameCanvasClick(evt) {
     if (data.state !== "game") {
@@ -753,18 +657,6 @@ function initializeGame() {
     setInterval(updateGameUiData, 1000 / data.game.fps);
     setInterval(drawGameCanvas, 1000 / data.game.fps);
     data.game.canvas.onclick = onGameCanvasClick;
-}
-
-function initializeCreateAccount() {
-    data.createaccount.container = document.getElementById("createaccountcontainer");
-    data.createaccount.username = document.getElementById("createaccountusername");
-    data.createaccount.button = document.getElementById("createaccountbutton");
-    data.createaccount.button.onclick = onCreateAccountButton;
-    data.createaccount.password1 = document.getElementById("createaccountpassword1");
-    data.createaccount.password2 = document.getElementById("createaccountpassword2");
-    data.createaccount.email = document.getElementById("createaccountemail");
-    data.createaccount.canvas = document.getElementById("createaccountcanvas");
-    setInterval(drawCreateAccountCanvas, 500);
 }
 
 function onWindowLoad() {
