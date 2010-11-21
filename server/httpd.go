@@ -3,6 +3,7 @@ package main
 import (
 	"http"
 	"io"
+	"fmt"
 	"websocket"
 	"container/vector"
 )
@@ -42,7 +43,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 			}
 			select {
 			case reply := <-wsReplyChan:
-				println("=> ",reply)
+				fmt.Printf("=> %s\n",reply)
 				ws.Write(reply)
 			case <-stopChan:
 				return
@@ -60,7 +61,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 			// handling function below.
 			return
 		}
-		println("<= ", buf[0:n])
+		fmt.Printf("<= %s\n", buf[0:n])
 		determineRequestType(buf[0:n])
 		wsChan <- buf[0:n]
 	}
