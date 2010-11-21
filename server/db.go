@@ -2,27 +2,26 @@ package main
 
 import (
     "github.com/hoisie/redis.go"
-    "fmt"
     "os"
 )
 
 var client redis.Client
 
 func testDBstuff() bool {
-    fmt.Println("testing the db stuff")
+    println("testing the db stuff")
     db_addToList("players", "randy")
     member, ok := db_isListMember("players", "randy")
     if ok != nil {
         // can't connect to the db probably.
         return false
     }
-    fmt.Println("expecting true->")
-    fmt.Printf("is member? -> %s\n", member)
+    println("expecting true->")
+    println("is member? -> ", member)
     db_removeFromList("players", "randy")
     member, _ = db_isListMember("players", "randy")
-    fmt.Printf("is member now? -> %s\n", member)
+    println("is member now? -> ", member)
     str, _ := db_getString("-13,-14")
-    fmt.Printf("[%s]", str)
+    println("->", str)
     return true
 }
 
@@ -51,7 +50,7 @@ func db_delString(key string) bool {
     if err == nil {
         return ok
     }
-    fmt.Println("Error in db_delString!")
+    println("Error in db_delString!")
     return false
 }
 

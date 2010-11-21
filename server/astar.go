@@ -106,7 +106,7 @@ func makeLocList(m map[string]string, start *Location) []Location {
         //fmt.Printf("We're now at %d\n", count)
         parent, ok := m[current]
         if !ok {
-            fmt.Printf("current: %s not found!\n", current)
+            println("current:", current, "not found!")
         }
         if parent == current {
             return resultList
@@ -115,6 +115,6 @@ func makeLocList(m map[string]string, start *Location) []Location {
         count++
     }
 
-    fmt.Println("WE SHOULDN'T BE HERE!")
+    println("WE SHOULDN'T BE HERE!")
     return resultList
 }

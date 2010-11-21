@@ -69,7 +69,7 @@ func (p *Player) MoveTo(x, y int) os.Error {
 
 func (p *Player) RemoveFromPlayingField() {
     currentLoc := LocKey(p.X, p.Y)
-    fmt.Printf("Removing %s from the playingfield (was at %s)\n", p.Name, currentLoc)
+    println("Removing", p.Name, "from the playingfield (was at", currentLoc, ")")
     db_delString(currentLoc)
 }
 
@@ -95,7 +95,7 @@ func (p *Player) JumpRequest() Request {
 }
 
 func (p *Player) AddRequest(req *Request) {
-    fmt.Print("+")
+    print("+")
     p.Requests.Push(*req)
 }
 
@@ -111,7 +111,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
     var hBeatChan = make(chan bool, 20)
 
     go Heart(p, hBeatChan)
-    defer fmt.Println("Exiting the playerhandler!")
+    defer println("Exiting the playerhandler!")
     // subscribe and unsubscribe to the chatHub
 
     defer func() {
@@ -127,7 +127,8 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
         case rcvB := <-wsChan: // request not dependent on HB
             r, rerr := getRequestFromJSON(rcvB)
             if rerr != nil {
-                fmt.Printf("Not a real Request: %s\nDispatching to secondary handler\n", rerr)
+                println("Not a real Request: ", rerr)
+                println("Dispatching to secondary handler")
                 FigureOutJSON(rcvB)
                 continue
             }
@@ -177,7 +178,7 @@ func HandleLogin(p *Player, r *Request, wsReplyChan chan<- []byte) {
     MarshalAndSendRequest(rply, wsReplyChan)
     chatSubChan <- subscription{wsReplyChan, true}
     ReplySubChan <- subscription{wsReplyChan, true}
-    fmt.Printf("%s logged in!\n", p.Name)
+    println(p.Name, "logged in!")
     p.PutOnLastKnownLocation()
     ReplyChan <- p.Visual()
     ReplyChan <- Request{"jump", map[string]string{"Name": p.Name, "X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}

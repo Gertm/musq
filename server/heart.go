@@ -2,23 +2,22 @@ package main
 
 import (
     "time"
-    "fmt"
 )
 
 func Heart(p *Player, aorta chan<- bool) {
     //i := 0
-    fmt.Printf("%s's heart starting!\n", p.Name)
+    println(p.Name, "'s heart starting!")
     defer func() { // this way the %s doesn't get evaluated until the
-        fmt.Printf("%s's heart stopped.\n", p.Name)
+        println(p.Name, "'s heart stopped.")
     }()
     for {
         time.Sleep(1e9)
         ok := aorta <- true
         if !ok {
-            fmt.Printf("%s has a clogged artery!\n", p.Name)
+            println(p.Name, "has a clogged artery!")
         }
         if len(aorta) > cap(aorta)/2 {
-            fmt.Printf("%s's cholesterol level rising...\n", p.Name)
+            println(p.Name, "'s cholesterol level rising...")
             // ok, these error messages aren't really helpful, but they're
             // fun, and easy to search for ;-)
         }
@@ -49,7 +48,7 @@ func startLogic() {
 // simple multiplexer
 func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
     chans := make(map[chan<- []byte]int)
-    defer fmt.Println("Hub shutting down!")
+    defer println("Hub shutting down!")
     for {
         select {
         case subscription := <-subChan:
@@ -58,11 +57,11 @@ func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
             for chn, _ := range chans {
                 ok := MarshalAndSendRequest(R, chn)
                 if !ok {
-                    fmt.Println(R)
-                    fmt.Printf("Stuff going wrong with sending on rcv channel!\n")
+                    println(R)
+                    println("Stuff going wrong with sending on rcv channel!\n")
                 }
             }
-            fmt.Printf("* %v\n", R)
+            println("* ", R)
         }
     }
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"http"
 	"io"
 	"websocket"
@@ -43,7 +42,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 			}
 			select {
 			case reply := <-wsReplyChan:
-				fmt.Printf("=> %s\n",reply)
+				println("=> ",reply)
 				ws.Write(reply)
 			case <-stopChan:
 				return
@@ -56,12 +55,12 @@ func WebSocketHandler(ws *websocket.Conn) {
 	for {
 		n, err := ws.Read(buf)
 		if err != nil {
-			fmt.Println("Exiting wshandler!")
+			println("Exiting wshandler!")
 			// TODO: stop the playerhandler process and the websocket-reply
 			// handling function below.
 			return
 		}
-		fmt.Printf("<= %s\n", buf[0:n])
+		println("<= ", buf[0:n])
 		determineRequestType(buf[0:n])
 		wsChan <- buf[0:n]
 	}
@@ -71,15 +70,15 @@ func WebSocketHandler(ws *websocket.Conn) {
 // this might need to move elsewhere later.
 func main() {
 	startLogic()
-	fmt.Println("Checking whether the db works")
+	println("Checking whether the db works")
 	db_setString("musqstarting","ok")
 	dbsize, ok := client.Dbsize()
 	if ok != nil {
-		fmt.Println("db doesn't seem to work, exiting!")
+		println("db doesn't seem to work, exiting!")
 		return
 	}
-	fmt.Println("OK! size of db: ",dbsize)
-	fmt.Println("Starting MUSQ server...")
+	println("OK! size of db: ",dbsize)
+	println("Starting MUSQ server...")
 	http.HandleFunc("/", data_handler)
 	http.HandleFunc("/js/musqconfig.js", config_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))

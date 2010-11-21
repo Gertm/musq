@@ -35,7 +35,7 @@ func MarshalAndSendRequest(r interface{}, RplyChan chan<- []byte) bool {
     b := ToJSON(r)
     ok := RplyChan <- b
     if !ok {
-        fmt.Println("Couldn't send the request back to the ReplyChan: ", string(b))
+        println("Couldn't send the request back to the ReplyChan: ", string(b))
     }
     return ok
 }
@@ -60,8 +60,8 @@ func getRequestFromJSON(bson []byte) (*Request, os.Error) {
     var req = new(Request)
     err := json.Unmarshal(bson, req)
     if err != nil {
-        fmt.Printf("RAW JSON: %s\n", bson)
-        fmt.Println("Wasn't a valid JSON Request string!")
+        println("RAW JSON: ", bson)
+        println("Wasn't a valid JSON Request string!")
     }
     return req, err
 }
@@ -83,11 +83,6 @@ func abs(x int) int {
     }
     return x
 }
-
-func Log(str string) {
-    fmt.Println(time.LocalTime().Format(time.Kitchen) + " - " + str)
-}
-
 
 // not sure about a place for this yet, so I'll just put it here for now
 
@@ -153,10 +148,10 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
     if strings.Contains(basepath, "..") {
         return nil, os.NewError("ACCESS DENIED")
     }
-    fmt.Printf("opening dir: %s\n", path.Join("../client/", basepath))
+    println("opening dir:", path.Join("../client/", basepath))
     d, err := os.Open(path.Join("../client/", basepath), os.O_RDONLY, 0)
     if err != nil {
-        fmt.Println("cannot open directory!")
+        println("cannot open directory!")
         return nil, err
     }
     var results []string
