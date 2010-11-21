@@ -50,7 +50,10 @@ func determineRequestType(bson []byte) (interface{}, os.Error) {
     switch fn {
     case "login", "keepalive", "quit", "talk", "move", "chatHistory", "getFiles":
         r := Request{}
-        err := json.Unmarshal(bson, r)
+        err := json.Unmarshal(bson, &r)
+		if err != nil {
+			fmt.Printf("Uh-oh! -> %s\n", err)
+		}
         return r, err
     }
     return nil, os.NewError("Didn't find request type")

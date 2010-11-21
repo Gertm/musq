@@ -2,6 +2,7 @@ package main
 
 import (
     "time"
+	"fmt"
 )
 
 func Heart(p *Player, aorta chan<- bool) {
@@ -61,7 +62,7 @@ func RequestHub(subChan chan subscription, mainChan chan ByteRequester) {
                     println("Stuff going wrong with sending on rcv channel!\n")
                 }
             }
-            println("* ", R)
+            fmt.Printf("* %s\n", R)
         }
     }
 }
