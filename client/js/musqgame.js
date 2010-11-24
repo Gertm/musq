@@ -351,6 +351,12 @@ function swapShowTalkHistory() {
     game.showtalkhistory = !game.showtalkhistory;
 }
 
+function limitTalkHistory() {
+    if (game.talkhistory.length > 20) {
+        game.talkhistory = game.talkhistory.slice(game.talkhistory.length - 20);
+    }
+}
+
 function handleVisualJson(json) {
     var player = new gameEntity();
     player.image = convertSvgs(json.Params.Images);
@@ -383,7 +389,7 @@ function handleMoveJson(json) {
 
 function handleTalkJson(json) {
     game.talkhistory.push({ From: json.Params.Name, Msg: json.Params.Message });
-    game.talkhistory.length = Math.min(game.talkhistory.length, 20);
+    limitTalkHistory();
     var player = game.entities[json.Params.Name];
     if (!player) {
         return;
@@ -399,6 +405,7 @@ function handleQuitJson(json) {
 
 function handleChatHistoryJson(json) {
     game.talkhistory = json.Params.Lines;
+    limitTalkHistory();
 }
 
 //## message handlers ##########################################################################
