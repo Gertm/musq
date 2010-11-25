@@ -81,7 +81,7 @@ func main() {
 	println("OK! size of db: ",dbsize)
 	println("Starting MUSQ server...")
 	http.HandleFunc("/", data_handler)
-	http.HandleFunc("/js/musqconfig.js", config_handler)
+	http.HandleFunc("/js/musq-config.js", config_handler)
 	http.Handle("/service", websocket.Handler(WebSocketHandler))
 	http.ListenAndServe(":8080", nil)
 }
