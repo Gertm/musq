@@ -33,6 +33,7 @@ createaccount.faces.human.male.hairs.urls = [undefined];
 createaccount.faces.buffers.push(createaccount.faces.human.male.hairs);
 createaccount.faces.human.male.hairs.colors = ["#140d00"];
 createaccount.faces.requestQueue = [];
+createaccount.sliders = [];
 
 //## utilities that depend on the global data ##################################################
 
@@ -83,7 +84,15 @@ function handleCreateAccountJson(json) {
 }
 
 function createAccountAddVisualControlSlider() {
-    //createaccount.visualcontrols
+    var sliderdiv = document.createElement("div");
+    sliderdiv.setAttribute("class", "slider");
+    sliderdiv.setAttribute("tabIndex", "1");
+    createaccount.visualcontrols.appendChild(sliderdiv);
+    var sliderinput = document.createElement("input");
+    sliderinput.setAttribute("class", "slider-input");
+    sliderdiv.appendChild(sliderinput);
+    var slider = new Slider(sliderdiv, sliderinput);
+    createaccount.sliders.push(slider);
 }
 
 function createAccountVisualRandomHelper(buffer) {
@@ -100,7 +109,7 @@ function createAccountVisualRandomHelper(buffer) {
     }
     if (buffer.url) {
         buffer.image = convertSvg(buffer.url, buffer.color, 2.0);
-    }    
+    }
 }
 
 function handleGetFilesJson(json) {
@@ -115,6 +124,8 @@ function handleGetFilesJson(json) {
     buffer.urls = buffer.urls.concat(json.Params.Images);
     createAccountVisualRandomHelper(buffer);
     createaccount.faces.requestQueue = createaccount.faces.requestQueue.slice(1);
+    // [Randy 25/11/2010] TODO: Bind with buffer.urls.
+    createAccountAddVisualControlSlider();
 }
 
 //## message handlers ##########################################################################
@@ -140,7 +151,7 @@ function onCreateAccountVisualRandom() {
     for (var bufferI in createaccount.faces.buffers) {
         var buffer = createaccount.faces.buffers[bufferI];
         createAccountVisualRandomHelper(buffer);
-    }    
+    }
 }
 
 //## initialization ############################################################################
