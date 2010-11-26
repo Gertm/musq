@@ -2,7 +2,7 @@ package main
 
 import (
     "time"
-	"fmt"
+    "fmt"
 )
 
 func Heart(p *Player, aorta chan<- bool) {

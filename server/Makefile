@@ -4,6 +4,7 @@ TARG=musq
 GOFILES=\
 	area.go\
 	player.go\
+	playerhandler.go\
 	db.go\
 	httpd.go\
 	heart.go\
@@ -15,6 +16,7 @@ include $(GOROOT)/src/Make.cmd
 
 format:
 	gofmt -spaces=true -tabindent=false -tabwidth=4 -w player.go
+	gofmt -spaces=true -tabindent=false -tabwidth=4 -w playerhandler.go
 	gofmt -spaces=true -tabindent=false -tabwidth=4 -w db.go
 	gofmt -spaces=true -tabindent=false -tabwidth=4 -w heart.go
 	gofmt -spaces=true -tabindent=false -tabwidth=4 -w area.go

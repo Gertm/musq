@@ -17,6 +17,10 @@ type Request struct {
     Params   map[string]string
 }
 
+type GeneralRequest struct {
+    Function string
+    Params   interface{}
+}
 
 func (r Request) ToJson() []byte {
     b, err := json.Marshal(r)
@@ -40,33 +44,33 @@ func MarshalAndSendRequest(r interface{}, RplyChan chan<- []byte) bool {
     return ok
 }
 
-func determineRequestType(bson []byte) (interface{}, os.Error) {
+func determineRequestFunction(bson []byte) (string, os.Error) {
     b := bytes.SplitAfter(bson, []byte{44}, 2)[0]
     if len(b) < 14 {
-        return nil, os.NewError("probably not a correct request")
+        return "", os.NewError("probably not a correct request")
     }
     f := bytes.SplitAfter(b, []byte{58}, 2)[1]
     fn := bytes.NewBuffer(bytes.Trim(f, "\" ,")).String()
-    switch fn {
-    case "login", "keepalive", "quit", "talk", "move", "chatHistory", "getFiles":
-        r := Request{}
-        err := json.Unmarshal(bson, &r)
-		if err != nil {
-			fmt.Printf("Uh-oh! -> %s\n", err)
-		}
-        return r, err
-    }
-    return nil, os.NewError("Didn't find request type")
+    return fn, nil
 }
 
-func getRequestFromJSON(bson []byte) (*Request, os.Error) {
+func getRequestFromJSON(bson *[]byte) (*Request, os.Error) {
     var req = new(Request)
-    err := json.Unmarshal(bson, req)
+    err := json.Unmarshal(*bson, req)
     if err != nil {
-        println("RAW JSON: ", bson)
-        println("Wasn't a valid JSON Request string!")
+        fmt.Printf("JSONERROR: %s\n", *bson)
     }
     return req, err
+}
+
+func getFunctionFromJSON(JSON *[]byte) (string, os.Error) {
+    var f = new(GeneralRequest)
+    err := json.Unmarshal(*JSON, f)
+    if err != nil {
+        return "", err
+    }
+    println("Got", f.Function, "from JSON")
+    return f.Function, nil
 }
 
 func AddPlayerNameToRequest(r *Request, p *Player) {
