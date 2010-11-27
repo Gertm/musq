@@ -5,33 +5,65 @@ createaccount.faces = {};
 createaccount.faces.buffers = [];
 createaccount.faces.human = {};
 createaccount.faces.human.male = {};
+
 createaccount.faces.human.male.ears = {};
-createaccount.faces.buffers.push(createaccount.faces.human.male.ears);
+createaccount.faces.human.male.ears.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.ears.wildcard = "ears*.svg";
 createaccount.faces.human.male.ears.colors = ["#fff0c1", "#fbc38d", "#a76f38", "#785d42", "#f8f7a1"];
+createaccount.faces.buffers.push(createaccount.faces.human.male.ears);
+
 createaccount.faces.human.male.faces = {};
-createaccount.faces.buffers.push(createaccount.faces.human.male.faces);
+createaccount.faces.human.male.faces.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.faces.wildcard = "face*.svg";
 createaccount.faces.human.male.faces.colors = createaccount.faces.human.male.ears.colors;
+createaccount.faces.buffers.push(createaccount.faces.human.male.faces);
+
 createaccount.faces.human.male.eyes = {};
-createaccount.faces.buffers.push(createaccount.faces.human.male.eyes);
+createaccount.faces.human.male.eyes.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.eyes.wildcard = "eyes*.svg";
 createaccount.faces.human.male.eyes.colors = ["#000000", "#000044", "#005dac", "#116600"];
+createaccount.faces.buffers.push(createaccount.faces.human.male.eyes);
+
 createaccount.faces.human.male.mouths = {};
-createaccount.faces.buffers.push(createaccount.faces.human.male.mouths);
+createaccount.faces.human.male.mouths.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.mouths.wildcard = "mouth*.svg";
 createaccount.faces.human.male.mouths.colors = [];
+createaccount.faces.buffers.push(createaccount.faces.human.male.mouths);
+
 createaccount.faces.human.male.noses = {};
-createaccount.faces.buffers.push(createaccount.faces.human.male.noses);
+createaccount.faces.human.male.noses.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.noses.wildcard = "nose*.svg";
 createaccount.faces.human.male.noses.colors = [];
+createaccount.faces.buffers.push(createaccount.faces.human.male.noses);
+
 createaccount.faces.human.scars = {};
+createaccount.faces.human.scars.baseurl = "images/faces/human/";
+createaccount.faces.human.scars.wildcard = "scar*.svg";
 createaccount.faces.human.scars.urls = [undefined];
-createaccount.faces.buffers.push(createaccount.faces.human.scars);
 createaccount.faces.human.scars.colors = ["#8c846a", "#362a1e"];
+createaccount.faces.buffers.push(createaccount.faces.human.scars);
+
 createaccount.faces.human.glasses = {};
+createaccount.faces.human.glasses.baseurl = "images/faces/human/";
+createaccount.faces.human.glasses.wildcard = "glasses*.svg";
 createaccount.faces.human.glasses.urls = [undefined];
-createaccount.faces.buffers.push(createaccount.faces.human.glasses);
 createaccount.faces.human.glasses.colors = [];
+createaccount.faces.buffers.push(createaccount.faces.human.glasses);
+
 createaccount.faces.human.male.hairs = {};
+createaccount.faces.human.male.hairs.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.hairs.wildcard = "hair*.svg";
 createaccount.faces.human.male.hairs.urls = [undefined];
-createaccount.faces.buffers.push(createaccount.faces.human.male.hairs);
 createaccount.faces.human.male.hairs.colors = ["#140d00", "#5c2110", "#ed2713", "#ede249"];
+createaccount.faces.buffers.push(createaccount.faces.human.male.hairs);
+
+createaccount.faces.human.male.beards = {};
+createaccount.faces.human.male.beards.baseurl = "images/faces/human/male/";
+createaccount.faces.human.male.beards.wildcard = "beard*.svg";
+createaccount.faces.human.male.beards.urls = [undefined];
+createaccount.faces.human.male.beards.colors = createaccount.faces.human.male.hairs.colors;
+createaccount.faces.buffers.push(createaccount.faces.human.male.beards);
+
 createaccount.faces.requestQueue = [];
 createaccount.sliders = [];
 
@@ -207,12 +239,8 @@ function initializeCreateAccount() {
 }
 
 function createAccountInitializeImages() {
-    requestImageUrls("images/faces/human/male/", "face*.svg", createaccount.faces.human.male.faces);
-    requestImageUrls("images/faces/human/male/", "ears*.svg", createaccount.faces.human.male.ears);
-    requestImageUrls("images/faces/human/male/", "eyes*.svg", createaccount.faces.human.male.eyes);
-    requestImageUrls("images/faces/human/male/", "hair*.svg", createaccount.faces.human.male.hairs);
-    requestImageUrls("images/faces/human/male/", "mouth*.svg", createaccount.faces.human.male.mouths);
-    requestImageUrls("images/faces/human/male/", "nose*.svg", createaccount.faces.human.male.noses);
-    requestImageUrls("images/faces/human/", "scar*.svg", createaccount.faces.human.scars);
-    requestImageUrls("images/faces/human/", "glasses*.svg", createaccount.faces.human.glasses);
+    for (var bufferI in createaccount.faces.buffers) {
+        var buffer = createaccount.faces.buffers[bufferI];
+        requestImageUrls(buffer.baseurl, buffer.wildcard, buffer);
+    }
 }
