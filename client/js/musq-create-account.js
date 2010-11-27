@@ -49,10 +49,10 @@ function requestImageUrls(baseurl, wildcard, targetarray) {
 }
 
 function toVisualPart(buffer) {
-    if (buffer.color) {
-        return { "Url": buffer.url, "Color": buffer.color };
+    if (buffer.color && buffer.color.value) {
+        return { "Url": buffer.url.value, "Color": buffer.color.value };
     }
-    return { "Url": buffer.url };
+    return { "Url": buffer.url.value };
 }
 
 //## drawing ###################################################################################
@@ -83,7 +83,28 @@ function handleCreateAccountJson(json) {
     }
 }
 
-function createAccountAddVisualControlSlider() {
+function createAccountUpdateBufferImage(buffer) {
+    if (buffer.url && buffer.url.value) {
+        if (buffer.color) {
+            buffer.image = convertSvg(buffer.url.value, buffer.color.value, 2.0);
+        } else {
+            buffer.image = convertSvg(buffer.url.value, undefined, 2.0);
+        }
+    } else {
+        delete buffer.image;
+    }
+}
+
+function createAccountSliderValueChanged(slider, array, value, buffer) {
+    value.index = slider.getValue();
+    value.value = array[value.index];
+    createAccountUpdateBufferImage(buffer);
+}
+
+function createAccountAddVisualControlSlider(array, value, buffer) {
+    if (array.length < 2) {
+        return undefined;
+    }
     var sliderdiv = document.createElement("div");
     sliderdiv.setAttribute("class", "slider");
     sliderdiv.setAttribute("tabIndex", "1");
@@ -93,6 +114,17 @@ function createAccountAddVisualControlSlider() {
     sliderdiv.appendChild(sliderinput);
     var slider = new Slider(sliderdiv, sliderinput);
     createaccount.sliders.push(slider);
+    slider.setMinimum(0);
+    slider.setMaximum(array.length - 1);
+    slider.onchange = function () { createAccountSliderValueChanged(slider, array, value, buffer); };
+    return slider;
+}
+
+function createAccountSliderDataToUi(slider, value) {
+    if (!slider || !value) {
+        return;
+    }
+    slider.setValue(value.index);
 }
 
 function createAccountVisualRandomHelper(buffer) {
@@ -107,9 +139,7 @@ function createAccountVisualRandomHelper(buffer) {
     } else {
         delete buffer.color;
     }
-    if (buffer.url) {
-        buffer.image = convertSvg(buffer.url, buffer.color, 2.0);
-    }
+    createAccountUpdateBufferImage(buffer);
 }
 
 function handleGetFilesJson(json) {
@@ -124,8 +154,12 @@ function handleGetFilesJson(json) {
     buffer.urls = buffer.urls.concat(json.Params.Images);
     createAccountVisualRandomHelper(buffer);
     createaccount.faces.requestQueue = createaccount.faces.requestQueue.slice(1);
-    // [Randy 25/11/2010] TODO: Bind with buffer.urls.
-    createAccountAddVisualControlSlider();
+    buffer.urlslider = createAccountAddVisualControlSlider(buffer.urls, buffer.url, buffer);
+    createAccountSliderDataToUi(buffer.urlslider, buffer.url);
+    if (buffer.colors) {
+        buffer.colorslider = createAccountAddVisualControlSlider(buffer.colors, buffer.color, buffer);
+        createAccountSliderDataToUi(buffer.colorslider, buffer.color);
+    }
 }
 
 //## message handlers ##########################################################################
@@ -135,7 +169,7 @@ function onCreateAccountButton() {
         alert("Passwords don't match!");
         return;
     }
-    var validpart = function (buffer) { return buffer.url; };
+    var validpart = function (buffer) { return buffer.url && buffer.url.value; };
     wsSend({
                "Function": "createAccount",
                "Params": {
@@ -151,6 +185,8 @@ function onCreateAccountVisualRandom() {
     for (var bufferI in createaccount.faces.buffers) {
         var buffer = createaccount.faces.buffers[bufferI];
         createAccountVisualRandomHelper(buffer);
+        createAccountSliderDataToUi(buffer.urlslider, buffer.url);
+        createAccountSliderDataToUi(buffer.colorslider, buffer.color);
     }
 }
 
