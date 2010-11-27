@@ -19,7 +19,7 @@ type Request struct {
 
 type GeneralRequest struct {
     Function string
-    Params   interface{}
+//    Params   interface{}
 }
 
 func (r Request) ToJson() []byte {
@@ -69,7 +69,7 @@ func getFunctionFromJSON(JSON *[]byte) (string, os.Error) {
     if err != nil {
         return "", err
     }
-    println("Got", f.Function, "from JSON")
+    // println("Got", f.Function, "from JSON")
     return f.Function, nil
 }
 
