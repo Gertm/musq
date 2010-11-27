@@ -58,7 +58,7 @@
 						ThreeDHighlight ThreeDShadow;
 	-moz-border-radius:	50%;
 	
-	behavior:			url("css/boxsizing.htc"); /* ie path bug */
+	behavior:			url("boxsizing.htc"); /* ie path bug */
 	box-sizing:			content-box;
 	-moz-box-sizing:	content-box;
 }
