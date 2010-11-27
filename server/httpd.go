@@ -30,7 +30,6 @@ func WebSocketHandler(ws *websocket.Conn) {
 		wsChan <- []byte("{\"Function\":\"quit\"}")
 	}()
 
-	buf := make([]byte, 4096)
 	wsReplyStopChan := make(chan bool)
 	defer func() {
 		wsReplyStopChan <- true
@@ -54,6 +53,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 	go PlayerHandler(&p, wsChan, wsReplyChan)
 	
 	for {
+		buf := make([]byte, 4096)
 		n, err := ws.Read(buf)
 		if err != nil {
 			println("Exiting wshandler!")

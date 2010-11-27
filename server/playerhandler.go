@@ -31,11 +31,11 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
             }
             switch {
             case f == "talk":
-                HandleTalk(p, rcvB)
+                HandleTalk(p, &rcvB)
             case f == "keepalive":
                 HandleKeepAlive(p, wsReplyChan)
             case f == "move":
-                HandleMove(p, rcvB)
+                HandleMove(p, &rcvB)
             case f == "quit":
                 fmt.Printf("%s quitting...\n", p.Name)
                 // delete the player from the playingfield, but save the
@@ -46,9 +46,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
             case f == "chatHistory":
                 HandleChatHistory(wsReplyChan)
             case f == "getFiles":
-                HandleGetFiles(rcvB, wsReplyChan)
+                HandleGetFiles(&rcvB, wsReplyChan)
             case f == "login":
-                HandleLogin(p, rcvB, wsReplyChan)
+                HandleLogin(p, &rcvB, wsReplyChan)
             case f == "createAccount":
                 println("got a createaccount request")
             case true:
@@ -68,8 +68,8 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
     }
 }
 
-func HandleLogin(p *Player, rcvB []byte, wsReplyChan chan<- []byte) {
-    r, jsonerr := getRequestFromJSON(&rcvB)
+func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
+    r, jsonerr := getRequestFromJSON(rcvB)
     if jsonerr != nil {
         println("Second unmarshalling failed..wtf?")
         return
@@ -105,8 +105,8 @@ func HandleKeepAlive(p *Player, wsReplyChan chan<- []byte) {
     MarshalAndSendRequest(rply, wsReplyChan)
 }
 
-func HandleMove(p *Player, rcvB []byte) {
-    r, err := getRequestFromJSON(&rcvB)
+func HandleMove(p *Player, rcvB *[]byte) {
+    r, err := getRequestFromJSON(rcvB)
     if err != nil {
         println("This really shouldn't have happened!")
         return
@@ -127,8 +127,8 @@ func DoMoveStep(p *Player) {
     p.MoveTo(nextLoc.x, nextLoc.y)
 }
 
-func HandleTalk(p *Player, rcvB []byte) {
-    r, err := getRequestFromJSON(&rcvB)
+func HandleTalk(p *Player, rcvB *[]byte) {
+    r, err := getRequestFromJSON(rcvB)
     if err != nil {
         println("Second unmarshalling failed..wtf?")
         return
@@ -146,8 +146,8 @@ func HandleChatHistory(wsReplyChan chan<- []byte) {
     wsReplyChan <- ToJSON(hist)
 }
 
-func HandleGetFiles(rcvB []byte, wsReplyChan chan<- []byte) {
-    r, jsonerror := getRequestFromJSON(&rcvB)
+func HandleGetFiles(rcvB *[]byte, wsReplyChan chan<- []byte) {
+    r, jsonerror := getRequestFromJSON(rcvB)
     if jsonerror != nil {
         println("Second unmarshalling failed..wtf?")
         return
