@@ -50,7 +50,9 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
             case f == "login":
                 HandleLogin(p, &rcvB, wsReplyChan)
             case f == "createAccount":
-                println("got a createaccount request")
+				if p.Name == "UnnamedPlayer" {
+					HandleCreateAccount(&rcvB, wsReplyChan)
+				}
             case true:
                 p.AddRequest(&rcvB)
             }
@@ -99,6 +101,41 @@ func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
     }
     db_addToList("players", p.Name)
 }
+
+func HandleCreateAccount(rcvB *[]byte, wsReplyChan chan<- []byte) {
+	rply := Request{"createAccount", map[string]string{}}
+	defer func(p *Request) {
+		MarshalAndSendRequest(*p, wsReplyChan)
+	}(&rply)
+	
+	caReq, err := getCARequestFromJSON(rcvB)
+	// need to check first if we already created this
+	username := caReq.Params.Username
+	_, err2 := db_getString(username+":account")
+	if err2 == nil {
+		// we already have the key
+		rply.Params["Success"] = "false"
+		rply.Params["Reason"] = "User already exists"
+		return
+	}
+	if err != nil {
+		println(err)
+		rply.Params["Success"] = "false"
+		rply.Params["Reason"] = err.String()
+		return
+	}
+	// cannot use UnnamedPlayer as username!
+	if username == "UnnamedPlayer" {
+		rply.Params["Success"] = "false"
+		rply.Params["Reason"] = "UnnamedPlayer is not a valid name"
+		return
+	}
+	// save stuff in db!
+	s := string(*rcvB)
+	db_setString(username+":account",s)
+	rply.Params["Success"]="true"
+}
+
 
 func HandleKeepAlive(p *Player, wsReplyChan chan<- []byte) {
     rply := Request{"keepalive", map[string]string{}}

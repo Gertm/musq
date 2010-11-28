@@ -22,6 +22,18 @@ type GeneralRequest struct {
 //    Params   interface{}
 }
 
+type CreateAccountRequest struct {
+	Function string
+	Params CreateAccountParams
+}
+
+type CreateAccountParams struct {
+	Username string
+	Password string
+	Email    string
+	Images   []VisualImage
+}
+
 func (r Request) ToJson() []byte {
     b, err := json.Marshal(r)
     if err != nil {
@@ -59,6 +71,15 @@ func getRequestFromJSON(bson *[]byte) (*Request, os.Error) {
     err := json.Unmarshal(*bson, req)
     if err != nil {
         fmt.Printf("JSONERROR: %s\n", *bson)
+    }
+    return req, err
+}
+
+func getCARequestFromJSON(b *[]byte) (*CreateAccountRequest, os.Error) {
+	var req = new(CreateAccountRequest)
+    err := json.Unmarshal(*b, req)
+    if err != nil {
+        fmt.Printf("JSONERROR: %s\n", *b)
     }
     return req, err
 }
@@ -175,8 +196,4 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
         }
     }
     return results, nil
-}
-
-func FigureOutJSON(b []byte) {
-
 }
