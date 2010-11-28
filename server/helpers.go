@@ -22,12 +22,12 @@ type GeneralRequest struct {
 //    Params   interface{}
 }
 
-type CreateAccountRequest struct {
+type AccountRequest struct {
 	Function string
-	Params CreateAccountParams
+	Params AccountParams
 }
 
-type CreateAccountParams struct {
+type AccountParams struct {
 	Username string
 	Password string
 	Email    string
@@ -75,8 +75,18 @@ func getRequestFromJSON(bson *[]byte) (*Request, os.Error) {
     return req, err
 }
 
-func getCARequestFromJSON(b *[]byte) (*CreateAccountRequest, os.Error) {
-	var req = new(CreateAccountRequest)
+func getAccRequestFromDB(PlayerName string) (*AccountRequest, os.Error) {
+	acc, erra := db_getString(PlayerName+":account")
+	if erra != nil {
+		return nil,erra
+	}
+	var bts []byte
+	copy(bts, acc)
+	return getAccRequestFromJSON(&bts)
+}
+
+func getAccRequestFromJSON(b *[]byte) (*AccountRequest, os.Error) {
+	var req = new(AccountRequest)
     err := json.Unmarshal(*b, req)
     if err != nil {
         fmt.Printf("JSONERROR: %s\n", *b)

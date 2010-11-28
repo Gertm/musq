@@ -78,8 +78,30 @@ func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
     }
     p.Name = r.Params["Username"]
     p.Pwd = r.Params["Password"]
+    rply := Request{"login", map[string]string{}}
+	var success bool
     // TODO: get player data from database
-    rply := Request{"login", map[string]string{"Success": "true"}}
+	acc, erra := db_getString(p.Name+":account")
+	var bts []byte
+	copy(bts, acc)
+	caReq, errj := getAccRequestFromJSON(&bts)
+	if errj != nil {
+		panic("OMGWTF")
+	}
+	if erra != nil {
+		success = false
+	} else {
+		if caReq.Params.Password != p.Pwd {
+			success = false
+		}
+	}
+	if !success {
+		rply.Params["Success"] = "false"
+		MarshalAndSendRequest(rply, wsReplyChan)
+		return
+	}
+	
+	rply.Params["Success"]= "true"
     MarshalAndSendRequest(rply, wsReplyChan)
     chatSubChan <- subscription{wsReplyChan, true}
     ReplySubChan <- subscription{wsReplyChan, true}
@@ -108,7 +130,7 @@ func HandleCreateAccount(rcvB *[]byte, wsReplyChan chan<- []byte) {
 		MarshalAndSendRequest(*p, wsReplyChan)
 	}(&rply)
 	
-	caReq, err := getCARequestFromJSON(rcvB)
+	caReq, err := getAccRequestFromJSON(rcvB)
 	// need to check first if we already created this
 	username := caReq.Params.Username
 	_, err2 := db_getString(username+":account")
@@ -200,39 +222,10 @@ func HandleGetFiles(rcvB *[]byte, wsReplyChan chan<- []byte) {
     wsReplyChan <- ToJSON(rply)
 }
 
-func (p *Player) Visual() VisualRequest {
-    p.setVisual()
-    return getVisualForName(p.Name)
-}
-
-func (p *Player) setVisual() {
-    for _, part := range []string{"ears", "face", "eyes", "mouth", "nose", "hair", "glasses"} {
-        if p.GetProp("color:"+part) == "" {
-            p.SetProp("color:"+part, ColorFor(p.Name+":"+part))
-        }
-    }
-}
-
 func getVisualForName(Name string) VisualRequest {
-    face_color, _ := db_getString(Name + ":color:face")
-    ears := VisualImage{"images/faces/human/male/ears01.svg", face_color}
-    face := VisualImage{"images/faces/human/male/face01.svg", face_color}
-    eyes_color, _ := db_getString(Name + ":color:eyes")
-    eyes := VisualImage{"images/faces/human/male/eyes01.svg", eyes_color}
-    mouth_color, _ := db_getString(Name + ":color:mouth")
-    mouth := VisualImage{"images/faces/human/male/mouth01.svg", mouth_color}
-    nose_color, _ := db_getString(Name + ":color:nose")
-    nose := VisualImage{"images/faces/human/male/nose01.svg", nose_color}
-    hair_color, _ := db_getString(Name + ":color:hair")
-    hair := VisualImage{"images/faces/human/male/hair01.svg", hair_color}
-    glasses := VisualImage{}
-    ImageList := []VisualImage{}
-    if len(Name)%2 == 1 {
-        glasses_color, _ := db_getString(Name + ":color:face")
-        glasses = VisualImage{"images/faces/human/glasses01.svg", glasses_color}
-        ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair, glasses}
-    } else {
-        ImageList = []VisualImage{ears, face, eyes, mouth, nose, hair}
-    }
-    return VisualRequest{"visual", VisualParams{Name, ImageList}}
+	accReq, err := getAccRequestFromDB(Name)
+	if err != nil {
+		panic("We didn't save the correct JSON string, abandon ship!\n")
+	}
+    return VisualRequest{"visual", VisualParams{"Images", accReq.Params.Images}}
 }

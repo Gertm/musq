@@ -110,3 +110,15 @@ func (p *Player) getNextRequest() (*Request, os.Error) {
     }
     return nil, os.NewError("Yarr!")
 }
+
+func (p *Player) Visual() VisualRequest {
+	return getVisualForName(p.Name)
+}
+
+func (p *Player) setVisual() {
+    for _, part := range []string{"ears", "face", "eyes", "mouth", "nose", "hair", "glasses"} {
+        if p.GetProp("color:"+part) == "" {
+            p.SetProp("color:"+part, ColorFor(p.Name+":"+part))
+        }
+    }
+}

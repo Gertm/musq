@@ -8,7 +8,7 @@ import (
 func Heart(p *Player, aorta chan<- bool) {
     //i := 0
     println(p.Name, "'s heart starting!")
-    defer func() { // this way the %s doesn't get evaluated until the
+    defer func() {
         println(p.Name, "'s heart stopped.")
     }()
     for {
