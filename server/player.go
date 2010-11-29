@@ -19,8 +19,15 @@ type Player struct {
 }
 
 
-func (p *Player) CurrentLoc() Location {
-    return Location{x: p.X, y: p.Y}
+func NewPlayer(Name string) *Player {
+    p := Player{}
+    p.Name = Name
+    return &p
+}
+
+func (p *Player) CurrentLocStrs() (x, y string) {
+    l := p.GetCurrentLoc()
+    return strconv.Itoa(l.x), strconv.Itoa(l.y)
 }
 
 func (p *Player) SaveToDB() os.Error {
@@ -51,7 +58,7 @@ func (p *Player) getLocKey() string {
 func (p *Player) GetCurrentLoc() Location {
     loc, ok := db_getString(p.getLocKey())
     if ok != nil {
-        panic("can't get location of player")
+        return Location{0, 0}
     }
     return LocFromString(loc)
 }
@@ -91,7 +98,8 @@ func (p *Player) CancelAllRequests() {
 }
 
 func (p *Player) JumpRequest() Request {
-    return Request{p.Name, map[string]string{"X": strconv.Itoa(p.X), "Y": strconv.Itoa(p.Y)}}
+    x, y := p.CurrentLocStrs()
+    return Request{p.Name, map[string]string{"X": x, "Y": y}}
 }
 
 func (p *Player) AddRequest(rcvB *[]byte) {
@@ -111,8 +119,12 @@ func (p *Player) getNextRequest() (*Request, os.Error) {
     return nil, os.NewError("Yarr!")
 }
 
-func (p *Player) Visual() VisualRequest {
-	return getVisualForName(p.Name)
+func (p *Player) Visual() (VisualRequest, os.Error) {
+    acc, err := p.getAccountReq()
+    if err != nil {
+        return VisualRequest{}, err
+    }
+    return VisualRequest{"visual", VisualParams{"Images", acc.Params.Images}}, nil
 }
 
 func (p *Player) setVisual() {
@@ -121,4 +133,17 @@ func (p *Player) setVisual() {
             p.SetProp("color:"+part, ColorFor(p.Name+":"+part))
         }
     }
+}
+
+func (p *Player) getAccountReq() (*AccountRequest, os.Error) {
+    acc, err := db_getString(p.Name + ":account")
+    if err != nil {
+        return nil, err
+    }
+    bts := StringToBytes(acc)
+    AccReq, err2 := getAccRequestFromJSON(&bts)
+    if err2 != nil {
+        return nil, err2
+    }
+    return AccReq, nil
 }

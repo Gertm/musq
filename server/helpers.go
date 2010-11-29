@@ -19,19 +19,19 @@ type Request struct {
 
 type GeneralRequest struct {
     Function string
-//    Params   interface{}
+    //    Params   interface{}
 }
 
 type AccountRequest struct {
-	Function string
-	Params AccountParams
+    Function string
+    Params   AccountParams
 }
 
 type AccountParams struct {
-	Username string
-	Password string
-	Email    string
-	Images   []VisualImage
+    Username string
+    Password string
+    Email    string
+    Images   []VisualImage
 }
 
 func (r Request) ToJson() []byte {
@@ -76,19 +76,19 @@ func getRequestFromJSON(bson *[]byte) (*Request, os.Error) {
 }
 
 func getAccRequestFromDB(PlayerName string) (*AccountRequest, os.Error) {
-	println("Getting accstring for",PlayerName)
-	acc, erra := db_getString(PlayerName+":account")
-	if erra != nil {
-		return nil,erra
-	}
-	bts := StringToBytes(acc)
-	// fmt.Printf("aftercopybytes: %s\n",bts)
-	return getAccRequestFromJSON(&bts)
+    println("Getting accstring for", PlayerName)
+    acc, erra := db_getString(PlayerName + ":account")
+    if erra != nil {
+        return nil, erra
+    }
+    bts := StringToBytes(acc)
+    // fmt.Printf("aftercopybytes: %s\n",bts)
+    return getAccRequestFromJSON(&bts)
 }
 
 func getAccRequestFromJSON(b *[]byte) (*AccountRequest, os.Error) {
-	var req = new(AccountRequest)
-	// fmt.Printf("getAccRequestFromJSON bytes: %s\n",b)
+    var req = new(AccountRequest)
+    // fmt.Printf("getAccRequestFromJSON bytes: %s\n",b)
     err := json.Unmarshal(*b, req)
     if err != nil {
         fmt.Printf("JSONERROR: %s\n", *b)
@@ -211,7 +211,7 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
 }
 
 func StringToBytes(str string) []byte {
-	var b = make([]byte, len(str))
-	copy(b, str)
-	return b
+    var b = make([]byte, len(str))
+    copy(b, str)
+    return b
 }
