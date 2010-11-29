@@ -70,6 +70,7 @@ func PlayerHandler(p *Player, wsChan <-chan []byte, wsReplyChan chan<- []byte) {
     }
 }
 
+// this function needs refactoring badly! TODO!
 func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
     r, jsonerr := getRequestFromJSON(rcvB)
     if jsonerr != nil {
@@ -82,8 +83,14 @@ func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
 	var success bool
     // TODO: get player data from database
 	acc, erra := db_getString(p.Name+":account")
+	if erra != nil {
+		rply.Params["Success"] = "false"
+		MarshalAndSendRequest(rply, wsReplyChan)
+		return
+	}
 	var bts []byte
 	copy(bts, acc)
+	fmt.Printf("bts: %s\n",bts)
 	caReq, errj := getAccRequestFromJSON(&bts)
 	if errj != nil {
 		panic("OMGWTF")
