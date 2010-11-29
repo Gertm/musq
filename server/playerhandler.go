@@ -80,25 +80,28 @@ func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
     p.Name = r.Params["Username"]
     p.Pwd = r.Params["Password"]
     rply := Request{"login", map[string]string{}}
-	var success bool
+	success := true
     // TODO: get player data from database
 	acc, erra := db_getString(p.Name+":account")
 	if erra != nil {
+		println("erra wasn't nil:", erra)
 		rply.Params["Success"] = "false"
 		MarshalAndSendRequest(rply, wsReplyChan)
 		return
 	}
-	var bts []byte
-	copy(bts, acc)
+	bts := StringToBytes(acc)
 	fmt.Printf("bts: %s\n",bts)
 	caReq, errj := getAccRequestFromJSON(&bts)
+	fmt.Printf("caReq: %s\n",caReq)
 	if errj != nil {
 		panic("OMGWTF")
 	}
 	if erra != nil {
+		println("erra wasn't nil 2:", erra)
 		success = false
 	} else {
 		if caReq.Params.Password != p.Pwd {
+			println("Passwords not the same:",caReq.Params.Password, p.Pwd)
 			success = false
 		}
 	}
@@ -232,6 +235,7 @@ func HandleGetFiles(rcvB *[]byte, wsReplyChan chan<- []byte) {
 func getVisualForName(Name string) VisualRequest {
 	accReq, err := getAccRequestFromDB(Name)
 	if err != nil {
+		fmt.Printf("%s\n",accReq)
 		panic("We didn't save the correct JSON string, abandon ship!\n")
 	}
     return VisualRequest{"visual", VisualParams{"Images", accReq.Params.Images}}

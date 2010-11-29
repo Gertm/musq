@@ -76,17 +76,19 @@ func getRequestFromJSON(bson *[]byte) (*Request, os.Error) {
 }
 
 func getAccRequestFromDB(PlayerName string) (*AccountRequest, os.Error) {
+	println("Getting accstring for",PlayerName)
 	acc, erra := db_getString(PlayerName+":account")
 	if erra != nil {
 		return nil,erra
 	}
-	var bts []byte
-	copy(bts, acc)
+	bts := StringToBytes(acc)
+	// fmt.Printf("aftercopybytes: %s\n",bts)
 	return getAccRequestFromJSON(&bts)
 }
 
 func getAccRequestFromJSON(b *[]byte) (*AccountRequest, os.Error) {
 	var req = new(AccountRequest)
+	// fmt.Printf("getAccRequestFromJSON bytes: %s\n",b)
     err := json.Unmarshal(*b, req)
     if err != nil {
         fmt.Printf("JSONERROR: %s\n", *b)
@@ -206,4 +208,10 @@ func GetFiles(basepath, wildcard string) ([]string, os.Error) {
         }
     }
     return results, nil
+}
+
+func StringToBytes(str string) []byte {
+	var b = make([]byte, len(str))
+	copy(b, str)
+	return b
 }
