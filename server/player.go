@@ -3,7 +3,6 @@ package main
 import (
     "os"
     "strconv"
-    "fmt"
     "container/vector"
 )
 
@@ -44,7 +43,7 @@ func (p *Player) GetProp(key string) string {
 }
 
 func (p *Player) propName(prop string) string {
-    return fmt.Sprintf("%s:%s", p.Name, prop)
+	return p.Name+":"+prop
 }
 
 func (p *Player) SetProp(key, value string) {
