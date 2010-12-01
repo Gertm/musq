@@ -123,6 +123,13 @@ func HandleCreateAccount(rcvB *[]byte, wsReplyChan chan<- []byte) {
     }(&rply)
 
     caReq, err := getAccRequestFromJSON(rcvB)
+    if err != nil {
+        println(err)
+        rply.Params["Success"] = "false"
+        rply.Params["Reason"] = err.String()
+        return
+    }
+
     // need to check first if we already created this
     username := caReq.Params.Username
     _, err2 := db_getString(username + ":account")
@@ -130,12 +137,6 @@ func HandleCreateAccount(rcvB *[]byte, wsReplyChan chan<- []byte) {
         // we already have the key
         rply.Params["Success"] = "false"
         rply.Params["Reason"] = "User already exists"
-        return
-    }
-    if err != nil {
-        println(err)
-        rply.Params["Success"] = "false"
-        rply.Params["Reason"] = err.String()
         return
     }
     // cannot use UnnamedPlayer as username!

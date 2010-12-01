@@ -43,7 +43,7 @@ func (p *Player) GetProp(key string) string {
 }
 
 func (p *Player) propName(prop string) string {
-	return p.Name+":"+prop
+    return p.Name + ":" + prop
 }
 
 func (p *Player) SetProp(key, value string) {
