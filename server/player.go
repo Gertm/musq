@@ -98,7 +98,7 @@ func (p *Player) CancelAllRequests() {
 
 func (p *Player) JumpRequest() Request {
     x, y := p.CurrentLocStrs()
-    return Request{p.Name, map[string]string{"X": x, "Y": y}}
+    return Request{"jump", map[string]string{"Name": p.Name, "X": x, "Y": y}}
 }
 
 func (p *Player) AddRequest(rcvB *[]byte) {
@@ -123,7 +123,7 @@ func (p *Player) Visual() (VisualRequest, os.Error) {
     if err != nil {
         return VisualRequest{}, err
     }
-    return VisualRequest{"visual", VisualParams{"Images", acc.Params.Images}}, nil
+    return VisualRequest{"visual", VisualParams{p.Name, acc.Params.Images}}, nil
 }
 
 func (p *Player) setVisual() {
