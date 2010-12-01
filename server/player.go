@@ -98,7 +98,7 @@ func (p *Player) CancelAllRequests() {
 
 func (p *Player) JumpRequest() Request {
     x, y := p.CurrentLocStrs()
-    return Request{Function: "jump", Params: map[string]string{"Name": p.Name,"X": x, "Y": y}}
+    return Request{"jump", map[string]string{"Name": p.Name, "X": x, "Y": y}}
 }
 
 func (p *Player) AddRequest(rcvB *[]byte) {
