@@ -1,0 +1,38 @@
+<html>
+
+<h1> ermusq test </h1>
+
+<erl>
+
+out(A) ->
+    io:format("~p~n",[A]),
+    case get_upgrade_header(A#arg.headers) of 
+		undefined ->
+			Headers = A#arg.headers,
+			{html,io_lib:format("You say that you're running ~p",[Headers#headers.user_agent])};
+		"WebSocket" ->
+			WebSocketOwner = spawn(fun() -> wshandle:websocket_owner() end),
+			{websocket, WebSocketOwner, passive}
+    end.
+
+get_upgrade_header(#headers{other=L}) ->
+    lists:foldl(fun({http_header,_,K0,_,V}, undefined) ->
+                        K = case is_atom(K0) of
+                                true ->
+                                    atom_to_list(K0);
+                                false ->
+                                    K0
+                            end,
+                        case string:to_lower(K) of
+                            "upgrade" ->
+                                V;
+                            _ ->
+                                undefined
+                        end;
+                   (_, Acc) ->
+                        Acc
+                end, undefined, L).					  
+
+
+
+</erl>
