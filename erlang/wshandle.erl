@@ -50,13 +50,15 @@ echo_server(WebSocket) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
 			Data = yaws_api:websocket_unframe_data(DataFrame),
-			case Data of
-				[<<"Function">>] ->
-					yaws_api:websocket_send(WebSocket,"Received function!~n"),
+			io:format("Getting func and params~n"),
+			{Fn,_} = get_func_and_params(Data),
+			case Fn of
+				<<"login">> ->
+					R = {struct,[{"Function","login"},{"Params",{"Success","true"}}]},
+					reply(WebSocket,R),
 					echo_server(WebSocket);
-				_ ->
-					io:format("Got ~p~n",[Data]),
-					yaws_api:websocket_send(WebSocket,"Not a function!~n"),
+				<<"keepalive">> ->
+					yaws_api:websocket_send(WebSocket,Data),
 					echo_server(WebSocket)
 			end;
 		{tcp_closed, WebSocket} ->
@@ -69,11 +71,15 @@ echo_server(WebSocket) ->
     end.
 
 get_func_and_params(BinData) ->
-	%% {"Function":"login","Params":{"Username":"Gert","Password":"g"}}.
-	[{<<"Function">>,Func},{<<"Params">>,{struct,Params}}] = mochijson2:decode(BinData),
+	{struct,[{<<"Function">>,Func},{<<"Params">>,{struct,Params}}]} = mochijson2:decode(BinData),
+	io:format("Function: <~s>, Params: <~s>~n",[Func,Params]),
     {Func,Params}.
 
 reply(WebSocket, Reply) ->
 	R = mochijson:encode(Reply),
 	io:format("Sending: ~s~n",[R]),
 	yaws_api:websocket_send(WebSocket, R).
+
+test_get_func_and_params() ->
+	A = "{\"Function\":\"login\",\"Params\":{\"Username\":\"Gert\",\"Password\":\"g\"}}.",
+	get_func_and_params(A).
