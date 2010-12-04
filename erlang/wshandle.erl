@@ -10,18 +10,16 @@
 -compile(export_all).
 
 out(A) ->
-    error_logger:info_msg("~p~n",[A]),
     case get_upgrade_header(A#arg.headers) of 
 		undefined ->
-			Headers = A#arg.headers,
-			{html,io_lib:format("You say that you're running ~p",[Headers#headers.user_agent])};
+			{html,"MUSQ server. Please connect through the websocket API."};
 		"WebSocket" ->
+
 			WebSocketOwner = spawn(fun() -> websocket_owner() end),
 			{websocket, WebSocketOwner, passive}
     end.
 
 get_upgrade_header(#headers{other=L}) ->
-	io:format("Running upgrade header!~n"),
     lists:foldl(fun({http_header,_,K0,_,V}, undefined) ->
                         K = case is_atom(K0) of
                                 true ->
@@ -41,25 +39,11 @@ get_upgrade_header(#headers{other=L}) ->
 
 
 websocket_owner() ->
-	io:format("In websocket_owner~n"),
     receive
 		{ok, WebSocket} ->
-			%% This is how we read messages (plural!!) from websockets on passive mode
-			case yaws_api:websocket_receive(WebSocket) of
-				{error,closed} ->
-					io:format("The websocket got disconnected right from the start. "
-							  "This wasn't supposed to happen!!~n");
-				{ok, Messages} ->
-					case Messages of
-						[<<"MUSQ">>] ->
-							yaws_api:websocket_setopts(WebSocket, [{active, true}]),
-							echo_server(WebSocket);
-						Other ->
-							io:format("websocket_owner got: ~p. NOT MUSQ API!~n", [Other]),
-							echo_server(WebSocket)
-					end
-			end;
-		_ -> ok
+			yaws_api:websocket_setopts(WebSocket, [{active, true}]),			
+			echo_server(WebSocket);
+		_ -> error_logger:info_msg("Didn't get websocket stuff.. strange!")
     end.
 
 echo_server(WebSocket) ->
@@ -68,17 +52,28 @@ echo_server(WebSocket) ->
 			Data = yaws_api:websocket_unframe_data(DataFrame),
 			case Data of
 				[<<"Function">>] ->
-					yaws_api:websocket_send("Received function!~n"),
+					yaws_api:websocket_send(WebSocket,"Received function!~n"),
 					echo_server(WebSocket);
 				_ ->
-					yaws_api:websocket_send("Not a function!~n"),
+					io:format("Got ~p~n",[Data]),
+					yaws_api:websocket_send(WebSocket,"Not a function!~n"),
 					echo_server(WebSocket)
 			end;
 		{tcp_closed, WebSocket} ->
 			io:format("Websocket closed. Terminating echo_server...~n");
+		{reply, _From, Reply} ->
+			reply(WebSocket,Reply);
 		Any ->
 			io:format("echo_server received msg:~p~n", [Any]),
 			echo_server(WebSocket)
     end.
 
+get_func_and_params(BinData) ->
+	%% {"Function":"login","Params":{"Username":"Gert","Password":"g"}}.
+	[{<<"Function">>,Func},{<<"Params">>,{struct,Params}}] = mochijson2:decode(BinData),
+    {Func,Params}.
 
+reply(WebSocket, Reply) ->
+	R = mochijson:encode(Reply),
+	io:format("Sending: ~s~n",[R]),
+	yaws_api:websocket_send(WebSocket, R).
