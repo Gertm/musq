@@ -6,11 +6,11 @@
 %%% Created :  1 Dec 2010 by Gert Meulyzer <@G3rtm on Twitter>
 
 -module(wshandle).
--include("/usr/lib/erlang/lib/yaws/include/yaws_api.hrl").
+-include("musq.hrl").
 -compile(export_all).
 
 out(A) ->
-    io:format("~p~n",[A]),
+    error_logger:info_msg("~p~n",[A]),
     case get_upgrade_header(A#arg.headers) of 
 		undefined ->
 			Headers = A#arg.headers,
@@ -21,6 +21,7 @@ out(A) ->
     end.
 
 get_upgrade_header(#headers{other=L}) ->
+	io:format("Running upgrade header!~n"),
     lists:foldl(fun({http_header,_,K0,_,V}, undefined) ->
                         K = case is_atom(K0) of
                                 true ->
@@ -40,6 +41,7 @@ get_upgrade_header(#headers{other=L}) ->
 
 
 websocket_owner() ->
+	io:format("In websocket_owner~n"),
     receive
 		{ok, WebSocket} ->
 			%% This is how we read messages (plural!!) from websockets on passive mode
@@ -64,10 +66,7 @@ echo_server(WebSocket) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
 			Data = yaws_api:websocket_unframe_data(DataFrame),
-			{struct,[JSON]} = mochijson2:decode(Data),
-			io:format("~s~n",[JSON]),
-			{First,Second} = JSON,
-			case First of
+			case Data of
 				[<<"Function">>] ->
 					yaws_api:websocket_send("Received function!~n"),
 					echo_server(WebSocket);
