@@ -4,8 +4,6 @@
 
 
 out(A) ->
-	error_logger:info_msg("musq-config being called"),
 	Head = A#arg.headers,
 	Host = Head#headers.host,
-	io:format("musq-config ~s~n",[Host]),
-	{html,"Bleh"}.
+	{html,"var musq_websocket_url = \""++Host++"\";"}.
