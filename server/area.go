@@ -22,8 +22,8 @@ type Area struct {
 }
 
 type AreaReply struct {
-	Function string
-	Params Area
+    Function string
+    Params   Area
 }
 
 func (r AreaReply) ToJson() []byte {
