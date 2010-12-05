@@ -30,7 +30,7 @@ func loadArea(filename string) (Area, os.Error) {
     }
     d := json.NewDecoder(f) // zomg, awesome :D
     a := Area{}
-    err = d.Decode(a)
+    err = d.Decode(&a)
     if err != nil {
         return Area{}, err
     }
