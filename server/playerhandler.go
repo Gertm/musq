@@ -100,6 +100,11 @@ func HandleLogin(p *Player, rcvB *[]byte, wsReplyChan chan<- []byte) {
         println("no visual for", p.Name) //almost impossible, but ok
         return
     }
+	BeginArea, a_err := loadArea("areas/begin.area")
+	if a_err != nil {
+		panic("Couldn't load area!")
+	}
+	ReplyChan <- AreaReply{"area",BeginArea}
     ReplyChan <- v
     ReplyChan <- p.JumpRequest()
     players, ok := db_getSet("players")

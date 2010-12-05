@@ -21,6 +21,20 @@ type Area struct {
     Tiles       []Tile
 }
 
+type AreaReply struct {
+	Function string
+	Params Area
+}
+
+func (r AreaReply) ToJson() []byte {
+    b, err := json.Marshal(r)
+    if err != nil {
+        panic(err)
+    }
+    return b
+}
+
+
 // load the area from disk
 
 func loadArea(filename string) (Area, os.Error) {
