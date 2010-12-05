@@ -3,15 +3,15 @@
 	"DefaultTile": {
 		"Images": [ "earth01.png" ],
 		"Properties": {
-			"WalkingSpeed": 1,
-			"Damage": 0
+			"WalkingSpeed": "1",
+			"Damage": "0"
     	}
     },
 	"BorderTile": {
 		"Images": [ "concrete01.png" ],
 		"Properties": {
-			"WalkingSpeed": 1,
-			"Damage": 0
+			"WalkingSpeed": "1",
+			"Damage": "0"
     	}
 	},
 	
@@ -23,8 +23,8 @@
 			"Y": 0,
 			"Images": [ "grass01.png" ],
 			"Properties": {
-                "WalkingSpeed": 1,
-                "Damage": 0
+                "WalkingSpeed": "1",
+                "Damage": "0"
 			}
 		},
 		{
@@ -32,8 +32,8 @@
 			"Y": 0,
 			"Images": [ "grass01.png" ],
 			"Properties": {
-                "WalkingSpeed": 1,
-                "Damage": 0
+                "WalkingSpeed": "1",
+                "Damage": "0"
 			}
 		},
 		{
@@ -41,8 +41,8 @@
 			"Y": 0,
 			"Images": [ "grass01.png" ],
 			"Properties": {
-                "WalkingSpeed": 1,
-                "Damage": 0
+                "WalkingSpeed": "1",
+                "Damage": "0"
 			}
 		},
 		{
@@ -50,8 +50,8 @@
 			"Y": -1,
 			"Images": [ "grass01.png" ],
 			"Properties": {
-                "WalkingSpeed": 1,
-                "Damage": 0
+                "WalkingSpeed": "1",
+                "Damage": "0"
 			}
 		},
 		{
@@ -59,8 +59,8 @@
 			"Y": 1,
 			"Images": [ "grass01.png" ],
 			"Properties": {
-                "WalkingSpeed": 1,
-                "Damage": 0
+                "WalkingSpeed": "1",
+                "Damage": "0"
 			}
 		},
 		{
@@ -68,8 +68,8 @@
 			"Y": 0,
 			"Images": [ "grass01.png" ],
 			"Properties": {
-                "WalkingSpeed": 1,
-                "Damage": 0
+                "WalkingSpeed": "1",
+                "Damage": "0"
 			}
 		}
 	]
