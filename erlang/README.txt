@@ -38,3 +38,5 @@ echo "code:add_pathz(\""$HOME$"/src/erldis/ebin/\")." >> ~/.erlang
 echo "code:add_pathz(\""$HOME$"/src/musq/erlang/\")." >> ~/.erlang
 
 # Now we need to configure the yaws server:
+
+echo "Follow the instructions in yaws.conf to make your own musq.conf"
