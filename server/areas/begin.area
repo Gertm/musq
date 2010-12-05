@@ -13,7 +13,8 @@
 			"WalkingSpeed": 1,
 			"Damage": 0
     	}
-    },
+	},
+	
 	"Width": 100,
 	"Height": 100,
 	"Tiles": [
@@ -23,16 +24,16 @@
 			"Images": [ "grass01.png" ],
 			"Properties": {
                 "WalkingSpeed": 1,
-                "Damage": 0,
+                "Damage": 0
 			}
 		},
-				{
+		{
 			"X": -1,
 			"Y": 0,
 			"Images": [ "grass01.png" ],
 			"Properties": {
                 "WalkingSpeed": 1,
-                "Damage": 0,
+                "Damage": 0
 			}
 		},
 		{
@@ -41,7 +42,7 @@
 			"Images": [ "grass01.png" ],
 			"Properties": {
                 "WalkingSpeed": 1,
-                "Damage": 0,
+                "Damage": 0
 			}
 		},
 		{
@@ -50,7 +51,7 @@
 			"Images": [ "grass01.png" ],
 			"Properties": {
                 "WalkingSpeed": 1,
-                "Damage": 0,
+                "Damage": 0
 			}
 		},
 		{
@@ -59,7 +60,7 @@
 			"Images": [ "grass01.png" ],
 			"Properties": {
                 "WalkingSpeed": 1,
-                "Damage": 0,
+                "Damage": 0
 			}
 		},
 		{
@@ -68,11 +69,10 @@
 			"Images": [ "grass01.png" ],
 			"Properties": {
                 "WalkingSpeed": 1,
-                "Damage": 0,
+                "Damage": 0
 			}
-		},
-
+		}
 	]
 }
 
-	
+
