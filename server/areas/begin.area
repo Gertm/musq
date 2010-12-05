@@ -1,0 +1,78 @@
+{
+	"Name": "Begin",
+	"DefaultTile": {
+		"Images": [ "earth01.png" ],
+		"Properties": {
+			"WalkingSpeed": 1,
+			"Damage": 0
+    	}
+    },
+	"BorderTile": {
+		"Images": [ "concrete01.png" ],
+		"Properties": {
+			"WalkingSpeed": 1,
+			"Damage": 0
+    	}
+    },
+	"Width": 100,
+	"Height": 100,
+	"Tiles": [
+		{
+			"X": 0,
+			"Y": 0,
+			"Images": [ "grass01.png" ],
+			"Properties": {
+                "WalkingSpeed": 1,
+                "Damage": 0,
+			}
+		},
+				{
+			"X": -1,
+			"Y": 0,
+			"Images": [ "grass01.png" ],
+			"Properties": {
+                "WalkingSpeed": 1,
+                "Damage": 0,
+			}
+		},
+		{
+			"X": 1,
+			"Y": 0,
+			"Images": [ "grass01.png" ],
+			"Properties": {
+                "WalkingSpeed": 1,
+                "Damage": 0,
+			}
+		},
+		{
+			"X": 0,
+			"Y": -1,
+			"Images": [ "grass01.png" ],
+			"Properties": {
+                "WalkingSpeed": 1,
+                "Damage": 0,
+			}
+		},
+		{
+			"X": 0,
+			"Y": 1,
+			"Images": [ "grass01.png" ],
+			"Properties": {
+                "WalkingSpeed": 1,
+                "Damage": 0,
+			}
+		},
+		{
+			"X": 0,
+			"Y": 0,
+			"Images": [ "grass01.png" ],
+			"Properties": {
+                "WalkingSpeed": 1,
+                "Damage": 0,
+			}
+		},
+
+	]
+}
+
+	
