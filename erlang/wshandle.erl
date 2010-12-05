@@ -41,7 +41,8 @@ get_upgrade_header(#headers{other=L}) ->
 websocket_owner() ->
     receive
 		{ok, WebSocket} ->
-			yaws_api:websocket_setopts(WebSocket, [{active, true}]),			
+			yaws_api:websocket_setopts(WebSocket, [{active, true}]),
+			%% start the appropriate player module here.
 			echo_server(WebSocket);
 		_ -> error_logger:info_msg("Didn't get websocket stuff.. strange!")
     end.
@@ -49,6 +50,8 @@ websocket_owner() ->
 echo_server(WebSocket) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
+			%% this part needs to be in the player module.
+			%% the code here should just relay the request to there.
 			Data = yaws_api:websocket_unframe_data(DataFrame),
 			io:format("Getting func and params~n"),
 			{Fn,_} = get_func_and_params(Data),
@@ -72,7 +75,7 @@ echo_server(WebSocket) ->
 
 get_func_and_params(BinData) ->
 	{struct,[{<<"Function">>,Func},{<<"Params">>,{struct,Params}}]} = mochijson2:decode(BinData),
-	io:format("Function: <~s>, Params: <~s>~n",[Func,Params]),
+	io:format("Function: ~s~nParams: <~p>~n",[Func,Params]),
     {Func,Params}.
 
 reply(WebSocket, Reply) ->
@@ -81,5 +84,5 @@ reply(WebSocket, Reply) ->
 	yaws_api:websocket_send(WebSocket, R).
 
 test_get_func_and_params() ->
-	A = "{\"Function\":\"login\",\"Params\":{\"Username\":\"Gert\",\"Password\":\"g\"}}.",
+	A = <<"{\"Function\":\"login\",\"Params\":{\"Username\":\"Gert\",\"Password\":\"g\"}}">>,
 	get_func_and_params(A).
