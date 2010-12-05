@@ -29,4 +29,12 @@ git clone https://github.com/mochi/mochiweb.git
 cd mochiweb
 make
 cd
-homedir = $(pwd)
+
+# I've set this up with additions to the .erlang file
+# not sure yet if that's the best way to go, but for now, it'll do.
+
+echo "code:add_pathz(\""$HOME$"/src/mochiweb/ebin/\")." >> ~/.erlang
+echo "code:add_pathz(\""$HOME$"/src/erldis/ebin/\")." >> ~/.erlang
+echo "code:add_pathz(\""$HOME$"/src/musq/erlang/\")." >> ~/.erlang
+
+# Now we need to configure the yaws server:
