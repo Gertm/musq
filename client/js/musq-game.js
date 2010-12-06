@@ -1,3 +1,21 @@
+//## utility functions #########################################################################
+
+function toTileIndex(x, y) {
+    return "" + x + "," + y;
+}
+
+function jsonTileToTile(jsontile) {
+    var tile = {};
+    tile.properties = jsontile.Properties;
+    tile.images = [];
+    for (var iImage in jsontile.Images) {
+        var url = jsontile.Images[iImage];
+        log("downloading " + url);
+        tile.images.push(loadImage(url));
+    }
+    return tile;
+}
+
 //## animation classes #########################################################################
 
 function moveAnimation() {
@@ -130,17 +148,26 @@ function drawImageAtLogic(cxt, image, pt) {
 //## drawing ###################################################################################
 
 function drawGameBackground(cxt) {
-    cxt.fillStyle = "#88FF88";
+    cxt.fillStyle = "#000000";
     cxt.fillRect(0, 0, game.canvas.width, game.canvas.height);
 }
 
 function drawGameGrid(cxt) {
+    if (!game.area || !game.area.tiles) {
+        return;
+    }
     var viewPort = getLogicalViewPort();
     for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
         for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
             var uipt = logicalToVisual({ x: x, y: y });
-            // TODO: Set scale depending on game.logicalToVisualFactor and image.width.
-            cxt.drawImage(game.defaulttile, uipt.x - game.defaulttile.width / 2, uipt.y - game.defaulttile.height / 2);
+            var tile = game.area.tiles[toTileIndex(x, y)];
+            if (tile) {
+                // TODO: Set scale depending on game.logicalToVisualFactor and image.width.
+                for (var iImage in tile.images) {
+                    var image = tile.images[iImage];
+                    cxt.drawImage(image, uipt.x - image.width / 2, uipt.y - image.height / 2);
+                }
+            }
         }
     }
 }
@@ -408,6 +435,27 @@ function handleChatHistoryJson(json) {
     limitTalkHistory();
 }
 
+function handleAreaJson(json) {
+    game.area = {};
+    game.area.width = json.Params.Width;
+    game.area.height = json.Params.Height;
+    game.area.tiles = {};
+    var defaulttile = jsonTileToTile(json.Params.DefaultTile);
+    var xstart = -game.area.width / 2;
+    var ystart = -game.area.height / 2;
+    for (var x = 0; x < game.area.width; x++) {
+        for (var y = 0; y < game.area.height; y++) {
+            game.area.tiles[toTileIndex(xstart + x, ystart + y)] = defaulttile;
+        }
+    }
+    // TODO: process border tile
+    for (var iTile in json.Params.Tiles) {
+        var jsontile = json.Params.Tiles[iTile];
+        var tile = jsonTileToTile(jsontile);
+        game.area.tiles[toTileIndex(tile.x, tile.y)] = tile;
+    }
+}
+
 //## message handlers ##########################################################################
 
 function onGameCanvasClick(evt) {
@@ -509,7 +557,6 @@ function initializeGame() {
     game.container = document.getElementById("gamecontainer");
     game.canvas = document.getElementById("gamecanvas");
     game.talkedit = document.getElementById("gametalkedit");
-    game.defaulttile = loadImage("images/tiles/surfaces/earth01.png");
     initializeGameHud();
     setInterval(updateGameUiData, 1000 / game.fps);
     setInterval(drawGameCanvas, 1000 / game.fps);
