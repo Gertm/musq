@@ -1,7 +1,7 @@
 {
 	"Name": "Begin",
-	"Width": 20,
-	"Height": 20,
+	"Width": 15,
+	"Height": 15,
 	"DefaultTile": {
 		"Images": [ "images/tiles/surfaces/earth01.png" ],
 		"Properties": {
@@ -18,9 +18,108 @@
 	},
 	"Tiles": [
 		{
-			"X": 0,
-			"Y": 1,
+			"X": 5,
+			"Y": 5,
 			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_top_left.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_bottom_left.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 6,
+			"Y": 5,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_top_middle.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 6,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_bottom_middle.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 7,
+			"Y": 5,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_top_right.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 7,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_bottom_right.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 9,
+			"Y": 9,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_top_left.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 9,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_bottom_left.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 10,
+			"Y": 9,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_top_middle.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 10,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_bottom_middle.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 11,
+			"Y": 9,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_top_right.png"],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 11,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/earth01.png", "images/tiles/walls/bricks01_bottom_right.png"],
 			"Properties": {
                 "WalkingSpeed": "0",
                 "Damage": "0"
