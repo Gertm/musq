@@ -123,6 +123,10 @@ function onWebSocketMessage(evt) {
         handleGetFilesJson(json);
         return;
     }
+    if (json.Function === "area") {
+        handleAreaJson(json);
+        return;
+    }
 }
 
 //## page layout ###############################################################################

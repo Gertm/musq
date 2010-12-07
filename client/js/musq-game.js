@@ -1,3 +1,23 @@
+//## utility functions #########################################################################
+
+function toTileIndex(x, y) {
+    return "" + x + "," + y;
+}
+
+function jsonTileToTile(jsontile) {
+    var tile = {};
+    tile.properties = jsontile.Properties;
+    tile.images = [];
+    for (var iImage = 0; iImage < jsontile.Images.length; ++iImage) {
+        var url = jsontile.Images[iImage];
+        var image = loadImage(url);
+        if (image) {
+            tile.images.push(image);
+        }
+    }
+    return tile;
+}
+
 //## animation classes #########################################################################
 
 function moveAnimation() {
@@ -130,17 +150,31 @@ function drawImageAtLogic(cxt, image, pt) {
 //## drawing ###################################################################################
 
 function drawGameBackground(cxt) {
-    cxt.fillStyle = "#88FF88";
+    cxt.fillStyle = "#000000";
     cxt.fillRect(0, 0, game.canvas.width, game.canvas.height);
 }
 
-function drawGameGrid(cxt) {
+function drawGameTile(cxt, x, y) {
+    var tile = game.area.tiles[toTileIndex(x, y)];
+    if (!tile) {
+        return;
+    }
+    var uipt = logicalToVisual({ x: x, y: y });
+    // TODO: Set scale depending on game.logicalToVisualFactor and image.width.
+    for (var iImage = 0; iImage < tile.images.length; ++iImage) {
+        var image = tile.images[iImage];
+        cxt.drawImage(image, uipt.x - image.width / 2, uipt.y - image.height / 2);
+    }
+}
+
+function drawGameArea(cxt) {
+    if (!game.area || !game.area.tiles) {
+        return;
+    }
     var viewPort = getLogicalViewPort();
     for (var x = viewPort.topLeft.x - 1; x < viewPort.bottomRight.x + 1; x++) {
         for (var y = viewPort.bottomRight.y - 1; y < viewPort.topLeft.y + 1; y++) {
-            var uipt = logicalToVisual({ x: x, y: y });
-            // TODO: Set scale depending on game.logicalToVisualFactor and image.width.
-            cxt.drawImage(game.defaulttile, uipt.x - game.defaulttile.width / 2, uipt.y - game.defaulttile.height / 2);
+            drawGameTile(cxt, x, y);
         }
     }
 }
@@ -260,7 +294,7 @@ function drawGameCanvas() {
     }
     var cxt = game.canvas.getContext("2d");
     drawGameBackground(cxt);
-    drawGameGrid(cxt);
+    drawGameArea(cxt);
     drawGameMoveTarget(cxt);
     drawGameEntities(cxt);
     drawGameHud(cxt);
@@ -408,6 +442,35 @@ function handleChatHistoryJson(json) {
     limitTalkHistory();
 }
 
+function handleAreaJson(json) {
+    game.area = {};
+    game.area.width = json.Params.Width;
+    game.area.height = json.Params.Height;
+    game.area.tiles = {};
+    var x;
+    var y;
+    var defaulttile = jsonTileToTile(json.Params.DefaultTile);
+    for (x = 0; x < game.area.width; x++) {
+        for (y = 0; y < game.area.height; y++) {
+            game.area.tiles[toTileIndex(x, y)] = defaulttile;
+        }
+    }
+    var bordertile = jsonTileToTile(json.Params.BorderTile);
+    for (x = -1; x <= game.area.width; x++) {
+        game.area.tiles[toTileIndex(x, -1)] = bordertile;
+        game.area.tiles[toTileIndex(x, game.area.height)] = bordertile;
+    }
+    for (y = -1; y <= game.area.height; y++) {
+        game.area.tiles[toTileIndex(-1, y)] = bordertile;
+        game.area.tiles[toTileIndex(game.area.width, y)] = bordertile;
+    }
+    for (var iTile = 0; iTile < json.Params.Tiles.length; ++iTile) {
+        var jsontile = json.Params.Tiles[iTile];
+        var tile = jsonTileToTile(jsontile);
+        game.area.tiles[toTileIndex(jsontile.X, jsontile.Y)] = tile;
+    }
+}
+
 //## message handlers ##########################################################################
 
 function onGameCanvasClick(evt) {
@@ -509,7 +572,6 @@ function initializeGame() {
     game.container = document.getElementById("gamecontainer");
     game.canvas = document.getElementById("gamecanvas");
     game.talkedit = document.getElementById("gametalkedit");
-    game.defaulttile = loadImage("images/tiles/surfaces/earth01.png");
     initializeGameHud();
     setInterval(updateGameUiData, 1000 / game.fps);
     setInterval(drawGameCanvas, 1000 / game.fps);
