@@ -1,7 +1,9 @@
 %%% @author Gert <@G3rtm on Twitter>
 %%% @copyright (C) 2010, Gert
 %%% @doc
-%%%
+%%% The area module.
+%%% This could probably be converted to be an OTP gen_server, but I'm not sure yet.
+%%% Once I learn more about how OTP and gen_server work, I'll probably port it.
 %%% @end
 %%% Created :  6 Dec 2010 by Gert <@G3rtm on Twitter>
 
@@ -31,10 +33,12 @@ loop(_AreaState) ->
 	ok.
 
 -spec(load(FileName::string()) -> term()).
+%% @spec -spec(load(FileName::string()) -> term()
 load(FileName) ->
     mochijson:decode(readlines(FileName)).
 	
 -spec(readlines(FileName::string()) -> string()).
+%% @spec readlines(FileName::string()) -> string()
 readlines(FileName) ->
     {ok, Device} = file:open(FileName, [read]),
     lists:flatten(get_all_lines(Device, [])).
@@ -45,7 +49,6 @@ get_all_lines(Device, Accum) ->
         eof  -> file:close(Device), lists:reverse(Accum);
         Line -> get_all_lines(Device, [Line|Accum])
     end.
-
 
 %% for future reference on using Eunit. (it's been a while..)
 dummy_adder(X,Y) ->

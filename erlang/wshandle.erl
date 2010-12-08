@@ -6,6 +6,7 @@
 %%% Created :  1 Dec 2010 by Gert Meulyzer <@G3rtm on Twitter>
 
 -module(wshandle).
+-include_lib("yaws/include/yaws_api.hrl").
 -include("musq.hrl").
 -compile(export_all).
 
@@ -14,7 +15,6 @@ out(A) ->
 		undefined ->
 			{html,"MUSQ server. Please connect through the websocket API."};
 		"WebSocket" ->
-
 			WebSocketOwner = spawn(fun() -> websocket_owner() end),
 			{websocket, WebSocketOwner, passive}
     end.
