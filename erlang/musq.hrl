@@ -1,3 +1,1 @@
--include("/usr/lib64/erlang/lib/yaws/include/yaws_api.hrl").
--record(area, {name, width, height, defaulttile, bordertile, tiles, playerpids}).
--record(tile, {x, y, images, properties}).
+-include("/usr/lib/erlang/lib/yaws/include/yaws_api.hrl").
