@@ -10,22 +10,31 @@
 -compile(export_all).
 
 %% record definitions -- nobody needs these except for this module
--record(area, {name, width, height, defaulttile, bordertile, tiles, playerpids}).
--record(tile, {x, y, images, properties}).
+-record(tile, {x				::integer(),
+			   y				::integer(),
+			   images			::[string()],
+			   properties		::[term()]
+			  }).
+-record(area, {name				::string(),
+			   width			::integer(),
+			   height			::integer(),
+			   defaulttile		::#tile{},
+			   bordertile		::#tile{},
+			   tiles			::[#tile{}],
+			   playerpids		::[pid()]
+			  }).
 
-start(FileName) ->
+start(_FileName) ->
 	ok.
 
-
-loop(AreaState) ->
+loop(_AreaState) ->
 	ok.
-
 
 -spec(load(FileName::string()) -> term()).
 load(FileName) ->
     mochijson:decode(readlines(FileName)).
 	
-
+-spec(readlines(FileName::string()) -> string()).
 readlines(FileName) ->
     {ok, Device} = file:open(FileName, [read]),
     lists:flatten(get_all_lines(Device, [])).
