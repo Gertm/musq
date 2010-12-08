@@ -21,13 +21,14 @@ loop(AreaState) ->
 	ok.
 
 
+-spec(load(FileName::string()) -> term()).
 load(FileName) ->
-	A = lists:flatten(readlines(FileName)),
-	mochijson:decode(A).
+    mochijson:decode(readlines(FileName)).
+	
 
 readlines(FileName) ->
     {ok, Device} = file:open(FileName, [read]),
-    mochijson:decode(lists:flatten(get_all_lines(Device, []))).
+    lists:flatten(get_all_lines(Device, [])).
 
 %% could optimize this further to use binaries.
 get_all_lines(Device, Accum) ->
@@ -35,3 +36,12 @@ get_all_lines(Device, Accum) ->
         eof  -> file:close(Device), lists:reverse(Accum);
         Line -> get_all_lines(Device, [Line|Accum])
     end.
+
+
+%% for future reference on using Eunit. (it's been a while..)
+dummy_adder(X,Y) ->
+	X + Y.
+
+dummy_adder_test() ->
+	?assertEqual(dummy_adder(4,5), 9),
+	?assertEqual(dummy_adder(2,3), 5).

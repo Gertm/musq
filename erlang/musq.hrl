@@ -1,1 +1,2 @@
--include("/usr/lib/erlang/lib/yaws/include/yaws_api.hrl").
+-include_lib("yaws/include/yaws_api.hrl").
+-include_lib("eunit/include/eunit.hrl").
