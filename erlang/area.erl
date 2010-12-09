@@ -17,20 +17,46 @@
 			   images			::[string()],
 			   properties		::[term()]
 			  }).
+
 -record(area, {name				::string(),
 			   width			::integer(),
 			   height			::integer(),
 			   defaulttile		::#tile{},
 			   bordertile		::#tile{},
 			   tiles			::[#tile{}],
-			   playerpids		::[pid()]
+			   playerpids		::[pid()],
+			   world			::pid()
 			  }).
+%% the area record should keep track of the exits to other areas and those areas
+%% exits could be a property in the tile record, but getting the neighbouring areas
+%% could be a bit difficult. The area loading code could scan the area definition once
+%% and check for exits there.
+%% Alternatively, the area could notify the world about the player leaving the area and going to
+%% the area with 'name' (atom()). Then there should only be one world?
+%% or multiple worlds and 1 universe? :-)  How many dimensions are there again? ;-P
 
 start(_FileName) ->
 	ok.
 
 loop(_AreaState) ->
-	ok.
+	receive
+		{enter, _Pid} ->
+			%% this needs to return the initial coordinates of the player in the area
+			%% notify the other players in the same area
+			ok;
+		{leave, _Pid} ->
+			%% notify the other players in the same area
+			ok;
+		{move, _Pid} ->
+			%% check whether the move is possible,
+			%% return the new coordinates of the player.
+			%% notify the other players in the same area
+			ok;
+		{talk, _Pid} ->
+			%% notify the other players in the same area
+			ok
+	end.
+
 
 -spec(load(FileName::string()) -> term()).
 %% @spec -spec(load(FileName::string()) -> term()
@@ -49,6 +75,9 @@ get_all_lines(Device, Accum) ->
         eof  -> file:close(Device), lists:reverse(Accum);
         Line -> get_all_lines(Device, [Line|Accum])
     end.
+
+broadcast(Message, PlayerPids) ->
+	[ Pid ! Message || Pid <- PlayerPids ].
 
 %% for future reference on using Eunit. (it's been a while..)
 dummy_adder(X,Y) ->
