@@ -7,7 +7,7 @@
 %%% Created : 12 Dec 2010 by Gert Meulyzer <@G3rtm on Twitter>
 %%%-------------------------------------------------------------------
 -module(garea).
-
+-include("musq.hrl").
 -behaviour(gen_server).
 
 %% API
@@ -18,6 +18,22 @@
 		 terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE). 
+
+-record(tile, {x				::integer(),
+			   y				::integer(),
+			   images			::[string()],
+			   properties		::[term()]
+			  }).
+
+-record(area, {name				::string(),
+			   width			::integer(),
+			   height			::integer(),
+			   defaulttile		::#tile{},
+			   bordertile		::#tile{},
+			   tiles			::[#tile{}],
+			   playerpids		::[pid()],
+			   world			::pid()
+			  }).
 
 -record(state, {}).
 
