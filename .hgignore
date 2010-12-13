@@ -7,5 +7,5 @@ glob:*.8
 glob:*.6
 glob:server/httpd
 glob:server/musq
-glob:erlang/musq.conf
+glob:erlang/priv/musq.conf
 glob:erlang/*.dump

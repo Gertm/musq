@@ -1,2 +1,2 @@
-yaws -i --conf ./musq.conf
+yaws -i --conf ./priv/musq.conf
 
