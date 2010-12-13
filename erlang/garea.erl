@@ -141,3 +141,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+%% for the embedded starting of the yaws server (we'll need this later)
+%% Yconf = [{docroot, "/home/gert/src/musq/client/"},{port, 8080}, {listen, {127,0,0,1}}, {appmods, [{"/service",wshandle},{"/js/musq-config.js",musqconfig}]}].
