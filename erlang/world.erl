@@ -2,7 +2,9 @@
 %%% @author Gert <@G3rtm on Twitter>
 %%% @copyright (C) 2010, Gert
 %%% @doc
-%%%
+%%% The world module handles the communication of the different areas.
+%%% when a player leaves an area to go to another area, he/she has to
+%%% pass through the world.
 %%% @end
 %%% Created : 13 Dec 2010 by Gert <@G3rtm on Twitter>
 %%%-------------------------------------------------------------------
@@ -19,7 +21,9 @@
 
 -define(SERVER, ?MODULE). 
 
--record(worldstate, {}).
+-record(arearec, {name ::string(),
+				  pid  ::pid()}).
+-record(worldstate, {areas ::[#arearec{}]}).
 
 %%%===================================================================
 %%% API
@@ -34,7 +38,7 @@
 %%--------------------------------------------------------------------
 start_link() -> 
 	%% for this, a named version will do because there should only
-	%% be one world per node. (if we ever do multiple nodes..)
+	%% be one world. (for now)
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 %%%===================================================================
