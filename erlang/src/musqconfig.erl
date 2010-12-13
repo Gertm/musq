@@ -1,5 +1,6 @@
 -module('musqconfig').
 -include("musq.hrl").
+-include_lib("yaws/include/yaws_api.hrl").
 -compile(export_all).
 
 
