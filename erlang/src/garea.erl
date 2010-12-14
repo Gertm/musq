@@ -15,28 +15,27 @@
 -export([start_link/0]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
 		 terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE). 
 
--record(tile, {x				::integer(),
-			   y				::integer(),
-			   images			::[string()],
+-record(tile, {x				::integer(), 
+			   y				::integer(), 
+			   images			::[string()], 
 			   properties		::[term()]
 			  }).
 
--record(area, {name				::string(),
-			   width			::integer(),
-			   height			::integer(),
-			   defaulttile		::#tile{},
-			   bordertile		::#tile{},
-			   tiles			::[#tile{}],
-			   playerpids		::[pid()],
+-record(area, {name				::string(), 
+			   width			::integer(), 
+			   height			::integer(), 
+			   defaulttile		::#tile{}, 
+			   bordertile		::#tile{}, 
+			   tiles			::[#tile{}], 
+			   playerpids		::[pid()], 
 			   world			::pid()
 			  }).
 
--record(state, {}).
 
 %%%===================================================================
 %%% API
@@ -67,8 +66,9 @@ start_link() ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
-	{ok, #state{}}.
+init(AreaFilename) ->
+	AreaState = parse_json(load(AreaFilename)), 
+	{ok, AreaState}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -85,7 +85,7 @@ init([]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call(_Request, _From, State) ->
-	Reply = ok,
+	Reply = ok, 
 	{reply, Reply, State}.
 
 %%--------------------------------------------------------------------
@@ -144,7 +144,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 %% for the embedded starting of the yaws server (we'll need this later)
-%% Yconf = [{docroot, "/home/gert/src/musq/client/"},{port, 8080}, {listen, {127,0,0,1}}, {appmods, [{"/service",wshandle},{"/js/musq-config.js",musqconfig}]}].
+%% Yconf = [{docroot, "/home/gert/src/musq/client/"}, {port, 8080}, {listen, {127, 0, 0, 1}}, {appmods, [{"/service", wshandle}, {"/js/musq-config.js", musqconfig}]}].
 
 
 %% parsing the JSON:
@@ -156,7 +156,7 @@ load(FileName) ->
 -spec(readlines(FileName::string()) -> string()).
 %% @spec readlines(FileName::string()) -> string()
 readlines(FileName) ->
-    {ok, Device} = file:open(FileName, [read]),
+    {ok, Device} = file:open(FileName, [read]), 
     lists:flatten(get_all_lines(Device, [])).
 
 %% could optimize this further to use binaries.
@@ -170,34 +170,53 @@ broadcast(Message, PlayerPids) ->
 	[ Pid ! Message || Pid <- PlayerPids ].
 
 
+%% downside of this is the area definition files will need to be in the correct order
+%% but since we're going to generate them later on, that shouldn't be a problem.
 parse_json(Json) ->
-	{struct,[{"Name",Name},
-			 {"Width",Width},
-			 {"Height",Height},
-			 {"DefaultTile",DefaultTile},
-			 {"BorderTile",BorderTile},
-			 {"Tiles",{array,Tiles}}]} = Json,
-	T = [ get_tile(Tile) || Tile <- Tiles ],
-	#area{name=Name,
-		  width=Width,
-		  height=Height,
-		  defaulttile=get_tile(DefaultTile),
-		  bordertile=get_tile(BorderTile),
-		  tiles=T,
-		  playerpids=[],
+	{struct, [{"Name", Name}, 
+			 {"Width", Width}, 
+			 {"Height", Height}, 
+			 {"DefaultTile", DefaultTile}, 
+			 {"BorderTile", BorderTile}, 
+			 {"Tiles", {array, Tiles}}]} = Json, 
+	T = [ get_tile(Tile) || Tile <- Tiles ], 
+	#area{name=Name, 
+		  width=Width, 
+		  height=Height, 
+		  defaulttile=get_tile(DefaultTile), 
+		  bordertile=get_tile(BorderTile), 
+		  tiles=T, 
+		  playerpids=[], 
 		  world = nil}.
 
-get_tile({struct,[{"Images",Images},{"Properties",Properties}]}) ->
+get_tile({struct, [{"Images", Images}, {"Properties", Properties}]}) ->
 	#tile{x=0, y=0, images=Images, properties=Properties};
-get_tile({struct,[{"X",X},{"Y",Y},{"Images",Images},{"Properties",Properties}]}) ->
+get_tile({struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}) ->
 	#tile{x=X, y=Y, images=Images, properties=Properties}.
 
+-spec(client_tile_definition(#tile{}) -> term()).									
+client_tile_definition(#tile{x=X, y=Y, images=Images, properties=Properties}) ->
+	{struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}.
 
+%% @doc
+-spec(client_area_definition(#area{}) -> string()).
+client_area_definition(#area{name=Name, 
+							 width=Width, 
+							 height=Height, 
+							 defaulttile=DefaultTile, 
+							 bordertile=BorderTile, 
+							 tiles=Tiles}) ->
+	mochijson:encode({struct, [{"Name", Name}, 
+							   {"Width", Width}, 
+							   {"Height", Height}, 
+							   {"DefaultTile", client_tile_definition(DefaultTile)}, 
+							   {"BorderTile", client_tile_definition(BorderTile)}, 
+							   {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}).
 
 %% for future reference on using Eunit. (it's been a while..)
-dummy_adder(X,Y) ->
+dummy_adder(X, Y) ->
 	X + Y.
 
 dummy_adder_test() ->
-	?assertEqual(dummy_adder(4,5), 9),
-	?assertEqual(dummy_adder(2,3), 5).
+	?assertEqual(dummy_adder(4, 5), 9), 
+	?assertEqual(dummy_adder(2, 3), 5).
