@@ -1,7 +1,7 @@
 glob:*/\#*\#
 glob:*.beam
 glob:*~
-glob:Mnesia.nonode@nohost
+glob:Mnesia.*@*
 glob:*.orig
 glob:*.8
 glob:*.6
