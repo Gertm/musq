@@ -7,6 +7,7 @@
 %%% Created : 12 Dec 2010 by Gert Meulyzer <@G3rtm on Twitter>
 %%%-------------------------------------------------------------------
 -module(garea).
+-compile(export_all).
 -include("musq.hrl").
 -behaviour(gen_server).
 
@@ -144,3 +145,59 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% for the embedded starting of the yaws server (we'll need this later)
 %% Yconf = [{docroot, "/home/gert/src/musq/client/"},{port, 8080}, {listen, {127,0,0,1}}, {appmods, [{"/service",wshandle},{"/js/musq-config.js",musqconfig}]}].
+
+
+%% parsing the JSON:
+-spec(load(FileName::string()) -> term()).
+%% @spec -spec(load(FileName::string()) -> term()
+load(FileName) ->
+    mochijson:decode(readlines(FileName)).
+	
+-spec(readlines(FileName::string()) -> string()).
+%% @spec readlines(FileName::string()) -> string()
+readlines(FileName) ->
+    {ok, Device} = file:open(FileName, [read]),
+    lists:flatten(get_all_lines(Device, [])).
+
+%% could optimize this further to use binaries.
+get_all_lines(Device, Accum) ->
+    case io:get_line(Device, "") of
+        eof  -> file:close(Device), lists:reverse(Accum);
+        Line -> get_all_lines(Device, [Line|Accum])
+    end.
+
+broadcast(Message, PlayerPids) ->
+	[ Pid ! Message || Pid <- PlayerPids ].
+
+
+parse_json(Json) ->
+	{struct,[{"Name",Name},
+			 {"Width",Width},
+			 {"Height",Height},
+			 {"DefaultTile",DefaultTile},
+			 {"BorderTile",BorderTile},
+			 {"Tiles",{array,Tiles}}]} = Json,
+	T = [ get_tile(Tile) || Tile <- Tiles ],
+	#area{name=Name,
+		  width=Width,
+		  height=Height,
+		  defaulttile=get_tile(DefaultTile),
+		  bordertile=get_tile(BorderTile),
+		  tiles=T,
+		  playerpids=[],
+		  world = nil}.
+
+get_tile({struct,[{"Images",Images},{"Properties",Properties}]}) ->
+	#tile{x=0, y=0, images=Images, properties=Properties};
+get_tile({struct,[{"X",X},{"Y",Y},{"Images",Images},{"Properties",Properties}]}) ->
+	#tile{x=X, y=Y, images=Images, properties=Properties}.
+
+
+
+%% for future reference on using Eunit. (it's been a while..)
+dummy_adder(X,Y) ->
+	X + Y.
+
+dummy_adder_test() ->
+	?assertEqual(dummy_adder(4,5), 9),
+	?assertEqual(dummy_adder(2,3), 5).
