@@ -11,7 +11,7 @@
 -module(world).
 
 -behaviour(gen_server).
-
+-compile(export_all).
 %% API
 -export([start_link/0]).
 
@@ -20,10 +20,12 @@
 		 terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE). 
+-define(AREAPATH, "../../server/areas/").
 
 -record(arearec, {name ::string(),
 				  pid  ::pid()}).
--record(worldstate, {areas ::[#arearec{}]}).
+-record(worldstate, {areas ::[#arearec{}],
+					 players ::dict:dictonary()}).
 
 %%%===================================================================
 %%% API
@@ -41,7 +43,7 @@ start_link() ->
 	%% be one world. (for now)
 	gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
-%%%===================================================================
+%%%=================================================================== 
 %%% gen_server callbacks
 %%%===================================================================
 
@@ -73,6 +75,10 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call({add_player, PlayerName},WsHandlePid, State) ->
+	NewDict = dict:append(PlayerName,WsHandlePid,State#worldstate.players),
+	State#worldstate{players=NewDict};
+
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	{reply, Reply, State}.
@@ -131,3 +137,20 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+
+%% get the names of all the areas in the area folder
+-spec(get_area_filenames() -> [string()]).
+get_area_filenames() ->
+	{ok, FileList} = file:list_dir(?AREAPATH),
+	lists:filter(fun is_area_filename/1, FileList).
+
+-spec(is_area_filename(FileName ::string()) -> boolean()).
+is_area_filename(FileName) ->
+	ExtStart = string:len(FileName) - 4,
+	Ext = string:substr(FileName, ExtStart),
+	if Ext == ".area" ->
+			true;
+	   true -> false
+	end.
+

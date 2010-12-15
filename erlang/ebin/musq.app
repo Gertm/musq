@@ -4,4 +4,4 @@
   {modules, [world,garea,musqconfig,player,wshandle]},
   {registered, [world]},
   {applications, [kernel, stdlib]},
-  {mod, {world,[]}}]}.
+  {mod, {musq_sup,[]}}]}.
