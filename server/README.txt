@@ -31,7 +31,7 @@ cd
 # not sure yet if that's the best way to go, but for now, it'll do.
 
 echo "code:add_pathz(\""$HOME$"/src/mochiweb/ebin/\")." >> ~/.erlang
-echo "code:add_pathz(\""$HOME$"/src/musq/erlang/\")." >> ~/.erlang
+echo "code:add_pathz(\""$HOME$"/src/musq/server/ebin/\")." >> ~/.erlang
 
 # Now we need to configure the yaws server:
 
