@@ -9,3 +9,5 @@ glob:old_go_code/httpd
 glob:old_go_code/musq
 glob:server/priv/musq.conf
 glob:erlang/*.dump
+glob:*.log
+glob:*.access

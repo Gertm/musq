@@ -7,11 +7,12 @@
 %%% Created : 15 Dec 2010 by Gert <@G3rtm on Twitter>
 %%%-------------------------------------------------------------------
 -module(musq).
-
+-include("musq.hrl").
+-include_lib("yaws/include/yaws_api.hrl").
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1]).
+-export([start/2, stop/1, start_yaws/0]).
 
 %%%===================================================================
 %%% Application callbacks
@@ -34,6 +35,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start(_StartType, _StartArgs) ->
+	start_yaws(),
 	case musq_sup:start_link() of
 		{ok, Pid} ->
 			{ok, Pid};
@@ -59,3 +61,17 @@ stop(_State) ->
 %%%===================================================================
 
 
+start_yaws() ->
+	yaws:start_embedded("/home/gert/src/musq/client/",yaws_GC(),yaws_SC()).
+
+yaws_GC() ->
+	[{logdir, "/home/gert/logs"},
+	 {ebin_dir, ["/var/lib/yaws/ebin"]},
+	 {include_dir, ["/usr/lib/erlang/lib/yaws/include","~/src/musq/server/ebin"]},
+	 {id, "musqyaws"}].
+
+yaws_SC() ->
+	[{docroot, "~/src/musq/client/"},
+	 {port, 8080},
+	 {listen, {0,0,0,0}},
+	 {appmods,[{"/service",wshandle},{"/js/musq-config.js",musqconfig}]}].
