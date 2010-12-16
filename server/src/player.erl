@@ -2,9 +2,18 @@
 -include("musq.hrl").
 -compile(export_all).
 
+-record(plr, {name = "UnnamedPlayer" ::string(),
+			  area ::atom()}).
+
 start(WsPid) ->
-	ok.
+	spawn_link(?MODULE, loop, [WsPid, #plr{}]).
 
 loop(WsPid,PlayerState) ->
-	ok.
+	receive
+		{login, From, Login} ->
+			From ! Login,
+			loop(WsPid, PlayerState);
+		{'EXIT', _Pid, Reason} ->
+			io:format("Eep! ~s~n",Reason)
+	end.
 
