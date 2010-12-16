@@ -8,6 +8,10 @@
 start(WsPid) ->
 	spawn_link(?MODULE, loop, [WsPid, #plr{}]).
 
+playerstart(WsPid,PlayerState) ->
+	process_flag(trap_exit,true),
+	loop(WsPid,PlayerState).
+
 loop(WsPid,PlayerState) ->
 	receive
 		{login, From, Login} ->
