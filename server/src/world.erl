@@ -12,6 +12,7 @@
 
 -behaviour(gen_server).
 -compile(export_all).
+-include("musq.hrl").
 %% API
 -export([start_link/0]).
 
@@ -26,6 +27,9 @@
 				  pid  ::pid()}).
 -record(worldstate, {areas ::[#arearec{}],
 					 players ::dict:dictonary()}).
+
+%% wrapper functions
+-export([spawn_player/0]).
 
 %%%===================================================================
 %%% API
@@ -77,10 +81,14 @@ init([]) ->
 %%--------------------------------------------------------------------
 handle_call({add_player, PlayerName},WsHandlePid, State) ->
 	NewDict = dict:append(PlayerName,WsHandlePid,State#worldstate.players),
-	State#worldstate{players=NewDict};
-handle_call({login, PlayerName, Password}, WsHandlePid, State) ->
+	NewState = State#worldstate{players=NewDict},
+	{reply, ok, NewState};
+handle_call({login, _PlayerName, _Password}, _WsHandlePid, State) ->
 	%% need to get into mnesia here and check if the player exists.
 	{reply, ok, State};
+handle_call(spawn_player, WsHandlePid, State) ->
+	PlayerPid = player:start(WsHandlePid),
+	{reply, PlayerPid, State};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	{reply, Reply, State}.
@@ -156,3 +164,6 @@ is_area_filename(FileName) ->
 	   true -> false
 	end.
 
+
+spawn_player() ->
+	gen_server:call(?MODULE, spawn_player).

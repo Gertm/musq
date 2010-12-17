@@ -1,23 +1,21 @@
 -module(player).
 -include("musq.hrl").
--compile(export_all).
 
--record(plr, {name = "UnnamedPlayer" ::string(),
-			  area ::atom()}).
+-export([start/1,loop/2]).
 
 start(WsPid) ->
+	?InfoMsg("Spawning new player~n",[]),
 	spawn_link(?MODULE, loop, [WsPid, #plr{}]).
-
-playerstart(WsPid,PlayerState) ->
-	process_flag(trap_exit,true),
-	loop(WsPid,PlayerState).
 
 loop(WsPid,PlayerState) ->
 	receive
 		{login, From, Login} ->
-			From ! Login,
+			?InfoMsg("Got login request: ~p~n",[Login]),
+			From ! {reply, self(), Login},
 			loop(WsPid, PlayerState);
 		{'EXIT', _Pid, Reason} ->
-			io:format("Eep! ~s~n",Reason)
+			io:format("Eep! ~s~n",Reason);
+		Any -> ?InfoMsg("no idea what this is: ~p~n",[Any]), 
+			loop(WsPid, PlayerState)
 	end.
 

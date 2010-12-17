@@ -39,38 +39,33 @@ get_upgrade_header(#headers{other=L}) ->
 
 
 websocket_owner() ->
+	NewPlayerPid = gen_server:call(world, spawn_player),
+	?InfoMsg("New Player spawned with pid ~p~n",[NewPlayerPid]),
     receive
 		{ok, WebSocket} ->
 			yaws_api:websocket_setopts(WebSocket, [{active, true}]),
-			%% start the appropriate player module here.
-			echo_server(WebSocket);
+			echo_server(WebSocket,NewPlayerPid);
 		_ -> error_logger:info_msg("Didn't get websocket stuff.. strange!")
     end.
 
-echo_server(WebSocket) ->
+echo_server(WebSocket,PlayerPid) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
-			%% this part needs to be in the player module.
-			%% the code here should just relay the request to there.
 			Data = yaws_api:websocket_unframe_data(DataFrame),
-			io:format("Getting func and params~n"),
-			{Fn,_} = get_func_and_params(Data),
+			{Fn,Params} = get_func_and_params(Data),
+			?InfoMsg("Getting func and params: ~p~n~p~n",[Fn,Params]),
 			case Fn of
 				<<"login">> ->
-					R = {struct,[{"Function","login"},{"Params",{"Success","true"}}]},
-					reply(WebSocket,R),
-					echo_server(WebSocket);
+					?InfoMsg("got login msg~n",[]),
+					echo_server(WebSocket,PlayerPid);
 				<<"keepalive">> ->
 					yaws_api:websocket_send(WebSocket,Data),
-					echo_server(WebSocket)
+					echo_server(WebSocket,PlayerPid)
 			end;
 		{tcp_closed, WebSocket} ->
 			io:format("Websocket closed. Terminating echo_server...~n");
 		{reply, _From, Reply} ->
-			reply(WebSocket,Reply);
-		Any ->
-			io:format("echo_server received msg:~p~n", [Any]),
-			echo_server(WebSocket)
+			reply(WebSocket,Reply)
     end.
 
 get_func_and_params(BinData) ->

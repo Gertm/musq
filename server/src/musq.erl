@@ -12,7 +12,7 @@
 -behaviour(application).
 
 %% Application callbacks
--export([start/2, stop/1, start_yaws/0]).
+-export([start/2, stop/1]).
 
 %%%===================================================================
 %%% Application callbacks
@@ -35,9 +35,9 @@
 %% @end
 %%--------------------------------------------------------------------
 start(_StartType, _StartArgs) ->
-	start_yaws(),
 	case musq_sup:start_link() of
 		{ok, Pid} ->
+			start_yaws(),
 			{ok, Pid};
 		Error ->
 			Error
@@ -60,18 +60,13 @@ stop(_State) ->
 %%% Internal functions
 %%%===================================================================
 
-
 start_yaws() ->
-	yaws:start_embedded("/home/gert/src/musq/client/",yaws_GC(),yaws_SC()).
-
-yaws_GC() ->
-	[{logdir, "/home/gert/logs"},
-	 {ebin_dir, ["/var/lib/yaws/ebin"]},
-	 {include_dir, ["/usr/lib/erlang/lib/yaws/include","~/src/musq/server/ebin"]},
-	 {id, "musqyaws"}].
-
-yaws_SC() ->
-	[{docroot, "~/src/musq/client/"},
-	 {port, 8080},
-	 {listen, {0,0,0,0}},
-	 {appmods,[{"/service",wshandle},{"/js/musq-config.js",musqconfig}]}].
+	yaws:start_embedded("/home/gert/src/musq/client",
+                       [{servername, "musqweb"}, 
+						{port, 8080},
+						{appmods,[{"/service",wshandle},
+								  {"/js/musq-config.js",musqconfig}]},
+						{listen, {0,0,0,0}}],
+                       [{auth_log, false},
+						{logdir, "/home/gert/logs"},
+						{copy_errlog, false}]).
