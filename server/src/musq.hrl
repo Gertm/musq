@@ -2,6 +2,8 @@
 %% most common things will go in here.
 -include_lib("eunit/include/eunit.hrl").
 
+-define(BASEPATH,"/home/gert/src/musq/").
+
 -record(plr, {name ::string(),
 			  position ::tuple(), %% {x,y}
 			  area ::atom(),

@@ -67,7 +67,7 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init(AreaFilename) ->
-	AreaState = parse_json(load(AreaFilename)), 
+	AreaState = parse_json(hlp:load_json(AreaFilename)), 
 	{ok, AreaState}.
 
 %%--------------------------------------------------------------------
@@ -148,23 +148,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 %% parsing the JSON:
--spec(load(FileName::string()) -> term()).
-%% @spec -spec(load(FileName::string()) -> term()
-load(FileName) ->
-    mochijson:decode(readlines(FileName)).
-	
--spec(readlines(FileName::string()) -> string()).
-%% @spec readlines(FileName::string()) -> string()
-readlines(FileName) ->
-    {ok, Device} = file:open(FileName, [read]), 
-    lists:flatten(get_all_lines(Device, [])).
 
-%% could optimize this further to use binaries.
-get_all_lines(Device, Accum) ->
-    case io:get_line(Device, "") of
-        eof  -> file:close(Device), lists:reverse(Accum);
-        Line -> get_all_lines(Device, [Line|Accum])
-    end.
 
 broadcast(Message, PlayerPids) ->
 	[ Pid ! Message || Pid <- PlayerPids ].

@@ -39,7 +39,7 @@ get_upgrade_header(#headers{other=L}) ->
 
 
 websocket_owner() ->
-	NewPlayerPid = gen_server:call(world, spawn_player),
+	NewPlayerPid = gen_server:call(world, {spawn_player, self()}),
 	?InfoMsg("New Player spawned with pid ~p~n",[NewPlayerPid]),
     receive
 		{ok, WebSocket} ->
@@ -51,31 +51,30 @@ websocket_owner() ->
 echo_server(WebSocket,PlayerPid) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
+			?InfoMsg("Dataframe: ~s~n",[DataFrame]),
 			Data = yaws_api:websocket_unframe_data(DataFrame),
 			{Fn,Params} = get_func_and_params(Data),
-			?InfoMsg("Getting func and params: ~p~n~p~n",[Fn,Params]),
-			case Fn of
-				<<"login">> ->
-					?InfoMsg("got login msg~n",[]),
-					echo_server(WebSocket,PlayerPid);
-				<<"keepalive">> ->
-					yaws_api:websocket_send(WebSocket,Data),
-					echo_server(WebSocket,PlayerPid)
-			end;
+			PlayerPid ! {list_to_atom(Fn),self(),Params},
+			?InfoMsg("Got request: ~p~n~p~n",[Fn,Params]),
+			echo_server(WebSocket, PlayerPid);
 		{tcp_closed, WebSocket} ->
 			io:format("Websocket closed. Terminating echo_server...~n");
-		{reply, _From, Reply} ->
-			reply(WebSocket,Reply)
+		{reply, PlayerPid, Reply} ->
+			reply(WebSocket,Reply),
+			echo_server(WebSocket,PlayerPid);
+		Any ->
+			?InfoMsg("DEBUG: got unknown: ~p~n",[Any]),
+			echo_server(WebSocket,PlayerPid)
     end.
 
 get_func_and_params(BinData) ->
-	{struct,[{<<"Function">>,Func},{<<"Params">>,{struct,Params}}]} = mochijson2:decode(BinData),
+	{struct,[{"Function",Func},{"Params",{struct,Params}}]} = mochijson:decode(BinData),
 	io:format("Function: ~s~nParams: <~p>~n",[Func,Params]),
     {Func,Params}.
 
 reply(WebSocket, Reply) ->
 	R = mochijson:encode(Reply),
-	io:format("Sending: ~s~n",[R]),
+	?InfoMsg("Sending back to the client: ~p~n",[R]),
 	yaws_api:websocket_send(WebSocket, R).
 
 test_get_func_and_params() ->

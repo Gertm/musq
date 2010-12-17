@@ -86,8 +86,8 @@ handle_call({add_player, PlayerName},WsHandlePid, State) ->
 handle_call({login, _PlayerName, _Password}, _WsHandlePid, State) ->
 	%% need to get into mnesia here and check if the player exists.
 	{reply, ok, State};
-handle_call(spawn_player, WsHandlePid, State) ->
-	PlayerPid = player:start(WsHandlePid),
+handle_call({spawn_player, WsPid}, _Pid, State) ->
+	PlayerPid = player:start(WsPid),
 	{reply, PlayerPid, State};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
