@@ -124,6 +124,15 @@
                 "WalkingSpeed": "0",
                 "Damage": "0"
 			}
+		},
+		{
+			"X": 0,
+			"Y": 14,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/exits/ladder01_down.png"],
+			"Properties": {
+                "WalkingSpeed": "1",
+                "Damage": "0"
+			}
 		}
 	]
 }
