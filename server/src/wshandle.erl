@@ -51,11 +51,9 @@ websocket_owner() ->
 echo_server(WebSocket,PlayerPid) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
-			?InfoMsg("Dataframe: ~s~n",[DataFrame]),
-			Data = yaws_api:websocket_unframe_data(DataFrame),
-			{Fn,Params} = get_func_and_params(Data),
-			PlayerPid ! {list_to_atom(Fn),self(),Params},
-			?InfoMsg("Got request: ~p~n~p~n",[Fn,Params]),
+%%			?InfoMsg("Dataframe: ~p~n",[DataFrame]),
+			RequestList = unframe(DataFrame),
+			[ send_function_and_params(PlayerPid,R) || R <- RequestList ],
 			echo_server(WebSocket, PlayerPid);
 		{tcp_closed, WebSocket} ->
 			io:format("Websocket closed. Terminating echo_server...~n");
@@ -72,11 +70,29 @@ get_func_and_params(BinData) ->
 	io:format("Function: ~s~nParams: <~p>~n",[Func,Params]),
     {Func,Params}.
 
+send_function_and_params(PlayerPid,Data) ->
+	{Fn,Params} = get_func_and_params(Data),
+	?InfoMsg("Got request: ~p~n~p~n",[Fn,Params]),
+	PlayerPid ! {list_to_atom(Fn),self(),Params}.
+
 reply(WebSocket, Reply) ->
 	R = mochijson:encode(Reply),
-	?InfoMsg("Sending back to the client: ~p~n",[R]),
+	?InfoMsg("Sending back to the client: ~s~n",[R]),
 	yaws_api:websocket_send(WebSocket, R).
 
 test_get_func_and_params() ->
 	A = <<"{\"Function\":\"login\",\"Params\":{\"Username\":\"Gert\",\"Password\":\"g\"}}">>,
 	get_func_and_params(A).
+
+unframe(T) ->
+%%	T = <<0, 65, 66, 67, 68, 255, 0, 69, 70, 71, 255, 0, 72, 73, 74, 255>>,
+	L = binary:split(T,[<<255>>,<<0>>],[trim,global]),
+	lists:filter(fun(X) ->
+						 case X of
+							 <<>> ->
+								 false;
+							 _Any ->
+								 true
+						 end
+				 end,
+						 L).
