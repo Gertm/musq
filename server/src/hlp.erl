@@ -23,10 +23,12 @@ createReply(Func,Params) ->
 %%% takes the param list of a getFiles request and returns the result term,
 %%% @end
 getFiles(Params) ->
-	BasePath = ?BASEPATH ++ "client/" ++ kv("BasePath", Params),
+	OriginalBasePath = kv("BasePath", Params),
+	BasePath = ?BASEPATH ++ "client/" ++ OriginalBasePath,
 	WildCard = kv("WildCard", Params),
 	FileList = filelib:wildcard(WildCard,BasePath),
-	createReply("getFiles",[{"Images",{array,FileList}}]).
+	NewFL = lists:map(fun(X) -> OriginalBasePath ++ X end, FileList),
+	createReply("getFiles",[{"Images",{array,NewFL}}]).
 	%% {struct,[{"Functions","getFiles"},
 	%% 		 {"Params",
 	%% 		  {struct,[{"Images",
