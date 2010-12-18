@@ -18,7 +18,9 @@ loop(WsPid,PlayerState) ->
 			R = hlp:getFiles(Params),
 			?InfoMsg("Sending back to wshandle: ~p~n",[R]),
 			WsPid ! {reply, self(), R},
-			
+			loop(WsPid, PlayerState);
+		{keepalive, _From, []} ->
+			WsPid ! {reply, self(), hlp:createReply("keepalive",[])},
 			loop(WsPid, PlayerState);
 		{'EXIT', _Pid, Reason} ->
 			io:format("Eep! ~s~n",Reason);

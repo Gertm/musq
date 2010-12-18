@@ -67,12 +67,11 @@ echo_server(WebSocket,PlayerPid) ->
 
 get_func_and_params(BinData) ->
 	{struct,[{"Function",Func},{"Params",{struct,Params}}]} = mochijson:decode(BinData),
-	io:format("Function: ~s~nParams: <~p>~n",[Func,Params]),
     {Func,Params}.
 
 send_function_and_params(PlayerPid,Data) ->
 	{Fn,Params} = get_func_and_params(Data),
-	?InfoMsg("Got request: ~p~n~p~n",[Fn,Params]),
+	?InfoMsg("Request: ~p~nParams: ~p~n",[Fn,Params]),
 	PlayerPid ! {list_to_atom(Fn),self(),Params}.
 
 reply(WebSocket, Reply) ->
