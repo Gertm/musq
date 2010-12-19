@@ -52,4 +52,44 @@ read_account(AccountName) ->
 		[#account{} = A] -> A
 	end.
 
-												   
+account_exists(AccountName) ->
+	case read_account(AccountName) of
+		{error, no_user} ->
+			false;
+		_ ->
+			true
+	end.
+			
+get_visual_from_account(#account{}=Acc) ->
+	hlp:createReply("visual",
+					[{"Name",Acc#account.username},
+					 {"Images",{array,Acc#account.images}}]).
+
+
+%%% stuff to remind me how these request look like:
+%%% {
+%%   "Functions": "createAccount",
+%%   "Params":
+%%   {
+%%         "Success": "true/false",
+%%         "Reason": "why creating your account failed"
+%%   }
+%% }
+
+%% {
+%%   "Functions": "visual",
+%%   "Params":
+%%   {
+%%     "Name": "name",
+%%     "Images":
+%%       [
+%%         {
+%%           "Url": "images/faces/..."
+%%         },
+%%         {
+%%           "Url": "images/faces/...",
+%%           "Color": "#..."
+%%         },
+%%       ]
+%%   }
+%% }
