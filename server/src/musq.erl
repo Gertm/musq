@@ -37,6 +37,7 @@
 start(_StartType, _StartArgs) ->
 	case musq_sup:start_link() of
 		{ok, Pid} ->
+			application:start(mnesia),
 			start_yaws(),
 			{ok, Pid};
 		Error ->

@@ -164,6 +164,30 @@ is_area_filename(FileName) ->
 	   true -> false
 	end.
 
-
+-spec(spawn_player() -> pid()).
 spawn_player() ->
 	gen_server:call(?MODULE, spawn_player).
+
+
+ca_test() ->
+	Params =  [{"Username","Gert"},
+         {"Password","g"},
+         {"Email","g@g"},
+         {"Images",
+          {array,[{struct,[{"Url","images/faces/human/male/ears01.svg"},
+                           {"Color","#f8f7a1"}]},
+                  {struct,[{"Url","images/faces/human/male/face01.svg"},
+                           {"Color","#a76f38"}]},
+                  {struct,[{"Url","images/faces/human/male/eyes02.svg"},
+                           {"Color","#000044"}]},
+                  {struct,[{"Url","images/faces/human/male/mouth01.svg"}]},
+                  {struct,[{"Url","images/faces/human/male/nose01.svg"}]},
+                  {struct,[{"Url","images/faces/human/scar01.svg"},
+                           {"Color","#8c846a"}]},
+                  {struct,[{"Url","images/faces/human/glasses01.svg"}]},
+                  {struct,[{"Url","images/faces/human/male/beard01.svg"},
+                           {"Color","#ed2713"}]}]}}],
+	Params.
+
+prepare_database() ->
+	ok.

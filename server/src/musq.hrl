@@ -10,9 +10,14 @@
 			  pid ::pid(),
 			  logged_in ::boolean()}).
 
+-record(visualImage, {url   ::string(),
+					  color ::string()}).
+
 -record(visual, {username ::string(),
 				 password ::string(),
 				 email    ::string(),
-				 images   ::[term()]}).
+				 images   ::[#visualImage{}]}).
+
+
 
 -define(InfoMsg(Msg,Format), error_logger:info_msg(Msg,Format)).
