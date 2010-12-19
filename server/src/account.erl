@@ -44,7 +44,6 @@ get_account_record(RequestParams) ->
 write_account(AR) ->
 	mnesia:transaction(fun() -> mnesia:write(AR) end).
 
-
 read_account(AccountName) ->							   
 	{atomic, AccList} = mnesia:transaction(fun() -> mnesia:read({account, AccountName}) end),
 	case AccList of
@@ -64,6 +63,20 @@ get_visual_from_account(#account{}=Acc) ->
 	hlp:createReply("visual",
 					[{"Name",Acc#account.username},
 					 {"Images",{array,Acc#account.images}}]).
+
+create_account_nx(RequestParams) ->
+	AR = account:get_account_record(RequestParams),
+	case account_exists(AR#account.username) of
+		true ->
+			hlp:createReply("createAccount",
+							[{"Success","false"},
+							 {"Reason","Account already exists"}]);
+		false ->
+			write_account(AR),
+			hlp:createReply("createAccount",
+							[{"Success","true"}])
+	end.
+
 
 
 %%% stuff to remind me how these request look like:

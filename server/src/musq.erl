@@ -37,8 +37,7 @@
 start(_StartType, _StartArgs) ->
 	case musq_sup:start_link() of
 		{ok, Pid} ->
-			application:start(mnesia),
-			start_yaws(),
+			startup(),
 			{ok, Pid};
 		Error ->
 			Error
@@ -71,3 +70,8 @@ start_yaws() ->
                        [{auth_log, false},
 						{logdir, "/home/gert/logs"},
 						{copy_errlog, false}]).
+
+startup() ->
+	start_yaws(),
+	application:start(mnesia),
+	account:create_table().

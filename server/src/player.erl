@@ -9,16 +9,25 @@ start(WsPid) ->
 
 loop(WsPid,PlayerState) ->
 	receive
-		{login, From, Login} ->
+		{login, WsPid, Login} ->
 			?InfoMsg("Got login request: ~p~n",[Login]),
-			From ! {reply, self(), Login},
+			WsPid ! {reply, self(), Login},
 			loop(WsPid, PlayerState);
-		{getFiles, From, Params} ->
+		{getFiles, _From, Params} ->
 			?InfoMsg("getFiles params: ~p~n",[Params]),
-			R = hlp:getFiles(Params),
-			?InfoMsg("Sending back to wshandle: ~p~n",[R]),
-			WsPid ! {reply, self(), R},
+			case Params of
+				[] -> ok;
+				_ -> R = hlp:getFiles(Params),
+					 ?InfoMsg("Sending back to wshandle: ~p~n",[R]),
+					 WsPid ! {reply, self(), R}
+			end,
 			loop(WsPid, PlayerState);
+		{createAccount, _From, Params} ->
+			%% when the player is logged in, this shouldn't work.
+			?InfoMsg("handling createaccount~n",[]),
+			R = gen_server:call(world, {createAccount, Params}),
+			WsPid ! {reply, self(), R},
+			loop(WsPid,PlayerState);
 		{keepalive, _From, []} ->
 			WsPid ! {reply, self(), hlp:createReply("keepalive",[])},
 			loop(WsPid, PlayerState);

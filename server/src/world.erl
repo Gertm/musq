@@ -21,6 +21,8 @@
 		 terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE). 
+%% this AREAPATH really needs to be changed.
+%% maybe define some good PATH variable in musq.hrl
 -define(AREAPATH, "../../server/areas/").
 
 -record(arearec, {name ::string(),
@@ -89,6 +91,10 @@ handle_call({login, _PlayerName, _Password}, _WsHandlePid, State) ->
 handle_call({spawn_player, WsPid}, _Pid, State) ->
 	PlayerPid = player:start(WsPid),
 	{reply, PlayerPid, State};
+handle_call({createAccount, Params}, _Pid, State) ->
+	Reply = account:create_account_nx(Params),
+	?InfoMsg("account creation reply: ~p~n",[Reply]),
+	{reply, Reply, State};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	{reply, Reply, State}.
