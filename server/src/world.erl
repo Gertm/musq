@@ -65,6 +65,7 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
+	prepare_database(),
 	{ok, #worldstate{}}.
 
 %%--------------------------------------------------------------------
@@ -154,6 +155,12 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
+prepare_database() ->
+	account:create_table(),
+	mnesia:create_table(player, [{disc_copies, [node()]},
+								 {type, set},
+								 {attributes, record_info(fields, plr)}]).
+
 
 %% get the names of all the areas in the area folder
 -spec(get_area_filenames() -> [string()]).
@@ -174,26 +181,3 @@ is_area_filename(FileName) ->
 spawn_player() ->
 	gen_server:call(?MODULE, spawn_player).
 
-
-ca_test() ->
-	Params =  [{"Username","Gert"},
-         {"Password","g"},
-         {"Email","g@g"},
-         {"Images",
-          {array,[{struct,[{"Url","images/faces/human/male/ears01.svg"},
-                           {"Color","#f8f7a1"}]},
-                  {struct,[{"Url","images/faces/human/male/face01.svg"},
-                           {"Color","#a76f38"}]},
-                  {struct,[{"Url","images/faces/human/male/eyes02.svg"},
-                           {"Color","#000044"}]},
-                  {struct,[{"Url","images/faces/human/male/mouth01.svg"}]},
-                  {struct,[{"Url","images/faces/human/male/nose01.svg"}]},
-                  {struct,[{"Url","images/faces/human/scar01.svg"},
-                           {"Color","#8c846a"}]},
-                  {struct,[{"Url","images/faces/human/glasses01.svg"}]},
-                  {struct,[{"Url","images/faces/human/male/beard01.svg"},
-                           {"Color","#ed2713"}]}]}}],
-	Params.
-
-prepare_database() ->
-	ok.

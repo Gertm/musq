@@ -10,7 +10,6 @@ start(WsPid) ->
 loop(WsPid,PlayerState) ->
 	receive
 		{login, WsPid, Login} ->
-			?InfoMsg("Got login request: ~p~n",[Login]),
 			WsPid ! {reply, self(), Login},
 			loop(WsPid, PlayerState);
 		{getFiles, _From, Params} ->
@@ -37,3 +36,36 @@ loop(WsPid,PlayerState) ->
 			loop(WsPid, PlayerState)
 	end.
 
+
+read_player(PlayerName) ->
+	mnesia:transaction(fun() -> mnesia:read(player, PlayerName) end).
+
+is_logged_in(PlayerName) ->
+	Loggedin = read_player(PlayerName),
+	case Loggedin of
+		{atomic, []} ->
+			no_user;
+		{atomic, #plr{}=P} ->
+			P#plr.logged_in
+	end.
+
+user_login(PlayerName, Password) ->
+	case is_logged_in(PlayerName) of
+		no_user ->
+			{error, "no such user"};
+		true ->
+			{error, "already logged in"};
+		false ->
+			A = account:read_account(PlayerName),
+			if
+				A#account.password == Password ->
+					
+					ok;
+				true ->
+					{error, "incorrect password"}
+			end
+	end.
+
+log_in_user(PlayerName,TrueFalse) ->
+	{atomic, #plr{}=Player} = read_player(PlayerName),
+	mnesia:transaction(fun() -> mnesia:write(player, Player#plr{logged_in = TrueFalse}) end).

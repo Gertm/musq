@@ -51,3 +51,4 @@ get_all_lines(Device, Accum) ->
         eof  -> file:close(Device), lists:reverse(Accum);
         Line -> get_all_lines(Device, [Line|Accum])
     end.
+

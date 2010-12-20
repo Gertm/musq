@@ -51,12 +51,12 @@ websocket_owner() ->
 echo_server(WebSocket,PlayerPid) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
-%%			?InfoMsg("Dataframe: ~p~n",[DataFrame]),
+			?InfoMsg("Dataframe: ~s~n",[DataFrame]),
 			RequestList = unframe(DataFrame),
 			[ send_function_and_params(PlayerPid,R) || R <- RequestList ],
 			echo_server(WebSocket, PlayerPid);
 		{tcp_closed, WebSocket} ->
-			io:format("Websocket closed. Terminating echo_server...~n");
+			io:format("Websocket closed. Websocket handler stopped...~n");
 		{reply, PlayerPid, Reply} ->
 			reply(WebSocket,Reply),
 			echo_server(WebSocket,PlayerPid);
@@ -66,8 +66,11 @@ echo_server(WebSocket,PlayerPid) ->
     end.
 
 get_func_and_params(BinData) ->
-	{struct,[{"Function",Func},{"Params",{struct,Params}}]} = mochijson:decode(BinData),
-    {Func,Params}.
+    case (catch json:decode(BinData)) of
+		{struct,[{"Function",Func},{"Params",{struct,Params}}]} -> {Func,Params};
+		_ -> {"keepalive",[]}
+	end.
+			
 
 send_function_and_params(PlayerPid,Data) ->
 	{Fn,Params} = get_func_and_params(Data),

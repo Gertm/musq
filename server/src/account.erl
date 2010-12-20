@@ -10,17 +10,13 @@
 
 -compile(export_all).
 
--record(account, {username ::string(),
-				  password ::string(),
-				  email    ::string(),
-				  images   ::[#visualImage{}]}).
-
 table_exists() ->
 	lists:any(fun(X) -> X == accounts end, mnesia:system_info(tables)).
 
 create_table() ->
 	mnesia:create_table(account, [{type, set},
-								   {attributes, record_info(fields, account)}]).
+								  {disc_copies,[node()]},
+								  {attributes, record_info(fields, account)}]).
 
 get_account_record(RequestParams) ->
 	[{"Username",Username},

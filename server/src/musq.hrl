@@ -18,6 +18,9 @@
 				 email    ::string(),
 				 images   ::[#visualImage{}]}).
 
-
-
 -define(InfoMsg(Msg,Format), error_logger:info_msg(Msg,Format)).
+
+-record(account, {username ::string(),
+				  password ::string(),
+				  email    ::string(),
+				  images   ::[#visualImage{}]}).

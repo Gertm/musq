@@ -18,8 +18,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
 		 terminate/2, code_change/3]).
 
--define(SERVER, ?MODULE). 
-
 -record(tile, {x				::integer(), 
 			   y				::integer(), 
 			   images			::[string()], 
@@ -143,13 +141,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-%% for the embedded starting of the yaws server (we'll need this later)
-%% Yconf = [{docroot, "/home/gert/src/musq/client/"}, {port, 8080}, {listen, {127, 0, 0, 1}}, {appmods, [{"/service", wshandle}, {"/js/musq-config.js", musqconfig}]}].
-
-
-%% parsing the JSON:
-
-
 broadcast(Message, PlayerPids) ->
 	[ Pid ! Message || Pid <- PlayerPids ].
 
@@ -196,6 +187,7 @@ client_area_definition(#area{name=Name,
 							   {"DefaultTile", client_tile_definition(DefaultTile)}, 
 							   {"BorderTile", client_tile_definition(BorderTile)}, 
 							   {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}).
+
 
 %% for future reference on using Eunit. (it's been a while..)
 dummy_adder(X, Y) ->

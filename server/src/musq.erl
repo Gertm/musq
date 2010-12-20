@@ -73,5 +73,8 @@ start_yaws() ->
 
 startup() ->
 	start_yaws(),
-	application:start(mnesia),
-	account:create_table().
+	%% initiate the database.
+	%%% if the schema already exists, this will just return {error,...}
+	mnesia:create_schema([node()]),
+	application:start(mnesia).
+
