@@ -8,6 +8,7 @@
 			  position ::tuple(), %% {x,y}
 			  area ::atom(),
 			  pid ::pid(),
+			  wspid ::pid(),
 			  logged_in ::boolean()}).
 
 -record(visualImage, {url   ::string(),

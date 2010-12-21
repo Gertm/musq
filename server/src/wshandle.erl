@@ -75,7 +75,8 @@ get_func_and_params(BinData) ->
 send_function_and_params(PlayerPid,Data) ->
 	{Fn,Params} = get_func_and_params(Data),
 	?InfoMsg("Request: ~p~nParams: ~p~n",[Fn,Params]),
-	PlayerPid ! {list_to_atom(Fn),self(),Params}.
+	?InfoMsg("gen_server:cast(~p, {~p,~p,~p}~n",[PlayerPid, list_to_atom(Fn), self(), Params]),
+	gen_server:cast(PlayerPid, {list_to_atom(Fn),self(),Params}).
 
 reply(WebSocket, Reply) ->
 	R = mochijson:encode(Reply),

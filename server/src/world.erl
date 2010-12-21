@@ -90,7 +90,7 @@ handle_call({login, _PlayerName, _Password}, _WsHandlePid, State) ->
 	%% need to get into mnesia here and check if the player exists.
 	{reply, ok, State};
 handle_call({spawn_player, WsPid}, _Pid, State) ->
-	PlayerPid = player:start(WsPid),
+	{ok, PlayerPid} = supervisor:start_child(musq_sup, player_child_spec(WsPid)),
 	{reply, PlayerPid, State};
 handle_call({createAccount, Params}, _Pid, State) ->
 	Reply = account:create_account_nx(Params),
@@ -181,3 +181,11 @@ is_area_filename(FileName) ->
 spawn_player() ->
 	gen_server:call(?MODULE, spawn_player).
 
+player_child_spec(WsPid) ->
+	{list_to_atom("plr_" ++ pid_to_list(WsPid)), 
+	 {player, start_link, [WsPid]},
+	 temporary,
+	 2000,
+	 worker,
+	 ['player']}.
+	 
