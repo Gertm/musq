@@ -86,7 +86,7 @@ handle_call({add_player, PlayerName},WsHandlePid, State) ->
 	NewDict = dict:append(PlayerName,WsHandlePid,State#worldstate.players),
 	NewState = State#worldstate{players=NewDict},
 	{reply, ok, NewState};
-handle_call({login, _PlayerName, _Password}, _WsHandlePid, State) ->
+handle_call({login, _PlayerName, _Password, _Pid}, _WsHandlePid, State) ->
 	%% need to get into mnesia here and check if the player exists.
 	{reply, ok, State};
 handle_call({spawn_player, WsPid}, _Pid, State) ->
