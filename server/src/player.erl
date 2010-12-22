@@ -12,7 +12,7 @@
 -include("musq.hrl").
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -29,8 +29,8 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-	gen_server:start_link(?MODULE, [], []).
+start_link(WsPid) ->
+	gen_server:start_link(?MODULE, [WsPid], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -47,8 +47,8 @@ start_link() ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
-	{ok, #plr{logged_in=false}}.
+init([WsPid]) ->
+	{ok, #plr{logged_in=false, wspid=WsPid}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -148,6 +148,9 @@ code_change(_OldVsn, State, _Extra) ->
 read_player(PlayerName) ->
 	mnesia:transaction(fun() -> mnesia:read(player, PlayerName) end).
 
+dirty_read_player(PlayerName) ->
+	ok.
+
 is_logged_in(PlayerName) ->
 	Loggedin = read_player(PlayerName),
 	case Loggedin of
@@ -177,3 +180,8 @@ user_login(PlayerName, Password) ->
 log_in_user(PlayerName,TrueFalse) ->
 	{atomic, #plr{}=Player} = read_player(PlayerName),
 	mnesia:transaction(fun() -> mnesia:write(player, Player#plr{logged_in = TrueFalse}) end).
+
+
+get_visual(PlayerName) ->
+	{atomic, #plr{}=P} = read_player(PlayerName).
+	

@@ -30,8 +30,6 @@
 -record(worldstate, {areas ::[#arearec{}],
 					 players ::dict:dictonary()}).
 
-%% wrapper functions
--export([spawn_player/0]).
 
 %%%===================================================================
 %%% API
@@ -176,10 +174,6 @@ is_area_filename(FileName) ->
 			true;
 	   true -> false
 	end.
-
--spec(spawn_player() -> pid()).
-spawn_player() ->
-	gen_server:call(?MODULE, spawn_player).
 
 player_child_spec(WsPid) ->
 	{list_to_atom("plr_" ++ pid_to_list(WsPid)), 

@@ -66,10 +66,9 @@ echo_server(WebSocket,PlayerPid) ->
     end.
 
 get_func_and_params(BinData) ->
-    case (catch json:decode(BinData)) of
-		{struct,[{"Function",Func},{"Params",{struct,Params}}]} -> {Func,Params};
-		_ -> {"keepalive",[]}
-	end.
+	?InfoMsg("Bindata was: ~s~n",[BinData]), 
+	{struct, [{"Function",Func},{"Params",{struct,Params}}]} = mochijson:decode(BinData),
+	{Func,Params}.
 			
 
 send_function_and_params(PlayerPid,Data) ->
