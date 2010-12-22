@@ -64,9 +64,13 @@ account_exists(AccountName) ->
 	end.
 			
 get_visual_from_account(#account{}=Acc) ->
+	ViList = [ hlp:visual_image_to_struct(X) || X <- Acc#account.images ],
 	hlp:createReply("visual",
 					[{"Name",Acc#account.username},
-					 {"Images",{array,Acc#account.images}}]).
+					 {"Images",{array,ViList}}]).
+
+visual_request(AccountName) ->
+	get_visual_from_account(dirty_read_account(AccountName)).
 
 create_account_nx(RequestParams) ->
 	AR = account:get_account_record(RequestParams),

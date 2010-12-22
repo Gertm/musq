@@ -52,3 +52,8 @@ get_all_lines(Device, Accum) ->
         Line -> get_all_lines(Device, [Line|Accum])
     end.
 
+
+visual_image_to_struct(#visualImage{}=V) ->
+	{struct, [{"Url",V#visualImage.url},
+			  {"Color", V#visualImage.color}]}.
+   
