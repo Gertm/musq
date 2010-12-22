@@ -51,7 +51,7 @@ websocket_owner() ->
 echo_server(WebSocket,PlayerPid) ->
     receive
 		{tcp, WebSocket, DataFrame} ->
-			?InfoMsg("Dataframe: ~s~n",[DataFrame]),
+			%% ?InfoMsg("Dataframe: ~s~n",[DataFrame]),
 			RequestList = unframe(DataFrame),
 			[ send_function_and_params(PlayerPid,R) || R <- RequestList ],
 			echo_server(WebSocket, PlayerPid);
@@ -66,15 +66,14 @@ echo_server(WebSocket,PlayerPid) ->
     end.
 
 get_func_and_params(BinData) ->
-	?InfoMsg("Bindata was: ~s~n",[BinData]), 
+	%% ?InfoMsg("Bindata was: ~s~n",[BinData]), 
 	{struct, [{"Function",Func},{"Params",{struct,Params}}]} = mochijson:decode(BinData),
 	{Func,Params}.
 			
 
 send_function_and_params(PlayerPid,Data) ->
 	{Fn,Params} = get_func_and_params(Data),
-	?InfoMsg("Request: ~p~nParams: ~p~n",[Fn,Params]),
-	?InfoMsg("gen_server:cast(~p, {~p,~p,~p}~n",[PlayerPid, list_to_atom(Fn), self(), Params]),
+	%% ?InfoMsg("Request: ~p~nParams: ~p~n",[Fn,Params]),
 	gen_server:cast(PlayerPid, {list_to_atom(Fn),self(),Params}).
 
 reply(WebSocket, Reply) ->

@@ -42,10 +42,18 @@ write_account(AR) ->
 
 read_account(AccountName) ->							   
 	{atomic, AccList} = mnesia:transaction(fun() -> mnesia:read({account, AccountName}) end),
+	read_helper(AccList).
+
+dirty_read_account(AccountName) ->
+	AccList = mnesia:dirty_read({account, AccountName}),
+	read_helper(AccList).
+
+read_helper(AccList) ->
 	case AccList of
 		[] -> {error, no_user};
 		[#account{} = A] -> A
 	end.
+	
 
 account_exists(AccountName) ->
 	case read_account(AccountName) of
