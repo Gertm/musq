@@ -1,0 +1,319 @@
+{
+	"Name": "Begin_Bottom",
+	"Width": 7,
+	"Height": 13,
+	"DefaultTile": {
+		"Images": [ "images/tiles/surfaces/concrete01.png" ],
+		"Properties": {
+			"WalkingSpeed": "1",
+			"Damage": "0"
+    	}
+    },
+	"BorderTile": {
+		"Images": [],
+		"Properties": {
+			"WalkingSpeed": "0",
+			"Damage": "0"
+    	}
+	},
+	"Tiles": [
+		{
+			"X": 1,
+			"Y": 11,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_left_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 2,
+			"Y": 11,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 11,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_right.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 10,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_left.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 2,
+			"Y": 10,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 10,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_right.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 9,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 7,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 6,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 5,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_left_up.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 2,
+			"Y": 5,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 5,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_right.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 1,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_left.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 2,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_right.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_left.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 4,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 8,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_right_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 7,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_left.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 4,
+			"Y": 7,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 7,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_right.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 6,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 5,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 4,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 3,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_up_down.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 2,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_left.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 4,
+			"Y": 2,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 2,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_top_right_up.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 3,
+			"Y": 1,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_left.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 4,
+			"Y": 1,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_middle.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 5,
+			"Y": 1,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/walls/bricks01_bottom_right.png" ],
+			"Properties": {
+                "WalkingSpeed": "0",
+                "Damage": "0"
+			}
+		},
+		{
+			"X": 0,
+			"Y": 12,
+			"Images": [ "images/tiles/surfaces/concrete01.png", "images/tiles/exits/ladder01_up.png"],
+			"Properties": {
+                "WalkingSpeed": "1",
+                "Damage": "0",
+                "ExitTo": "Begin"
+			}
+		}
+	]
+}
