@@ -162,3 +162,14 @@ dirty_read_player(PlayerName) ->
 	[#plr{} = P] = mnesia:dirty_read({player,PlayerName}),
 	P.
 
+
+by_name(PlayerName) ->
+	read_player(PlayerName).
+
+by_pid(Pid) ->
+	case mnesia:transaction(fun() -> mnesia:index_read(plr,Pid,#plr.pid) end) of
+		{atomic, P} ->
+			P;
+		_ -> error
+	end.
+

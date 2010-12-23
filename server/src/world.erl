@@ -157,7 +157,8 @@ prepare_database() ->
 	account:create_table(),
 	mnesia:create_table(player, [{disc_copies, [node()]},
 								 {type, set},
-								 {attributes, record_info(fields, plr)}]).
+								 {attributes, record_info(fields, plr)},
+								 {index, [position, area, pid]}]).
 
 
 %% get the names of all the areas in the area folder

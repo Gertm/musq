@@ -82,6 +82,14 @@ init(AreaFilename) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call({player_enter, PlayerPid}, _From, State) ->
+	%% update player db to reflect being in this area
+	%% send the area definition file
+	%% check the entrance if there is nobody there, if there is,
+	%% take an adjecent tile and put the player there.
+	{reply, ok, State};
+handle_call({player_leave, PlayerPid}, _From, State) ->
+	{reply, ok, State};
 handle_call(_Request, _From, State) ->
 	Reply = ok, 
 	{reply, Reply, State}.
