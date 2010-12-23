@@ -14,7 +14,7 @@ kv(K,L) ->
 	{K,V} = lists:keyfind(K,1,L),
 	V.
 
-createReply(Func,Params) ->
+create_reply(Func,Params) ->
 	{struct, [{"Function",Func},
 			  {"Params",
 			   {struct,Params}}]}.
@@ -28,7 +28,7 @@ getFiles(Params) ->
 	WildCard = kv("WildCard", Params),
 	FileList = filelib:wildcard(WildCard,BasePath),
 	NewFL = lists:map(fun(X) -> OriginalBasePath ++ X end, FileList),
-	createReply("getFiles",[{"Images",{array,NewFL}}]).
+	create_reply("getFiles",[{"Images",{array,NewFL}}]).
 	%% {struct,[{"Functions","getFiles"},
 	%% 		 {"Params",
 	%% 		  {struct,[{"Images",

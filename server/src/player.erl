@@ -86,7 +86,6 @@ handle_cast({getFiles, From, Params},State) ->
 	case Params of
 		[] -> ok;
 		_ -> R = hlp:getFiles(Params),
-			 ?InfoMsg("Sending back to wshandle: ~p~n",[R]),
 			 From ! {reply, self(), R}
 	end,
 	{noreply, State};
@@ -97,7 +96,10 @@ handle_cast({createAccount, From, Params}, State) ->
 	From ! {reply, self(), R},
 	{noreply, State};
 handle_cast({keepalive, From, []},State) ->
-	From ! {reply, self(), hlp:createReply("keepalive",[])},
+	From ! {reply, self(), hlp:create_reply("keepalive",[])},
+	{noreply, State};
+handle_cast({relay, Reply}, State) ->
+	State#plr.wspid ! {reply, self(), Reply},	
 	{noreply, State};
 handle_cast(Any, State) ->
 	?InfoMsg("no idea what this is: ~p~n",[Any]),
@@ -142,6 +144,14 @@ code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 
 %%%===================================================================
+%%% Wrappers
+%%%===================================================================
+
+relay(PlayerPid, Reply) ->
+	gen_server:cast(PlayerPid, {relay, Reply}).
+
+
+%%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
@@ -149,39 +159,6 @@ read_player(PlayerName) ->
 	mnesia:transaction(fun() -> mnesia:read(player, PlayerName) end).
 
 dirty_read_player(PlayerName) ->
-	ok.
+	[#plr{} = P] = mnesia:dirty_read({player,PlayerName}),
+	P.
 
-is_logged_in(PlayerName) ->
-	Loggedin = read_player(PlayerName),
-	case Loggedin of
-		{atomic, []} ->
-			no_user;
-		{atomic, #plr{}=P} ->
-			P#plr.logged_in
-	end.
-
-user_login(PlayerName, Password) ->
-	case is_logged_in(PlayerName) of
-		no_user ->
-			{error, "no such user"};
-		true ->
-			{error, "already logged in"};
-		false ->
-			A = account:read_account(PlayerName),
-			if
-				A#account.password == Password ->
-					
-					ok;
-				true ->
-					{error, "incorrect password"}
-			end
-	end.
-
-log_in_user(PlayerName,TrueFalse) ->
-	{atomic, #plr{}=Player} = read_player(PlayerName),
-	mnesia:transaction(fun() -> mnesia:write(player, Player#plr{logged_in = TrueFalse}) end).
-
-
-get_visual(PlayerName) ->
-	{atomic, #plr{}=P} = read_player(PlayerName).
-	
