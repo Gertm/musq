@@ -65,7 +65,7 @@ account_exists(AccountName) ->
 			
 get_visual_from_account(#account{}=Acc) ->
 	ViList = [ hlp:visual_image_to_struct(X) || X <- Acc#account.images ],
-	hlp:createReply("visual",
+	hlp:create_reply("visual",
 					[{"Name",Acc#account.username},
 					 {"Images",{array,ViList}}]).
 
@@ -76,12 +76,12 @@ create_account_nx(RequestParams) ->
 	AR = account:get_account_record(RequestParams),
 	case account_exists(AR#account.username) of
 		true ->
-			hlp:createReply("createAccount",
+			hlp:create_reply("createAccount",
 							[{"Success","false"},
 							 {"Reason","Account already exists"}]);
 		false ->
 			write_account(AR),
-			hlp:createReply("createAccount",
+			hlp:create_reply("createAccount",
 							[{"Success","true"}])
 	end.
 
