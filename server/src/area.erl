@@ -85,10 +85,11 @@ init(AreaFilename) ->
 handle_call({player_enter, PlayerPid}, _From, State) ->
 	%% update player db to reflect being in this area
 	%% send the area definition file
+	player:relay(PlayerPid, client_area_definition(State)),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjecent tile and put the player there.
 	{reply, ok, State};
-handle_call({player_leave, PlayerPid}, _From, State) ->
+handle_call({player_leave, _PlayerPid}, _From, State) ->
 	{reply, ok, State};
 handle_call(_Request, _From, State) ->
 	Reply = ok, 
@@ -149,8 +150,8 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-broadcast(Message, PlayerPids) ->
-	[ Pid ! Message || Pid <- PlayerPids ].
+broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
+	[ player:relay(Pid, Message) || Pid <- PlayerPids ].
 
 
 %% downside of this is the area definition files will need to be in the correct order
@@ -189,12 +190,12 @@ client_area_definition(#area{name=Name,
 							 defaulttile=DefaultTile, 
 							 bordertile=BorderTile, 
 							 tiles=Tiles}) ->
-	mochijson:encode({struct, [{"Name", Name}, 
-							   {"Width", Width}, 
-							   {"Height", Height}, 
-							   {"DefaultTile", client_tile_definition(DefaultTile)}, 
-							   {"BorderTile", client_tile_definition(BorderTile)}, 
-							   {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}).
+	{struct, [{"Name", Name}, 
+			  {"Width", Width}, 
+			  {"Height", Height}, 
+			  {"DefaultTile", client_tile_definition(DefaultTile)}, 
+			  {"BorderTile", client_tile_definition(BorderTile)}, 
+			  {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}.
 
 
 %% for future reference on using Eunit. (it's been a while..)

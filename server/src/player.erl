@@ -147,6 +147,10 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Wrappers
 %%%===================================================================
 
+%% @doc
+%% Relay will be used when other processes just want to send something
+%% to the wshandle process of the player.
+%% @end
 relay(PlayerPid, Reply) ->
 	gen_server:cast(PlayerPid, {relay, Reply}).
 
