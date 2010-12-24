@@ -84,13 +84,15 @@ init(AreaFilename) ->
 %%--------------------------------------------------------------------
 handle_call({player_enter, PlayerPid}, _From, State) ->
 	%% update player db to reflect being in this area
+	NewState = add_player(PlayerPid, State),
 	%% send the area definition file
 	player:relay(PlayerPid, client_area_definition(State)),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjecent tile and put the player there.
-	{reply, ok, State};
+	{reply, ok, NewState};
 handle_call({player_leave, _PlayerPid}, _From, State) ->
-	{reply, ok, State};
+	NewState = remove_player(PlayerPid, State),
+	{reply, ok, NewState};
 handle_call(_Request, _From, State) ->
 	Reply = ok, 
 	{reply, Reply, State}.
@@ -196,6 +198,19 @@ client_area_definition(#area{name=Name,
 			  {"DefaultTile", client_tile_definition(DefaultTile)}, 
 			  {"BorderTile", client_tile_definition(BorderTile)}, 
 			  {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}.
+
+add_player(PlayerPid, State) ->
+	PP = State#area.playerpids,
+	State#area{playerpids=[PlayerPid | PP]}.
+
+remove_player(PlayerPid, State) ->
+	PP = lists:remove(PlayerPid,State#area.playerpids),
+	State#area{playerpids=PP}.
+
+%% jump_request should really get the last known location of the player
+%% from the database, not just take X and Y as parameters.
+jump_request(PlayerName, {X,Y}, #area{name=AreaName}=Area) ->
+	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
 
 
 %% for future reference on using Eunit. (it's been a while..)
