@@ -86,7 +86,9 @@ handle_call({player_enter, PlayerPid}, _From, State) ->
 	%% update player db to reflect being in this area
 	NewState = add_player(PlayerPid, State),
 	%% send the area definition file
-	player:relay(PlayerPid, client_area_definition(State)),
+	Adef = client_area_definition(State),
+	?InfoMsg("Sending the area definition: ~s~n",[Adef]),
+	player:relay(PlayerPid, Adef),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjecent tile and put the player there.
 	%% Jr = jump_request(

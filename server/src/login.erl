@@ -13,7 +13,7 @@ is_logged_in(PlayerName) ->
 	Loggedin = db:read_player(PlayerName),
 	case Loggedin of
 		{atomic, []} ->
-			no_user;
+			false;
 		{atomic, #plr{}=P} ->
 			P#plr.logged_in
 	end.
@@ -25,7 +25,7 @@ check_pwd(PlayerName, Password) ->
 		true ->
 			{error, "already logged in"};
 		false ->
-			A = account:read_account(PlayerName),
+			A = db:read_account(PlayerName),
 			if
 				A#account.password == Password ->
 					ok;
