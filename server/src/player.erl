@@ -102,4 +102,9 @@ relay(PlayerPid, Reply) ->
 %%% Internal functions
 %%%===================================================================
 
+check_for_player(Player) when is_pid(Player) ->
+	ok;
+check_for_player(Player) ->
+	ok.
+
 

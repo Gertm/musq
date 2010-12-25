@@ -14,16 +14,14 @@
 read_player(PlayerName) ->
 	mnesia:transaction(fun() -> mnesia:read(player, PlayerName) end).
 
+dirty_read_player(Pid) when is_pid(Pid) ->
+	mnesia:dirty_index_read(plr,Pid,#plr.pid);
 dirty_read_player(PlayerName) ->
-	[#plr{} = P] = mnesia:dirty_read({player,PlayerName}),
-	P.
+    mnesia:dirty_read({player,PlayerName}).
 
 player_by_name(PlayerName) ->
 	read_player(PlayerName).
 
-player_by_pid(Pid) ->
-	[P] = mnesia:dirty_index_read(plr,Pid,#plr.pid),
-	P.
 
 prepare_database() ->
 	account:create_table(),
