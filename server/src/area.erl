@@ -89,8 +89,9 @@ handle_call({player_enter, PlayerPid}, _From, State) ->
 	player:relay(PlayerPid, client_area_definition(State)),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjecent tile and put the player there.
+	%% Jr = jump_request(
 	{reply, ok, NewState};
-handle_call({player_leave, _PlayerPid}, _From, State) ->
+handle_call({player_leave, PlayerPid}, _From, State) ->
 	NewState = remove_player(PlayerPid, State),
 	{reply, ok, NewState};
 handle_call(_Request, _From, State) ->
@@ -209,6 +210,7 @@ remove_player(PlayerPid, State) ->
 
 %% jump_request should really get the last known location of the player
 %% from the database, not just take X and Y as parameters.
+%% or get the destination from the area spec when spawning in a new area.
 jump_request(PlayerName, {X,Y}, #area{name=AreaName}=Area) ->
 	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
 

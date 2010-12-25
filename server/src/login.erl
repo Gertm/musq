@@ -10,7 +10,7 @@
 -compile(export_all).
 
 is_logged_in(PlayerName) ->
-	Loggedin = player:read_player(PlayerName),
+	Loggedin = db:read_player(PlayerName),
 	case Loggedin of
 		{atomic, []} ->
 			no_user;
@@ -34,12 +34,6 @@ check_pwd(PlayerName, Password) ->
 			end
 	end.
 
-log_in_out(PlayerName,TrueFalse) ->
-	F = fun() -> {atomic, #plr{}=Player} = mnesia:read(player,PlayerName),
-				 mnesia:write(player, Player#plr{logged_in = TrueFalse}) end,	
-	mnesia:transaction(F).
-
-
 success(PlayerName,Password) ->
 	case check_pwd(PlayerName, Password) of
 		{error, Reason} -> 
@@ -49,7 +43,10 @@ success(PlayerName,Password) ->
 	end.
 
 logout(PlayerName) ->		
-	log_in_out(PlayerName, false).
+	db:log_in_out(PlayerName, false).
+
+%% logout_pid(PlayerPid) ->
+%% 	PlayerName = 
 
 login(PlayerName, Password, PlayerPid) ->
 	case success(PlayerName,Password) of

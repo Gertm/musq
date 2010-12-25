@@ -56,6 +56,7 @@ echo_server(WebSocket,PlayerPid) ->
 			[ send_function_and_params(PlayerPid,R) || R <- RequestList ],
 			echo_server(WebSocket, PlayerPid);
 		{tcp_closed, WebSocket} ->
+			gen_server:cast(PlayerPid, {logout, self(), []}),
 			io:format("Websocket closed. Websocket handler stopped...~n");
 		{reply, PlayerPid, Reply} ->
 			reply(WebSocket,Reply),
