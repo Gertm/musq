@@ -12,7 +12,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
@@ -46,8 +46,9 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-	gen_server:start_link(?MODULE, [], []).
+start_link(AreaFileName) ->
+	erlang:display("In area:start_link with argument: "++AreaFileName),
+	gen_server:start_link(?MODULE, [AreaFileName], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -64,8 +65,10 @@ start_link() ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init(AreaFilename) ->
-	AreaState = parse_json(hlp:load_json(AreaFilename)), 
+init([AreaFilename]) ->
+	erlang:display("starting to parse: "),
+	erlang:display(AreaFilename),
+	AreaState = parse_json(hlp:load_json(?AREAPATH++AreaFilename)), 
 	{ok, AreaState}.
 
 %%--------------------------------------------------------------------
@@ -213,9 +216,8 @@ remove_player(PlayerPid, State) ->
 %% jump_request should really get the last known location of the player
 %% from the database, not just take X and Y as parameters.
 %% or get the destination from the area spec when spawning in a new area.
-jump_request(PlayerName, {X,Y}, #area{name=AreaName}=Area) ->
+jump_request(PlayerName, {X,Y}, #area{name=AreaName}=_Area) ->
 	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
-
 
 %% for future reference on using Eunit. (it's been a while..)
 dummy_adder(X, Y) ->

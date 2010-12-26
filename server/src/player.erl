@@ -45,7 +45,7 @@ handle_cast({login, WsPid, Params}, State) ->
 	erlang:display(Params),
 	PlayerName = proplists:get_value("Username",Params),
 	Password = proplists:get_value("Password",Params),
-	login:login(PlayerName, Password, self()),
+	gen_server:call(world,{login, PlayerName, Password}),
 	{noreply, State#plr{wspid=WsPid}};
 handle_cast({logout, _WsPid, _Params}, State) ->
 	%% player:logout(

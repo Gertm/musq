@@ -3,6 +3,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -define(BASEPATH,"/home/gert/src/musq/").
+-define(AREAPATH, ?BASEPATH++"server/areas/").
 
 -record(plr, {name ::string(),
 			  position ::tuple(), %% {x,y}

@@ -10,7 +10,7 @@
 -compile(export_all).
 
 is_logged_in(PlayerName) ->
-	Loggedin = db:read_player(PlayerName),
+	Loggedin = db:read_player(PlayerName), 
 	case Loggedin of
 		{atomic, []} ->
 			false;
@@ -25,7 +25,7 @@ check_pwd(PlayerName, Password) ->
 		true ->
 			{error, "already logged in"};
 		false ->
-			A = db:read_account(PlayerName),
+			A = db:read_account(PlayerName), 
 			if
 				A#account.password == Password ->
 					ok;
@@ -34,12 +34,12 @@ check_pwd(PlayerName, Password) ->
 			end
 	end.
 
-success(PlayerName,Password) ->
+success(PlayerName, Password) ->
 	case check_pwd(PlayerName, Password) of
 		{error, Reason} -> 
-			{error, hlp:create_reply("login",[{"Success","false"},{"Reason",Reason}])};
-		ok -> 
-			{ok, hlp:create_reply("login",[{"Success","true"}])}
+			{error, hlp:create_reply("login", [{"Success", "false"}, {"Reason", Reason}])};
+		ok ->
+			{ok, hlp:create_reply("login", [{"Success", "true"}])}
 	end.
 
 logout(PlayerName) ->		
@@ -49,12 +49,15 @@ logout(PlayerName) ->
 %% 	PlayerName = 
 
 login(PlayerName, Password, PlayerPid) ->
-	case success(PlayerName,Password) of
+	%% check if the player record exists
+	db:create_player_record(PlayerName, PlayerPid), 
+	case success(PlayerName, Password) of
 		{error, Reply} ->
 			player:relay(PlayerPid, Reply);
 		{ok, Reply} ->
-			player:relay(PlayerPid, Reply),
-			V = account:visual_request(PlayerName),
+			db:log_in_out(PlayerName, true), 
+			player:relay(PlayerPid, Reply), 
+			V = account:visual_request(PlayerName), 
 			player:relay(PlayerPid, V)
 	end.
 			

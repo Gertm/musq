@@ -23,7 +23,6 @@
 -define(SERVER, ?MODULE). 
 %% this AREAPATH really needs to be changed.
 %% maybe define some good PATH variable in musq.hrl
--define(AREAPATH, "../../server/areas/").
 
 -record(arearec, {name ::string(),
 				  pid  ::pid()}).
@@ -64,7 +63,10 @@ start_link() ->
 %%--------------------------------------------------------------------
 init([]) ->
 	db:prepare_database(),
-	{ok, #worldstate{}}.
+	AreaFileNames = get_area_filenames(),
+	erlang:display(AreaFileNames),
+	AreaNamesAndPids = lists:map(fun spawn_area/1, AreaFileNames),
+	{ok, #worldstate{areas=AreaNamesAndPids}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -80,12 +82,21 @@ init([]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({add_player, PlayerName},WsHandlePid, State) ->
-	NewDict = dict:append(PlayerName,WsHandlePid,State#worldstate.players),
+handle_call({add_player, PlayerName}, From, State) ->
+	NewDict = dict:append(PlayerName, From, State#worldstate.players),
 	NewState = State#worldstate{players=NewDict},
 	{reply, ok, NewState};
-handle_call({login, _PlayerName, _Password, _Pid}, _WsHandlePid, State) ->
-	%% need to get into mnesia here and check if the player exists.
+handle_call({login, PlayerName, Password}, From, State) ->
+	login:login(PlayerName,Password,From),
+	%% get area from player table, if undefined, send 'begin' area
+	P = db:dirty_read_player(PlayerName),
+	AreaNameAndLoc = case P#plr.area of
+			   undefined ->
+				   {"begin", {0, 0}};
+			   Other ->
+				   {Other, P#plr.position}
+		   end,
+	%% message area that player is entering
 	{reply, ok, State};
 handle_call({spawn_player, WsPid}, _Pid, State) ->
 	{ok, PlayerPid} = supervisor:start_child(musq_sup, player_child_spec(WsPid)),
@@ -170,6 +181,24 @@ is_area_filename(FileName) ->
 	   true -> false
 	end.
 
+area_child_spec(AreaFileName) ->
+	AreaName = "area_" ++ filename:basename(AreaFileName,".area"),
+	{list_to_atom(AreaName),
+	 {area, start_link, [AreaFileName]},
+	 temporary,
+	 2000,
+	 worker,
+	 ['area']}.
+
+spawn_area(AreaFileName) ->
+	AreaName = filename:basename(AreaFileName,".area"),
+	erlang:display("Spawning area " ++ ?AREAPATH++AreaFileName),
+	OkPid = supervisor:start_child(musq_sup,
+									   area_child_spec(AreaFileName)),
+	erlang:display(OkPid),
+	erlang:display("Spawned area "++AreaFileName),
+	#arearec{name=AreaName}.
+		
 player_child_spec(WsPid) ->
 	{list_to_atom("plr_" ++ pid_to_list(WsPid)), 
 	 {player, start_link, [WsPid]},
