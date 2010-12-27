@@ -1,13 +1,13 @@
 %%%-------------------------------------------------------------------
-%%% @author Gert <@G3rtm on Twitter>
-%%% @copyright (C) 2010, Gert
+%%% @author Gert Meulyzer <@G3rtm on Twitter>
+%%% @copyright (C) 2010, Gert Meulyzer
 %%% @doc
 %%%
 %%% @end
-%%% Created : 15 Dec 2010 by Gert <@G3rtm on Twitter>
+%%% Created : 27 Dec 2010 by Gert Meulyzer <@G3rtm on Twitter>
 %%%-------------------------------------------------------------------
--module(musq_sup).
-
+-module(area_sup).
+-include("musq.hrl").
 -behaviour(supervisor).
 
 %% API
@@ -15,6 +15,10 @@
 
 %% Supervisor callbacks
 -export([init/1]).
+
+%% Functions init needs
+-export([area_child_specs/0, area_child_spec/1, get_filenames/0,
+		 is_area_filename/1, area_name_from_filename/1]).
 
 -define(SERVER, ?MODULE).
 
@@ -55,17 +59,40 @@ init([]) ->
 	MaxSecondsBetweenRestarts = 3600,
 
 	SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-
-	Restart = permanent,
-	Shutdown = 2000,
-	Type = worker,
-
-	World = {'World', {world, start_link, []},
-			  Restart, Shutdown, Type, [world]},
-	AreaSup = {'AreaSup', {'area_sup', start_link,[]},
-					permanent, 2000, supervisor, ['area_sup']},
-	{ok, {SupFlags, [World, AreaSup]}}.
+	
+	{ok, {SupFlags, area_child_specs()}}.
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+area_child_specs() ->
+	AreaFileNames = area:get_filenames(),
+    lists:map(fun area_child_spec/1, AreaFileNames).
+
+area_child_spec(AreaFileName) ->
+	AreaName = list_to_atom(area:area_name_from_filename(AreaFileName)),
+	{AreaName,
+	 {area, start_link, [AreaFileName]},
+	 permanent,
+	 2000,
+	 worker,
+	 [area]}.
+
+-spec(get_filenames() -> [string()]).
+get_filenames() ->
+	{ok, FileList} = file:list_dir(?AREAPATH),
+	FullPathList = lists:map(fun(X) -> ?AREAPATH ++ X end, FileList),
+	lists:filter(fun is_area_filename/1, FullPathList).
+
+-spec(is_area_filename(FileName ::string()) -> boolean()).
+is_area_filename(FileName) ->
+	ExtStart = string:len(FileName) - 4,
+	Ext = string:substr(FileName, ExtStart),
+	if Ext == ".area" ->
+			true;
+	   true -> false
+	end.
+
+area_name_from_filename(FileName) ->
+	"area_" ++ filename:basename(FileName,".area").

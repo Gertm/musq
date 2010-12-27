@@ -47,7 +47,6 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(AreaFileName) ->
-	erlang:display("In area:start_link with argument: "++AreaFileName),
 	gen_server:start_link(?MODULE, [AreaFileName], []).
 
 %%%===================================================================
@@ -66,9 +65,8 @@ start_link(AreaFileName) ->
 %% @end
 %%--------------------------------------------------------------------
 init([AreaFilename]) ->
-	erlang:display("starting to parse: "),
-	erlang:display(AreaFilename),
-	AreaState = parse_json(hlp:load_json(?AREAPATH++AreaFilename)), 
+	AreaState = parse_json(hlp:load_json(AreaFilename)), 
+	gen_server:call(world, {register_area, AreaState#area.name}),
 	{ok, AreaState}.
 
 %%--------------------------------------------------------------------
@@ -219,10 +217,3 @@ remove_player(PlayerPid, State) ->
 jump_request(PlayerName, {X,Y}, #area{name=AreaName}=_Area) ->
 	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
 
-%% for future reference on using Eunit. (it's been a while..)
-dummy_adder(X, Y) ->
-	X + Y.
-
-dummy_adder_test() ->
-	?assertEqual(dummy_adder(4, 5), 9), 
-	?assertEqual(dummy_adder(2, 3), 5).

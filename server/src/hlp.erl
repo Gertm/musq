@@ -42,6 +42,7 @@ load_json(FileName) ->
 -spec(readlines(FileName::string()) -> string()).
 %% @spec readlines(FileName::string()) -> string()
 readlines(FileName) ->
+	erlang:display("Going to open: "++FileName),
     {ok, Device} = file:open(FileName, [read]), 
     lists:flatten(get_all_lines(Device, [])).
 
@@ -51,7 +52,6 @@ get_all_lines(Device, Accum) ->
         eof  -> file:close(Device), lists:reverse(Accum);
         Line -> get_all_lines(Device, [Line|Accum])
     end.
-
 
 visual_image_to_struct(#visualImage{}=V) ->
 	{struct, [{"Url",V#visualImage.url},

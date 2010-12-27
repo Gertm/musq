@@ -63,10 +63,7 @@ start_link() ->
 %%--------------------------------------------------------------------
 init([]) ->
 	db:prepare_database(),
-	AreaFileNames = get_area_filenames(),
-	erlang:display(AreaFileNames),
-	AreaNamesAndPids = lists:map(fun spawn_area/1, AreaFileNames),
-	{ok, #worldstate{areas=AreaNamesAndPids}}.
+	{ok, #worldstate{}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -105,6 +102,12 @@ handle_call({createAccount, Params}, _Pid, State) ->
 	Reply = account:create_account_nx(Params),
 	?InfoMsg("account creation reply: ~p~n",[Reply]),
 	{reply, Reply, State};
+handle_call({register_area, AreaName}, Pid, State) ->
+	NewArea = #arearec{name=AreaName, pid=Pid},
+	AreaList = State#worldstate.areas,
+	NewAreaList = [NewArea|AreaList],
+	{reply, ok, State#worldstate{areas=NewAreaList}};
+%% need a msg to ask for area pid based on name
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	{reply, Reply, State}.
@@ -164,41 +167,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-
-
-%% get the names of all the areas in the area folder
--spec(get_area_filenames() -> [string()]).
-get_area_filenames() ->
-	{ok, FileList} = file:list_dir(?AREAPATH),
-	lists:filter(fun is_area_filename/1, FileList).
-
--spec(is_area_filename(FileName ::string()) -> boolean()).
-is_area_filename(FileName) ->
-	ExtStart = string:len(FileName) - 4,
-	Ext = string:substr(FileName, ExtStart),
-	if Ext == ".area" ->
-			true;
-	   true -> false
-	end.
-
-area_child_spec(AreaFileName) ->
-	AreaName = "area_" ++ filename:basename(AreaFileName,".area"),
-	{list_to_atom(AreaName),
-	 {area, start_link, [AreaFileName]},
-	 temporary,
-	 2000,
-	 worker,
-	 ['area']}.
-
-spawn_area(AreaFileName) ->
-	AreaName = filename:basename(AreaFileName,".area"),
-	erlang:display("Spawning area " ++ ?AREAPATH++AreaFileName),
-	OkPid = supervisor:start_child(musq_sup,
-									   area_child_spec(AreaFileName)),
-	erlang:display(OkPid),
-	erlang:display("Spawned area "++AreaFileName),
-	#arearec{name=AreaName}.
-		
 player_child_spec(WsPid) ->
 	{list_to_atom("plr_" ++ pid_to_list(WsPid)), 
 	 {player, start_link, [WsPid]},
