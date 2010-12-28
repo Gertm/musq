@@ -24,9 +24,7 @@
 %% this AREAPATH really needs to be changed.
 %% maybe define some good PATH variable in musq.hrl
 
--record(arearec, {name ::string(),
-				  pid  ::pid()}).
--record(worldstate, {areas ::[#arearec{}],
+-record(worldstate, {areas ::[term()],
 					 players ::dict:dictonary()}).
 
 
@@ -102,6 +100,14 @@ handle_call({createAccount, Params}, _Pid, State) ->
 	Reply = account:create_account_nx(Params),
 	?InfoMsg("account creation reply: ~p~n",[Reply]),
 	{reply, Reply, State};
+handle_call({get_area_pid, AreaName}, _Pid, State) ->
+	case State#worldstate.areas of
+		undefined ->
+			NewState = State#worldstate{areas=get_area_pids()},
+			{reply, proplists:get_value(AreaName, NewState#worldstate.areas), NewState};
+		Areas ->
+			{reply, proplists:get_value(AreaName, Areas), State}
+	end;
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	{reply, Reply, State}.

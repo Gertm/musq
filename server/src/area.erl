@@ -214,12 +214,22 @@ client_area_definition(#area{name=Name,
 			  {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}.
 
 add_player(PlayerPid, State) ->
-	PP = State#area.playerpids,
-	State#area{playerpids=[PlayerPid | PP]}.
+	case lists:member(PlayerPid, State#area.playerpids) of
+		true ->
+			State;
+		false ->
+			PP = State#area.playerpids,
+			State#area{playerpids=[PlayerPid | PP]}
+	end.
 
 remove_player(PlayerPid, State) ->
-	PP = lists:remove(PlayerPid,State#area.playerpids),
-	State#area{playerpids=PP}.
+	case lists:member(PlayerPid, State#area.playerpids) of
+		true ->
+			PP = lists:remove(PlayerPid,State#area.playerpids),
+			State#area{playerpids=PP};
+		false ->
+			State
+	end.
 
 %% jump_request should really get the last known location of the player
 %% from the database, not just take X and Y as parameters.
