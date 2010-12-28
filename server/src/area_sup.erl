@@ -67,11 +67,11 @@ init([]) ->
 %%%===================================================================
 
 area_child_specs() ->
-	AreaFileNames = area:get_filenames(),
+	AreaFileNames = get_filenames(),
     lists:map(fun area_child_spec/1, AreaFileNames).
 
 area_child_spec(AreaFileName) ->
-	AreaName = list_to_atom(area:area_name_from_filename(AreaFileName)),
+	AreaName = list_to_atom(area_name_from_filename(AreaFileName)),
 	{AreaName,
 	 {area, start_link, [AreaFileName]},
 	 permanent,

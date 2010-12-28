@@ -102,12 +102,6 @@ handle_call({createAccount, Params}, _Pid, State) ->
 	Reply = account:create_account_nx(Params),
 	?InfoMsg("account creation reply: ~p~n",[Reply]),
 	{reply, Reply, State};
-handle_call({register_area, AreaName}, Pid, State) ->
-	NewArea = #arearec{name=AreaName, pid=Pid},
-	AreaList = State#worldstate.areas,
-	NewAreaList = [NewArea|AreaList],
-	{reply, ok, State#worldstate{areas=NewAreaList}};
-%% need a msg to ask for area pid based on name
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	{reply, Reply, State}.

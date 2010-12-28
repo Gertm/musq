@@ -64,10 +64,10 @@ start_link(AreaFileName) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([AreaFilename]) ->
+init([AreaFilename]) ->	
 	AreaState = parse_json(hlp:load_json(AreaFilename)), 
-	gen_server:call(world, {register_area, AreaState#area.name}),
 	{ok, AreaState}.
+
 
 %%--------------------------------------------------------------------
 %% @private
