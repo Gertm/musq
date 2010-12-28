@@ -87,7 +87,7 @@ handle_call({login, PlayerName, Password}, From, State) ->
 	login:login(PlayerName,Password,From),
 	%% get area from player table, if undefined, send 'begin' area
 	P = db:dirty_read_player(PlayerName),
-	AreaNameAndLoc = case P#plr.area of
+	{AreaName,{X,Y}} = case P#plr.area of
 			   undefined ->
 				   {"begin", {0, 0}};
 			   Other ->
@@ -169,3 +169,9 @@ player_child_spec(WsPid) ->
 	 worker,
 	 ['player']}.
 	 
+
+get_area_pids() ->
+	Children = supervisor:which_children(area_sup),
+	lists:map(fun({AreaName, Pid, _, _}) ->
+					  {AreaName, Pid} end,
+			  Children).

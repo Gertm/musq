@@ -153,6 +153,16 @@ code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 
 %%%===================================================================
+%%% Wrappers
+%%%===================================================================
+
+player_enter(Area, PlayerPid) ->
+	gen_server:call(Area, {player_enter, PlayerPid}).
+
+player_leave(Area, PlayerPid) ->
+	gen_server:call(Area, {player_leave, PlayerPid}).
+
+%%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
