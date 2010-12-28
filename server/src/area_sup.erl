@@ -54,6 +54,7 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
+	?InfoMsg("Starting area_sup!",[]),
 	RestartStrategy = one_for_one,
 	MaxRestarts = 1000,
 	MaxSecondsBetweenRestarts = 3600,
