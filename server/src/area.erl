@@ -65,7 +65,7 @@ start_link(AreaFileName) ->
 %% @end
 %%--------------------------------------------------------------------
 init([AreaFilename]) ->
-	?InfoMsg("Area ~s starting up~n",[]),
+	?InfoMsg("Area ~s starting up~n",[AreaFilename]),
 	AreaState = parse_json(hlp:load_json(AreaFilename)), 
 	{ok, AreaState}.
 
