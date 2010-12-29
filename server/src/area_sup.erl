@@ -96,4 +96,4 @@ is_area_filename(FileName) ->
 	end.
 
 area_name_from_filename(FileName) ->
-	"area_" ++ filename:basename(FileName,".area").
+	filename:basename(FileName,".area").

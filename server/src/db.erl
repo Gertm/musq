@@ -22,30 +22,31 @@ read_player(Pid) when is_pid(Pid) ->
 	R = mnesia:transaction(fun() -> mnesia:index_read(plr, Pid, #plr.pid) end), 
 	get_transaction_result(R);
 read_player(PlayerName) ->
-	R = mnesia:transaction(fun() -> mnesia:read(player, PlayerName) end), 
+	R = mnesia:transaction(fun() -> mnesia:read(plr, PlayerName) end), 
 	get_transaction_result(R).
 
 dirty_read_player(Pid) when is_pid(Pid) ->
 	mnesia:dirty_index_read(plr, Pid, #plr.pid);
 dirty_read_player(PlayerName) ->
-    mnesia:dirty_read({player, PlayerName}).
+    mnesia:dirty_read({plr, PlayerName}).
 
 create_player_record(PlayerName, PlayerPid) -> 
 	P = dirty_read_player(PlayerName), 
 	case P of
 		[] -> 
-			F = fun() -> mnesia:write(player, #plr{name=PlayerName, pid=PlayerPid}) end, 
-			mnesia:transaction(F);
+			Player = #plr{name=PlayerName, pid=PlayerPid},
+			mnesia:transaction(fun() -> mnesia:write(Player) end),
+			?InfoMsg("Writing to mnesia: ~p~n",[Player]);
 		_ -> ok
 	end.
 							   
 
 prepare_database() ->
 	create_account_table(), 
-	mnesia:create_table(player, [{disc_copies, [node()]}, 
-								 {type, set}, 
-								 {attributes, record_info(fields, plr)}, 
-								 {index, [position, area, pid]}]).
+	mnesia:create_table(plr, [{disc_copies, [node()]}, 
+							  {type, set}, 
+							  {attributes, record_info(fields, plr)}, 
+							  {index, [position, area, pid]}]).
 
 %% ACCOUNT stuff
 create_account_table() ->

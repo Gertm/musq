@@ -48,7 +48,8 @@ handle_cast({login, WsPid, Params}, State) ->
 	gen_server:call(world,{login, PlayerName, Password}),
 	{noreply, State#plr{wspid=WsPid}};
 handle_cast({logout, _WsPid, _Params}, State) ->
-	%% player:logout(
+	gen_server:call(world,{remove_player, State#plr.name}),
+	%% gen_server still needs to shut down or will linger (memleak)
 	{noreply, State#plr{logged_in = false}};
 handle_cast({getFiles, From, Params},State) ->
 	?InfoMsg("getFiles params: ~p~n",[Params]),

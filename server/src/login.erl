@@ -12,10 +12,10 @@
 is_logged_in(PlayerName) ->
 	Loggedin = db:read_player(PlayerName), 
 	case Loggedin of
-		{atomic, []} ->
+		[] ->
 			false;
-		{atomic, #plr{}=P} ->
-			P#plr.logged_in
+		#plr{}=P ->
+			P#plr.logged_in;
 	end.
 
 check_pwd(PlayerName, Password) ->
@@ -31,7 +31,7 @@ check_pwd(PlayerName, Password) ->
 					ok;
 				true ->
 					{error, "incorrect password"}
-			end
+			end;
 	end.
 
 success(PlayerName, Password) ->
@@ -53,12 +53,14 @@ login(PlayerName, Password, PlayerPid) ->
 	db:create_player_record(PlayerName, PlayerPid), 
 	case success(PlayerName, Password) of
 		{error, Reply} ->
-			player:relay(PlayerPid, Reply);
+			player:relay(PlayerPid, Reply),
+			error;
 		{ok, Reply} ->
 			db:log_in_out(PlayerName, true), 
 			player:relay(PlayerPid, Reply), 
 			V = account:visual_request(PlayerName), 
-			player:relay(PlayerPid, V)
+			player:relay(PlayerPid, V),
+			ok
 	end.
 			
 			%% notify the area so it can send:

@@ -11,22 +11,22 @@
 -compile(export_all).
 
 out(A) ->
-    case get_upgrade_header(A#arg.headers) of 
-		undefined ->
-			{html,"MUSQ server. Please connect through the websocket API."};
-		"WebSocket" ->
-			WebSocketOwner = spawn(fun() -> websocket_owner() end),
-			{websocket, WebSocketOwner, passive}
+    case get_upgrade_header(A#arg.headers) of
+        undefined ->
+            {html, "MUSQ server. Please connect through the websocket API."};
+        "WebSocket" ->
+            WebSocketOwner = spawn(fun() -> websocket_owner() end), 
+            {websocket, WebSocketOwner, passive}
     end.
 
 get_upgrade_header(#headers{other=L}) ->
-    lists:foldl(fun({http_header,_,K0,_,V}, undefined) ->
+    lists:foldl(fun({http_header, _, K0, _, V}, undefined) ->
                         K = case is_atom(K0) of
                                 true ->
                                     atom_to_list(K0);
                                 false ->
                                     K0
-                            end,
+                            end, 
                         case string:to_lower(K) of
                             "upgrade" ->
                                 V;
@@ -35,66 +35,73 @@ get_upgrade_header(#headers{other=L}) ->
                         end;
                    (_, Acc) ->
                         Acc
-                end, undefined, L).					  
+                end, undefined, L).
 
 
 websocket_owner() ->
-	NewPlayerPid = gen_server:call(world, {spawn_player, self()}),
-	?InfoMsg("New Player spawned with pid ~p~n",[NewPlayerPid]),
+    NewPlayerPid = gen_server:call(world, {spawn_player, self()}), 
+    ?InfoMsg("New Player spawned with pid ~p~n", [NewPlayerPid]), 
     receive
-		{ok, WebSocket} ->
-			yaws_api:websocket_setopts(WebSocket, [{active, true}]),
-			echo_server(WebSocket,NewPlayerPid);
-		_ -> error_logger:info_msg("Didn't get websocket stuff.. strange!")
+        {ok, WebSocket} ->
+            yaws_api:websocket_setopts(WebSocket, [{active, true}]), 
+            echo_server(WebSocket, NewPlayerPid);
+        _ -> error_logger:info_msg("Didn't get websocket stuff.. strange!")
     end.
 
-echo_server(WebSocket,PlayerPid) ->
+echo_server(WebSocket, PlayerPid) ->
     receive
-		{tcp, WebSocket, DataFrame} ->
-			%% ?InfoMsg("Dataframe: ~s~n",[DataFrame]),
-			RequestList = unframe(DataFrame),
-			[ send_function_and_params(PlayerPid,R) || R <- RequestList ],
-			echo_server(WebSocket, PlayerPid);
-		{tcp_closed, WebSocket} ->
-			gen_server:cast(PlayerPid, {logout, self(), []}),
-			io:format("Websocket closed. Websocket handler stopped...~n");
-		{reply, PlayerPid, Reply} ->
-			reply(WebSocket,Reply),
-			echo_server(WebSocket,PlayerPid);
-		Any ->
-			?InfoMsg("DEBUG: got unknown: ~p~n",[Any]),
-			echo_server(WebSocket,PlayerPid)
+        {tcp, WebSocket, DataFrame} ->
+            %% ?InfoMsg("Dataframe: ~s~n", [DataFrame]), 
+            RequestList = unframe(DataFrame), 
+            [ send_function_and_params(PlayerPid, R) || R <- RequestList ], 
+            echo_server(WebSocket, PlayerPid);
+        {tcp_closed, WebSocket} ->
+            gen_server:cast(PlayerPid, {logout, self(), []}), 
+            io:format("Websocket closed. Websocket handler stopped...~n");
+        {reply, _, Reply} ->
+            reply(WebSocket, Reply), 
+            echo_server(WebSocket, PlayerPid);
+        Any ->
+            ?InfoMsg("DEBUG: got unknown: ~p~n", [Any]), 
+            echo_server(WebSocket, PlayerPid)
     end.
 
 get_func_and_params(BinData) ->
-	%% ?InfoMsg("Bindata was: ~s~n",[BinData]), 
-	{struct, [{"Function",Func},{"Params",{struct,Params}}]} = mochijson:decode(BinData),
-	{Func,Params}.
-			
+    %% ?InfoMsg("Bindata was: ~s~n", [BinData]), 
+    {struct, [{"Function", Func}, {"Params", {struct, Params}}]} = mochijson:decode(BinData), 
+    {Func, Params}.
 
-send_function_and_params(PlayerPid,Data) ->
-	{Fn,Params} = get_func_and_params(Data),
-	%% ?InfoMsg("Request: ~p~nParams: ~p~n",[Fn,Params]),
-	gen_server:cast(PlayerPid, {list_to_atom(Fn),self(),Params}).
+send_function_and_params(PlayerPid, Data) ->
+    {Fn, Params} = get_func_and_params(Data), 
+	?InfoMsg("Got: ~s(~p)~n", [Fn, Params]), 
+    %% filter login and createaccount here!
+    case list_to_atom(Fn) of
+        login ->
+            gen_server:cast(world, {login, PlayerPid, Params});
+        createAccount ->
+			gen_server:cast(world, {createAccount, self(), Params});
+		_ ->
+			gen_server:cast(PlayerPid, {list_to_atom(Fn), self(), Params})
+	end.
 
 reply(WebSocket, Reply) ->
-	R = mochijson:encode(Reply),
-	?InfoMsg("Sending back to the client: ~s~n",[R]),
-	yaws_api:websocket_send(WebSocket, R).
+    R = mochijson:encode(Reply), 
+    ?InfoMsg("Sending back to the client: ~s~n", [R]), 
+    yaws_api:websocket_send(WebSocket, R).
 
 test_get_func_and_params() ->
-	A = <<"{\"Function\":\"login\",\"Params\":{\"Username\":\"Gert\",\"Password\":\"g\"}}">>,
-	get_func_and_params(A).
+    A = <<"{\"Function\":\"login\", \"Params\":{\"Username\":\"Gert\", \"Password\":\"g\"}}">>, 
+    get_func_and_params(A).
 
 unframe(T) ->
-%%	T = <<0, 65, 66, 67, 68, 255, 0, 69, 70, 71, 255, 0, 72, 73, 74, 255>>,
-	L = binary:split(T,[<<255>>,<<0>>],[trim,global]),
-	lists:filter(fun(X) ->
-						 case X of
-							 <<>> ->
-								 false;
-							 _Any ->
-								 true
-						 end
-				 end,
-						 L).
+    %%  T = <<0, 65, 66, 67, 68, 255, 0, 69, 70, 71, 255, 0, 72, 73, 74, 255>>, 
+    L = binary:split(T, [<<255>>, <<0>>], [trim, global]), 
+    lists:filter(fun(X) ->
+                         case X of
+                             <<>> ->
+                                 false;
+                             _Any ->
+                                 true
+                         end
+                 end, 
+                 L).

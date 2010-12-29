@@ -24,13 +24,13 @@
 			   properties		::[term()]
 			  }).
 
--record(area, {name				::string(), 
+-record(area, {name				::term(), 
 			   width			::integer(), 
 			   height			::integer(), 
 			   defaulttile		::#tile{}, 
 			   bordertile		::#tile{}, 
 			   tiles			::[#tile{}], 
-			   playerpids		::[pid()], 
+			   playerpids		::[tuple()], 
 			   world			::pid()
 			  }).
 
@@ -84,19 +84,21 @@ init([AreaFilename]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({player_enter, PlayerPid}, _From, State) ->
+handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	%% update player db to reflect being in this area
-	NewState = add_player(PlayerPid, State),
+	NewState = add_player(PlayerName, PlayerPid, State),
 	%% send the area definition file
 	Adef = client_area_definition(State),
-	?InfoMsg("Sending the area definition: ~s~n",[Adef]),
 	player:relay(PlayerPid, Adef),
 	%% check the entrance if there is nobody there, if there is,
-	%% take an adjecent tile and put the player there.
-	%% Jr = jump_request(
+	%% take an adjacent tile and put the player there.
+	Jr = jump_request(PlayerName, {0, 0}, State),
+	player:relay(PlayerPid, Jr),
+	%% still need to broadcast to the other players.
 	{reply, ok, NewState};
-handle_call({player_leave, PlayerPid}, _From, State) ->
-	NewState = remove_player(PlayerPid, State),
+handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
+	NewState = remove_player(PlayerName, PlayerPid, State),
+	%% send vanish request to clients
 	{reply, ok, NewState};
 handle_call(_Request, _From, State) ->
 	Reply = ok, 
@@ -157,18 +159,18 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Wrappers
 %%%===================================================================
 
-player_enter(Area, PlayerPid) ->
-	gen_server:call(Area, {player_enter, PlayerPid}).
+player_enter(AreaPid, PlayerPid, PlayerName) ->
+	gen_server:call(AreaPid, {player_enter, PlayerPid, PlayerName}).
 
-player_leave(Area, PlayerPid) ->
-	gen_server:call(Area, {player_leave, PlayerPid}).
+player_leave(AreaPid, PlayerPid, PlayerName) ->
+	gen_server:call(AreaPid, {player_leave, PlayerPid, PlayerName}).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
-	[ player:relay(Pid, Message) || Pid <- PlayerPids ].
+	[ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
 
 
 %% downside of this is the area definition files will need to be in the correct order
@@ -181,7 +183,7 @@ parse_json(Json) ->
 			 {"BorderTile", BorderTile}, 
 			 {"Tiles", {array, Tiles}}]} = Json, 
 	T = [ get_tile(Tile) || Tile <- Tiles ], 
-	#area{name=Name, 
+	#area{name=list_to_atom(Name), 
 		  width=Width, 
 		  height=Height, 
 		  defaulttile=get_tile(DefaultTile), 
@@ -199,7 +201,6 @@ get_tile({struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Proper
 client_tile_definition(#tile{x=X, y=Y, images=Images, properties=Properties}) ->
 	{struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}.
 
-%% @doc
 -spec(client_area_definition(#area{}) -> string()).
 client_area_definition(#area{name=Name, 
 							 width=Width, 
@@ -207,26 +208,26 @@ client_area_definition(#area{name=Name,
 							 defaulttile=DefaultTile, 
 							 bordertile=BorderTile, 
 							 tiles=Tiles}) ->
-	{struct, [{"Name", Name}, 
+	{struct, [{"Name", atom_to_list(Name)}, 
 			  {"Width", Width}, 
 			  {"Height", Height}, 
 			  {"DefaultTile", client_tile_definition(DefaultTile)}, 
 			  {"BorderTile", client_tile_definition(BorderTile)}, 
 			  {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}.
 
-add_player(PlayerPid, State) ->
-	case lists:member(PlayerPid, State#area.playerpids) of
+add_player(PlayerName, PlayerPid, State) ->
+	case proplists:is_defined(PlayerName, State#area.playerpids) of
 		true ->
 			State;
 		false ->
 			PP = State#area.playerpids,
-			State#area{playerpids=[PlayerPid | PP]}
+			State#area{playerpids=[{PlayerName, PlayerPid} | PP]}
 	end.
 
-remove_player(PlayerPid, State) ->
-	case lists:member(PlayerPid, State#area.playerpids) of
+remove_player(PlayerName, _PlayerPid, State) ->
+	case proplists:is_defined(PlayerName, State#area.playerpids) of
 		true ->
-			PP = lists:remove(PlayerPid,State#area.playerpids),
+			PP = proplists:delete(PlayerName,State#area.playerpids),
 			State#area{playerpids=PP};
 		false ->
 			State
