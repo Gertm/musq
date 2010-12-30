@@ -15,7 +15,11 @@ is_logged_in(PlayerName) ->
 		[] ->
 			false;
 		#plr{}=P ->
-			P#plr.logged_in;
+			case P#plr.logged_in of
+				undefined ->
+					false;
+				Smth -> Smth
+			end
 	end.
 
 check_pwd(PlayerName, Password) ->
@@ -31,7 +35,7 @@ check_pwd(PlayerName, Password) ->
 					ok;
 				true ->
 					{error, "incorrect password"}
-			end;
+			end
 	end.
 
 success(PlayerName, Password) ->

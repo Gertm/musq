@@ -80,6 +80,7 @@ send_function_and_params(PlayerPid, Data) ->
         login ->
             gen_server:cast(world, {login, PlayerPid, Params});
         createAccount ->
+			io:format("casting to world for createAccount~n",[]),
 			gen_server:cast(world, {createAccount, self(), Params});
 		_ ->
 			gen_server:cast(PlayerPid, {list_to_atom(Fn), self(), Params})
