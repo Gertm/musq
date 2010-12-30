@@ -32,7 +32,7 @@
 			   tiles			::[#tile{}], 
 			   playerpids		::[tuple()], 
 			   world			::pid(),
-			   chatlines        ::[string()]
+			   chatlines        ::[tuple()]
 			  }).
 
 
@@ -90,6 +90,7 @@ handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	NewState = add_player(PlayerName, PlayerPid, State),
 	%% send the area definition file
 	player:change_area(PlayerPid, State#area.name),
+	player:set_name(PlayerPid, PlayerName),
 	Adef = client_area_definition(State),
 	player:relay(PlayerPid, Adef),
 	%% check the entrance if there is nobody there, if there is,
@@ -105,6 +106,7 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 handle_call(chatHistory, _From, State) ->
 	{reply, State#area.chatlines, State};
 handle_call(_Request, _From, State) ->
+	io:format("AREA CALL UNKNOWN: ~p~n",[_Request]),
 	Reply = ok, 
 	{reply, Reply, State}.
 
@@ -118,11 +120,13 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast({chat, PlayerName, Message}, State) ->
-	ChatLine = chatline(PlayerName, Message),
-	broadcast_to_players(hlp:create_reply("talk",
-									  [{"Name",PlayerName},
-									   {"Message",Message}]),State),
+handle_cast({talk, PlayerName, Message}, State) ->
+	ChatLine = {PlayerName, Message},
+	io:format("In handle_cast talk: ~p~n",[ChatLine]),
+	broadcast_to_players(
+	  hlp:create_reply("talk",
+					   [{"Name",PlayerName},
+						{"Message",Message}]),State),
 	{noreply, State#area{chatlines=[ChatLine | State#area.chatlines]}};
 handle_cast(_Msg, State) ->
 	{noreply, State}.
@@ -175,15 +179,32 @@ player_enter(AreaPid, PlayerPid, PlayerName) ->
 player_leave(AreaPid, PlayerPid, PlayerName) ->
 	gen_server:call(AreaPid, {player_leave, PlayerPid, PlayerName}).
 
-chat(AreaPid, PlayerName, Message) ->
-	gen_server:cast(AreaPid, {chat, PlayerName, Message}).
+talk(Area, PlayerName, Message) ->
+	AreaPid = pid_of(Area),
+	io:format("In area:talk P:~s, M:~s~n",[PlayerName, Message]),
+	gen_server:cast(AreaPid, {talk, PlayerName, Message}).
+
+chat_history(Area, WsPid) ->
+	AreaPid = pid_of(Area),
+	Lines = gen_server:call(AreaPid, chatHistory),
+	ReplyLines = [ {struct, [{"From", From}, {"Msg", Msg}]} || {From, Msg} <- Lines ],
+	io:format("Area ~p Chat History Lines: ~p~n",[AreaPid, ReplyLines]),
+	WsPid ! {reply, 
+			 self(), 
+			 hlp:create_reply("chatHistory", [{"Lines", {array, ReplyLines}}])}.
+
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
-	[ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
+	io:format("Broadcasting ~p~n to ~p~n",[Message, PlayerPids]),
+	[ player:relay(Pid, Message) || {_Name, Pid} <- PlayerPids ].
+	%% lists:map(fun({_, Pid}) ->
+	%% 				  io:format("broadcast ~p -> ~p ~n",[Message,Pid]),
+	%% 				  player:relay(Pid, Message) end,
+	%% 		  PlayerPids).
 
 %% downside of this is the area definition files will need to be in the correct order
 %% but since we're going to generate them later on, that shouldn't be a problem.
@@ -195,13 +216,14 @@ parse_json(Json) ->
 			 {"BorderTile", BorderTile}, 
 			 {"Tiles", {array, Tiles}}]} = Json, 
 	T = [ get_tile(Tile) || Tile <- Tiles ], 
-	#area{name=list_to_atom(Name), 
+	#area{name=list_to_atom(string:to_lower(Name)), 
 		  width=Width, 
 		  height=Height, 
 		  defaulttile=get_tile(DefaultTile), 
 		  bordertile=get_tile(BorderTile), 
 		  tiles=T, 
 		  playerpids=[], 
+		  chatlines=[],
 		  world = nil}.
 
 get_tile({struct, [{"Images", Images}, {"Properties", Properties}]}) ->
@@ -220,12 +242,14 @@ client_area_definition(#area{name=Name,
 							 defaulttile=DefaultTile, 
 							 bordertile=BorderTile, 
 							 tiles=Tiles}) ->
-	{struct, [{"Name", atom_to_list(Name)}, 
-			  {"Width", Width}, 
-			  {"Height", Height}, 
-			  {"DefaultTile", client_tile_definition(DefaultTile)}, 
-			  {"BorderTile", client_tile_definition(BorderTile)}, 
-			  {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]}.
+	hlp:create_reply(
+	  "area", 
+	  [{"Name", atom_to_list(Name)}, 
+	   {"Width", Width}, 
+	   {"Height", Height}, 
+	   {"DefaultTile", client_tile_definition(DefaultTile)}, 
+	   {"BorderTile", client_tile_definition(BorderTile)}, 
+	   {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]).
 
 add_player(PlayerName, PlayerPid, State) ->
 	case proplists:is_defined(PlayerName, State#area.playerpids) of
@@ -254,3 +278,8 @@ jump_request(PlayerName, {X,Y}, #area{name=AreaName}=_Area) ->
 chatline(Name, Message) ->
 	{H, M, S} = erlang:time(),
 	io_lib:format("~s:~s:~s <~s> ~s",[H,M,S,Name,Message]).
+
+pid_of(Area) when is_pid(Area) ->
+	Area;
+pid_of(Area) ->
+	world:get_area_pid(Area).

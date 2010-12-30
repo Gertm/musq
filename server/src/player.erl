@@ -19,7 +19,7 @@
 		 terminate/2, code_change/3]).
 
 %% wrapper functions
--export([relay/2, change_area/2]).
+-export([relay/2, change_area/2, set_name/2]).
 
 %%%===================================================================
 %%% API
@@ -38,6 +38,8 @@ init([WsPid]) ->
 %%--- HANDLE_CALL ---
 handle_call({change_area, AreaAtom}, _From, State) ->
 	{reply, ok, State#plr{area=AreaAtom}};
+handle_call({set_name, PlayerName}, _From, State) ->
+	{reply, ok, State#plr{name=PlayerName}};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	?InfoMsg("Got handle_call request I don't know: ~s~n",[_Request]),
@@ -72,17 +74,22 @@ handle_cast({keepalive, From, []},State) ->
 	From ! {reply, self(), hlp:create_reply("keepalive",[])},
 	{noreply, State};
 handle_cast({relay, Reply}, State) ->
+	io:format("[player] Relaying ~p~n to ~p~n",[Reply, State#plr.wspid]),
 	State#plr.wspid ! {reply, self(), Reply},	
 	{noreply, State};
-handle_cast({chat, From, Params}, State) ->
+handle_cast({talk, _From, Params}, State) ->
+	%% io:format("Handling talk with params ~p~n",[Params]),
 	Message = proplists:get_value("Message", Params),
 	Name = State#plr.name,
-	area:chat(State#plr.area, Name, Message),
+	area:talk(State#plr.area, Name, Message),
 	{noreply, State};
+handle_cast({chatHistory, _From, _}, State) ->
+	area:chat_history(State#plr.area, State#plr.wspid),
+  	{noreply, State};
 handle_cast(Any, State) ->
 	?InfoMsg("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.
-
+ 
 
 %%--- HANDLE_INFO ---
 handle_info(_Info, State) ->
@@ -109,13 +116,10 @@ relay(PlayerPid, Reply) ->
 change_area(PlayerPid, AreaAtom) ->
 	gen_server:call(PlayerPid, {change_area, AreaAtom}).
 
+set_name(PlayerPid, PlayerName) ->
+	gen_server:call(PlayerPid, {set_name, PlayerName}).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-
-check_for_player(Player) when is_pid(Player) ->
-	ok;
-check_for_player(Player) ->
-	ok.
-
 

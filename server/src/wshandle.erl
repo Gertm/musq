@@ -59,10 +59,11 @@ echo_server(WebSocket, PlayerPid) ->
             gen_server:cast(PlayerPid, {logout, self(), []}), 
             io:format("Websocket closed. Websocket handler stopped...~n");
         {reply, _, Reply} ->
+			io:format("[wshandle] Got a reply: ~p~n",[Reply]),
             reply(WebSocket, Reply), 
             echo_server(WebSocket, PlayerPid);
         Any ->
-            ?InfoMsg("DEBUG: got unknown: ~p~n", [Any]), 
+            io:format("DEBUG: got unknown: ~p~n", [Any]), 
             echo_server(WebSocket, PlayerPid)
     end.
 
@@ -74,6 +75,7 @@ get_func_and_params(BinData) ->
 send_function_and_params(PlayerPid, Data) ->
     {Fn, Params} = get_func_and_params(Data), 
     %% filter login and createaccount here!
+	io:format("~s(~p)~n",[Fn,Params]),
     case list_to_atom(Fn) of
         login ->
             gen_server:cast(world, {login, PlayerPid, Params});
