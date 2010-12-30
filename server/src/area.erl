@@ -31,7 +31,8 @@
 			   bordertile		::#tile{}, 
 			   tiles			::[#tile{}], 
 			   playerpids		::[tuple()], 
-			   world			::pid()
+			   world			::pid(),
+			   chatlines        ::[string()]
 			  }).
 
 
@@ -88,6 +89,7 @@ handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	%% update player db to reflect being in this area
 	NewState = add_player(PlayerName, PlayerPid, State),
 	%% send the area definition file
+	player:change_area(PlayerPid, State#area.name),
 	Adef = client_area_definition(State),
 	player:relay(PlayerPid, Adef),
 	%% check the entrance if there is nobody there, if there is,
@@ -100,6 +102,8 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	NewState = remove_player(PlayerName, PlayerPid, State),
 	%% send vanish request to clients
 	{reply, ok, NewState};
+handle_call(chatHistory, _From, State) ->
+	{reply, State#area.chatlines, State};
 handle_call(_Request, _From, State) ->
 	Reply = ok, 
 	{reply, Reply, State}.
@@ -114,6 +118,12 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_cast({chat, PlayerName, Message}, State) ->
+	ChatLine = chatline(PlayerName, Message),
+	broadcast_to_players(hlp:create_reply("talk",
+									  [{"Name",PlayerName},
+									   {"Message",Message}]),State),
+	{noreply, State#area{chatlines=[ChatLine | State#area.chatlines]}};
 handle_cast(_Msg, State) ->
 	{noreply, State}.
 
@@ -165,13 +175,15 @@ player_enter(AreaPid, PlayerPid, PlayerName) ->
 player_leave(AreaPid, PlayerPid, PlayerName) ->
 	gen_server:call(AreaPid, {player_leave, PlayerPid, PlayerName}).
 
+chat(AreaPid, PlayerName, Message) ->
+	gen_server:cast(AreaPid, {chat, PlayerName, Message}).
+
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
 	[ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
-
 
 %% downside of this is the area definition files will need to be in the correct order
 %% but since we're going to generate them later on, that shouldn't be a problem.
@@ -239,3 +251,6 @@ remove_player(PlayerName, _PlayerPid, State) ->
 jump_request(PlayerName, {X,Y}, #area{name=AreaName}=_Area) ->
 	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
 
+chatline(Name, Message) ->
+	{H, M, S} = erlang:time(),
+	io_lib:format("~s:~s:~s <~s> ~s",[H,M,S,Name,Message]).

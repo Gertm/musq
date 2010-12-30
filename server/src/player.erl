@@ -19,7 +19,7 @@
 		 terminate/2, code_change/3]).
 
 %% wrapper functions
--export([relay/2]).
+-export([relay/2, change_area/2]).
 
 %%%===================================================================
 %%% API
@@ -36,8 +36,11 @@ init([WsPid]) ->
 	{ok, #plr{logged_in=false, wspid=WsPid}}.
 
 %%--- HANDLE_CALL ---
+handle_call({change_area, AreaAtom}, _From, State) ->
+	{reply, ok, State#plr{area=AreaAtom}};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
+	?InfoMsg("Got handle_call request I don't know: ~s~n",[_Request]),
 	{reply, Reply, State}.
 
 %%--- HANDLE_CAST ---
@@ -71,6 +74,11 @@ handle_cast({keepalive, From, []},State) ->
 handle_cast({relay, Reply}, State) ->
 	State#plr.wspid ! {reply, self(), Reply},	
 	{noreply, State};
+handle_cast({chat, From, Params}, State) ->
+	Message = proplists:get_value("Message", Params),
+	Name = State#plr.name,
+	area:chat(State#plr.area, Name, Message),
+	{noreply, State};
 handle_cast(Any, State) ->
 	?InfoMsg("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.
@@ -98,6 +106,8 @@ code_change(_OldVsn, State, _Extra) ->
 relay(PlayerPid, Reply) ->
 	gen_server:cast(PlayerPid, {relay, Reply}).
 
+change_area(PlayerPid, AreaAtom) ->
+	gen_server:call(PlayerPid, {change_area, AreaAtom}).
 
 %%%===================================================================
 %%% Internal functions
