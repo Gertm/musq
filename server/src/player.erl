@@ -42,20 +42,14 @@ handle_call({set_name, PlayerName}, _From, State) ->
 	{reply, ok, State#plr{name=PlayerName}};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
-	?InfoMsg("Got handle_call request I don't know: ~s~n",[_Request]),
+	?InfoMsg("Got handle_call request I don't know: ~p~n",[_Request]),
 	{reply, Reply, State}.
 
 %%--- HANDLE_CAST ---
-handle_cast({login, WsPid, Params}, State) ->
-	erlang:display(Params),
-	PlayerName = proplists:get_value("Username",Params),
-	Password = proplists:get_value("Password",Params),
-	gen_server:call(world,{login, PlayerName, Password}),
-	{noreply, State#plr{wspid=WsPid}};
 handle_cast({logout, _WsPid, _Params}, State) ->
 	gen_server:call(world,{remove_player, State#plr.name}),
-	%% gen_server still needs to shut down or will linger (memleak)
-	{noreply, State#plr{logged_in = false}};
+	%% gen_server still needs to shut down or it will linger (memleak)
+	{stop, normal, State#plr{logged_in = false}};
 handle_cast({getFiles, From, Params},State) ->
 	?InfoMsg("getFiles params: ~p~n",[Params]),
 	case Params of

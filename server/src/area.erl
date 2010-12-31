@@ -90,13 +90,12 @@ handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	NewState = add_player(PlayerName, PlayerPid, State),
 	%% send the area definition file
 	player:change_area(PlayerPid, State#area.name),
-	player:set_name(PlayerPid, PlayerName),
 	Adef = client_area_definition(State),
 	player:relay(PlayerPid, Adef),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjacent tile and put the player there.
-	Jr = jump_request(PlayerName, {0, 0}, State),
-	player:relay(PlayerPid, Jr),
+	JumpRequest = jump_request(PlayerName, {0, 0}, State),
+	player:relay(PlayerPid, JumpRequest),
 	%% still need to broadcast to the other players.
 	{reply, ok, NewState};
 handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
@@ -129,6 +128,7 @@ handle_cast({talk, PlayerName, Message}, State) ->
 						{"Message",Message}]),State),
 	{noreply, State#area{chatlines=[ChatLine | State#area.chatlines]}};
 handle_cast(_Msg, State) ->
+	io:format("WTF IS THIS AREAMSG? -> ~p~n",[_Msg]),
 	{noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -181,7 +181,7 @@ player_leave(AreaPid, PlayerPid, PlayerName) ->
 
 talk(Area, PlayerName, Message) ->
 	AreaPid = pid_of(Area),
-	io:format("In area:talk P:~s, M:~s~n",[PlayerName, Message]),
+	%%io:format("In area:talk P:~s, M:~s~n",[PlayerName, Message]),
 	gen_server:cast(AreaPid, {talk, PlayerName, Message}).
 
 chat_history(Area, WsPid) ->
@@ -200,7 +200,13 @@ chat_history(Area, WsPid) ->
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
 	io:format("Broadcasting ~p~n to ~p~n",[Message, PlayerPids]),
-	[ player:relay(Pid, Message) || {_Name, Pid} <- PlayerPids ].
+	F = fun({_, Pid}) ->
+				%% io:format("sending player:relay(~p,~p)~n",[Pid, Message]),
+				player:relay(Pid, Message)
+		end,
+	OK = lists:map(F, PlayerPids),
+	io:format("lists:map -> ~p~n",[OK]).
+	%% [ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
 	%% lists:map(fun({_, Pid}) ->
 	%% 				  io:format("broadcast ~p -> ~p ~n",[Message,Pid]),
 	%% 				  player:relay(Pid, Message) end,

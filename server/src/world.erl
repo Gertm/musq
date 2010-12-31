@@ -109,9 +109,8 @@ handle_cast({createAccount, WsPid, Params}, State) ->
 handle_cast({login, PlayerPid, Params}, State) ->
 	PlayerName = proplists:get_value("Username", Params), 
 	Password = proplists:get_value("Password", Params), 
-	From = proplists:get_value("From", Params), 
-	io:format("World handling login: Player: ~s, Pass: ~s, From: ~s~n",
-			  [PlayerName, Password, From]),
+	io:format("World handling login: Player: ~s, Pass: ~s,",
+			  [PlayerName, Password]),
 	case login:login(PlayerName, Password, PlayerPid) of
 		ok ->
 			P = db:read_player(PlayerName),
@@ -124,10 +123,9 @@ handle_cast({login, PlayerPid, Params}, State) ->
 											 Other ->
 												 {Other, P#plr.position}
 										 end,
+					player:set_name(PlayerPid, PlayerName),
 					area:player_enter(get_area_pid(AreaName), PlayerPid, PlayerName)
 			end;
-			%% msg area player is entering.
-
 		error ->
 			ok
 	end, 
@@ -188,7 +186,6 @@ player_child_spec(WsPid) ->
 
 get_area_pids() ->
 	Children = supervisor:which_children(area_sup),
-	io:format("which_children: ~p~n",[Children]),
 	lists:map(fun({AreaName, Pid, _, _}) ->
 					  {AreaName, Pid} end, 
 			  Children).
