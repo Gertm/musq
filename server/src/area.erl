@@ -99,7 +99,10 @@ handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	%% still need to broadcast to the other players.
 	{reply, ok, NewState};
 handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
+	%% PlayerPid and _From are usually going to be the same. 
+	%% maybe clean this up so it just uses 'From'?
 	NewState = remove_player(PlayerName, PlayerPid, State),
+	io:format("Removing ~s from ~p~n",[PlayerName, State#area.name]),
 	%% send vanish request to clients
 	{reply, ok, NewState};
 handle_call(chatHistory, _From, State) ->
@@ -173,10 +176,12 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Wrappers
 %%%===================================================================
 
-player_enter(AreaPid, PlayerPid, PlayerName) ->
+player_enter(Area, PlayerPid, PlayerName) ->
+	AreaPid = pid_of(Area),
 	gen_server:call(AreaPid, {player_enter, PlayerPid, PlayerName}).
 
-player_leave(AreaPid, PlayerPid, PlayerName) ->
+player_leave(Area, PlayerPid, PlayerName) ->
+	AreaPid = pid_of(Area),
 	gen_server:call(AreaPid, {player_leave, PlayerPid, PlayerName}).
 
 talk(Area, PlayerName, Message) ->
@@ -195,22 +200,17 @@ chat_history(Area, WsPid) ->
 
 
 %%%===================================================================
-%%% Internal functions
+
 %%%===================================================================
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
-	io:format("Broadcasting ~p~n to ~p~n",[Message, PlayerPids]),
-	F = fun({_, Pid}) ->
-				%% io:format("sending player:relay(~p,~p)~n",[Pid, Message]),
-				player:relay(Pid, Message)
-		end,
-	OK = lists:map(F, PlayerPids),
-	io:format("lists:map -> ~p~n",[OK]).
-	%% [ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
-	%% lists:map(fun({_, Pid}) ->
-	%% 				  io:format("broadcast ~p -> ~p ~n",[Message,Pid]),
-	%% 				  player:relay(Pid, Message) end,
-	%% 		  PlayerPids).
+	%% io:format("Broadcasting ~p~n to ~p~n",[Message, PlayerPids]),
+	%% F = fun({_, Pid}) ->
+	%% 			%% io:format("sending player:relay(~p,~p)~n",[Pid, Message]),
+	%% 			player:relay(Pid, Message)
+	%% 	end,
+	%% lists:map(F, PlayerPids).
+	[ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
 
 %% downside of this is the area definition files will need to be in the correct order
 %% but since we're going to generate them later on, that shouldn't be a problem.

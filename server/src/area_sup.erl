@@ -9,6 +9,7 @@
 -module(area_sup).
 -include("musq.hrl").
 -behaviour(supervisor).
+-compile(export_all).
 
 %% API
 -export([start_link/0]).
@@ -19,6 +20,7 @@
 %% Functions init needs
 -export([area_child_specs/0, area_child_spec/1, get_filenames/0,
 		 is_area_filename/1, area_name_from_filename/1]).
+
 
 -define(SERVER, ?MODULE).
 

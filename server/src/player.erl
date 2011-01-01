@@ -10,7 +10,7 @@
 
 -behaviour(gen_server).
 -include("musq.hrl").
-
+-compile(export_all).
 %% API
 -export([start_link/1]).
 
@@ -47,6 +47,7 @@ handle_call(_Request, _From, State) ->
 
 %%--- HANDLE_CAST ---
 handle_cast({logout, _WsPid, _Params}, State) ->
+	area:player_leave(State#plr.area, self(), State#plr.name),
 	gen_server:call(world,{remove_player, State#plr.name}),
 	%% gen_server still needs to shut down or it will linger (memleak)
 	{stop, normal, State#plr{logged_in = false}};
