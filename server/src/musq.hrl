@@ -20,7 +20,7 @@
 				 email    ::string(),
 				 images   ::[#visualImage{}]}).
 
--define(InfoMsg(Msg,Format), error_logger:info_msg(Msg,Format)).
+-define(InfoMsg(Msg,Format), io:format(Msg,Format)).
 
 -record(account, {username ::string(),
 				  password ::string(),

@@ -59,7 +59,7 @@ echo_server(WebSocket, PlayerPid) ->
             gen_server:cast(PlayerPid, {logout, self(), []}), 
             io:format("Websocket closed. Websocket handler stopped...~n");
         {reply, _, Reply} ->
-			io:format("[wshandle] Got a reply: ~p~n",[Reply]),
+			%% io:format("[wshandle] Got a reply: ~p~n",[Reply]),
             reply(WebSocket, Reply), 
             echo_server(WebSocket, PlayerPid);
         Any ->

@@ -55,7 +55,6 @@ handle_cast({logout, _WsPid, _Params}, State) ->
 	%% gen_server still needs to shut down or it will linger (memleak)
 	{stop, normal, State#plr{logged_in = false}};
 handle_cast({getFiles, From, Params},State) ->
-	?InfoMsg("getFiles params: ~p~n",[Params]),
 	case Params of
 		[] -> ok;
 		_ -> R = hlp:getFiles(Params),
@@ -72,7 +71,7 @@ handle_cast({keepalive, From, []},State) ->
 	From ! {reply, self(), hlp:create_reply("keepalive",[])},
 	{noreply, State};
 handle_cast({relay, Reply}, State) ->
-	io:format("[player] Relaying ~p~n to ~p~n",[Reply, State#plr.wspid]),
+	%% io:format("[player] Relaying ~p~n to ~p~n",[Reply, State#plr.wspid]),
 	State#plr.wspid ! {reply, self(), Reply},	
 	{noreply, State};
 handle_cast({talk, _From, Params}, State) ->
