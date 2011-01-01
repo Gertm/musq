@@ -75,7 +75,7 @@ get_func_and_params(BinData) ->
 send_function_and_params(PlayerPid, Data) ->
     {Fn, Params} = get_func_and_params(Data), 
     %% filter login and createaccount here!
-	io:format("~s(~p)~n",[Fn,Params]),
+	io:format("<= ~s(~p)~n",[Fn,Params]),
     case list_to_atom(Fn) of
         login ->
             gen_server:cast(world, {login, PlayerPid, Params});
@@ -88,7 +88,7 @@ send_function_and_params(PlayerPid, Data) ->
 
 reply(WebSocket, Reply) ->
     R = mochijson:encode(Reply), 
-    ?InfoMsg("Sending back to the client: ~s~n", [R]), 
+    ?InfoMsg("=> ~s~n", [R]), 
     yaws_api:websocket_send(WebSocket, R).
 
 test_get_func_and_params() ->
