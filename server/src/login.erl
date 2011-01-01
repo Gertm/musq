@@ -62,13 +62,9 @@ login(PlayerName, Password, PlayerPid) ->
 		{ok, Reply} ->
 			db:log_in_out(PlayerName, true), 
 			player:relay(PlayerPid, Reply), 
-			V = account:visual_request(PlayerName), 
-			player:relay(PlayerPid, V),
+			%% V = account:visual_request(PlayerName), 
+			%% player:relay(PlayerPid, V),
 			ok
 	end.
-			
-			%% notify the area so it can send:
-			%% - area definition
-			%% - jump request
 	
 

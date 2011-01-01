@@ -83,7 +83,6 @@ handle_call({add_player, PlayerName}, From, State) ->
 	{reply, ok, NewState};
 handle_call({remove_player, PlayerName}, From, State) ->
 	NewDict = dict:erase(PlayerName, State#worldstate.players), 
-	
 	{reply, ok, State#worldstate{players=NewDict}};
 handle_call({spawn_player, WsPid}, _Pid, State) ->
 	{ok, PlayerPid} = supervisor:start_child(musq_sup, player_child_spec(WsPid)), 

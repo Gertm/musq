@@ -88,15 +88,16 @@ init([AreaFilename]) ->
 handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	%% update player db to reflect being in this area
 	NewState = add_player(PlayerName, PlayerPid, State),
+	VisualRequest = player:get_visual_request(PlayerPid),
+	broadcast_to_players(VisualRequest, NewState),
 	%% send the area definition file
 	player:change_area(PlayerPid, State#area.name),
 	Adef = client_area_definition(State),
 	player:relay(PlayerPid, Adef),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjacent tile and put the player there.
-	JumpRequest = jump_request(PlayerName, {0, 0}, State),
-	player:relay(PlayerPid, JumpRequest),
-	%% still need to broadcast to the other players.
+	JumpRequest = jump_request(PlayerName, {0, 0}, NewState),
+	broadcast_to_players(JumpRequest, NewState),
 	{reply, ok, NewState};
 handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	%% PlayerPid and _From are usually going to be the same. 
@@ -204,13 +205,7 @@ chat_history(Area, WsPid) ->
 %%%===================================================================
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
-	%% io:format("Broadcasting ~p~n to ~p~n",[Message, PlayerPids]),
-	%% F = fun({_, Pid}) ->
-	%% 			%% io:format("sending player:relay(~p,~p)~n",[Pid, Message]),
-	%% 			player:relay(Pid, Message)
-	%% 	end,
-	lists:map(F, PlayerPids),
-	%% [ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
+	[ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
 
 %% downside of this is the area definition files will need to be in the correct order
 %% but since we're going to generate them later on, that shouldn't be a problem.
