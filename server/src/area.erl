@@ -209,8 +209,8 @@ broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
 	%% 			%% io:format("sending player:relay(~p,~p)~n",[Pid, Message]),
 	%% 			player:relay(Pid, Message)
 	%% 	end,
-	%% lists:map(F, PlayerPids).
-	[ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
+	lists:map(F, PlayerPids),
+	%% [ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
 
 %% downside of this is the area definition files will need to be in the correct order
 %% but since we're going to generate them later on, that shouldn't be a problem.

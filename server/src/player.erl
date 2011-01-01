@@ -11,6 +11,7 @@
 -behaviour(gen_server).
 -include("musq.hrl").
 -compile(export_all).
+-compile(export_all).
 %% API
 -export([start_link/1]).
 
