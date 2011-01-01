@@ -204,8 +204,7 @@ broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
 				%% io:format("sending player:relay(~p,~p)~n",[Pid, Message]),
 				player:relay(Pid, Message)
 		end,
-	OK = lists:map(F, PlayerPids),
-	io:format("lists:map -> ~p~n",[OK]).
+	lists:map(F, PlayerPids),
 	%% [ player:relay(Pid, Message) || {_, Pid} <- PlayerPids ].
 	%% lists:map(fun({_, Pid}) ->
 	%% 				  io:format("broadcast ~p -> ~p ~n",[Message,Pid]),
