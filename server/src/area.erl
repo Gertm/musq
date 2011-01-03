@@ -1,4 +1,4 @@
-%%%-------------------------------------------------------------------
+
 %%% @author Gert Meulyzer <@G3rtm on Twitter>
 %%% @copyright (C) 2010, Gert Meulyzer
 %%% @doc
@@ -18,14 +18,15 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
 		 terminate/2, code_change/3]).
 
--record(tiledef, {x				::integer(), 
-			   y				::integer(), 
-			   images			::[string()], 
-			   properties		::[term()]
-			  }).
+-record(tiledef, {x                 ::integer(), 
+				  y                 ::integer(), 
+				  images	        ::[string()], 
+				  properties		::[term()]
+				 }).
 
--record(tileprops, {player  ::string()
-			  }).
+-record(tileprops, {player  ::string(),
+					walkingspeed=1 ::integer()
+				   }).
 
 -record(area, {name				::term(), 
 			   width			::integer(), 
@@ -310,6 +311,20 @@ make_tile_dict_from_tile_defs(TileDefs) ->
 				  TileDefs),
 	dict:from_list(L).
 
+is_tile_available({X,Y}, Tiles) ->
+	case dict:find({X,Y}, Tiles) of
+		error -> {true, #tileprops{}};
+		{ok, Value} ->
+			case Value#tileprops.player of
+				undefined ->
+					case Value#tileprops.walkingspeed of
+						0 -> {false, unwalkable};
+						_ -> {true, Value}
+					end;
+				_ -> {false, occupied}
+			end
+	end.		
+
 %% this desperately needs unit tests!
 -spec(get_player_pos(string(), dict()) -> tuple()).
 get_player_pos(PlayerName, Tiles) ->
@@ -323,5 +338,19 @@ get_player_pos(PlayerName, Tiles) ->
 			 {X,Y}
 	end.
 
-set_player_pos(PlayerName, {X,Y}, #area{tiles=Tiles}=State) ->
-	ok.
+set_player_pos(PlayerName, {X,Y}, Tiles) ->
+	{X1, Y1} = get_player_pos(PlayerName, Tiles),
+	CurrentTileProps = dict:fetch({X1, Y1}, Tiles),
+	case is_tile_available({X,Y}, Tiles) of
+		{false, _} ->
+			Tiles;
+		{true, Destination} ->
+			Tiles2 = case {X1, Y1} of
+						 {error, no_player} ->
+							 Tiles;
+						 {X2, Y2} ->
+							 dict:store({X2 ,Y2}, CurrentTileProps#tileprops{player=undefined}, Tiles)
+					 end,
+			NewTiles = dict:store({X, Y}, Destination#tileprops{player=PlayerName},Tiles2),
+			NewTiles
+	end.
