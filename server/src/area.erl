@@ -7,7 +7,7 @@
 %%% Created : 12 Dec 2010 by Gert Meulyzer <@G3rtm on Twitter>
 %%%-------------------------------------------------------------------
 -module(area).
--compile(export_all).
+-compile([export_all, debug_info]).
 -include("musq.hrl").
 -behaviour(gen_server).
 
@@ -86,14 +86,20 @@ init([AreaFilename]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
-	%% update player db to reflect being in this area
-	NewState = add_player(PlayerName, PlayerPid, State),
-	VisualRequest = player:get_visual_request(PlayerPid),
-	broadcast_to_players(VisualRequest, NewState),
 	%% send the area definition file
 	player:change_area(PlayerPid, State#area.name),
 	Adef = client_area_definition(State),
 	player:relay(PlayerPid, Adef),
+	[ player:relay(PlayerPid, V) || V <- visual_of_all(State#area.playerpids) ],
+	[ player:relay(PlayerPid, J) || J <- jump_req_of_all(State) ],
+	%% update player db to reflect being in this area
+	NewState = add_player(PlayerName, PlayerPid, State),
+	VisualRequest = player:get_visual_request(PlayerPid),
+	broadcast_to_players(VisualRequest, NewState),
+	
+	%% this client specifically needs the visual requests and
+	%% jump requests of the other clients.
+	
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjacent tile and put the player there.
 	JumpRequest = jump_request(PlayerName, {0, 0}, NewState),
@@ -201,7 +207,7 @@ chat_history(Area, WsPid) ->
 
 
 %%%===================================================================
-
+%%% internal functions
 %%%===================================================================
 
 broadcast_to_players(Message, #area{playerpids=PlayerPids}) ->
@@ -275,6 +281,12 @@ remove_player(PlayerName, _PlayerPid, State) ->
 %% or get the destination from the area spec when spawning in a new area.
 jump_request(PlayerName, {X,Y}, #area{name=AreaName}=_Area) ->
 	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
+
+jump_req_of_all(#area{playerpids=PlayerPids}=State) ->
+	[ jump_request(Name, {0,0}, State) || {Name, _Pid} <- PlayerPids ].
+
+visual_of_all(PlayerPids) ->
+	[ player:get_visual_request(Pid) || {_Name, Pid} <- PlayerPids ].
 
 chatline(Name, Message) ->
 	{H, M, S} = erlang:time(),
