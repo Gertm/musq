@@ -18,21 +18,25 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
 		 terminate/2, code_change/3]).
 
--record(tile, {x				::integer(), 
+-record(tiledef, {x				::integer(), 
 			   y				::integer(), 
 			   images			::[string()], 
 			   properties		::[term()]
 			  }).
 
+-record(tileprops, {player  ::string()
+			  }).
+
 -record(area, {name				::term(), 
 			   width			::integer(), 
 			   height			::integer(), 
-			   defaulttile		::#tile{}, 
-			   bordertile		::#tile{}, 
-			   tiles			::[#tile{}], 
+			   defaulttile		::#tiledef{}, 
+			   bordertile		::#tiledef{}, 
+			   tiledefs			::[#tiledef{}], 
 			   playerpids		::[tuple()], 
 			   world			::pid(),
-			   chatlines        ::[tuple()]
+			   chatlines        ::[tuple()],
+			   tiles            ::dict()
 			  }).
 
 
@@ -221,25 +225,26 @@ parse_json(Json) ->
 			 {"Height", Height}, 
 			 {"DefaultTile", DefaultTile}, 
 			 {"BorderTile", BorderTile}, 
-			 {"Tiles", {array, Tiles}}]} = Json, 
-	T = [ get_tile(Tile) || Tile <- Tiles ], 
+			 {"Tiles", {array, Tiledefs}}]} = Json, 
+	T = [ get_tile_def(Tile) || Tile <- Tiledefs ], 
 	#area{name=list_to_atom(string:to_lower(Name)), 
 		  width=Width, 
 		  height=Height, 
-		  defaulttile=get_tile(DefaultTile), 
-		  bordertile=get_tile(BorderTile), 
-		  tiles=T, 
+		  defaulttile=get_tile_def(DefaultTile), 
+		  bordertile=get_tile_def(BorderTile), 
+		  tiledefs=T, 
 		  playerpids=[], 
 		  chatlines=[],
+		  tiles=make_tile_dict_from_tile_defs(T),
 		  world = nil}.
 
-get_tile({struct, [{"Images", Images}, {"Properties", Properties}]}) ->
-	#tile{x=0, y=0, images=Images, properties=Properties};
-get_tile({struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}) ->
-	#tile{x=X, y=Y, images=Images, properties=Properties}.
+get_tile_def({struct, [{"Images", Images}, {"Properties", Properties}]}) ->
+	#tiledef{x=0, y=0, images=Images, properties=Properties};
+get_tile_def({struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}) ->
+	#tiledef{x=X, y=Y, images=Images, properties=Properties}.
 
--spec(client_tile_definition(#tile{}) -> term()).									
-client_tile_definition(#tile{x=X, y=Y, images=Images, properties=Properties}) ->
+-spec(client_tile_definition(#tiledef{}) -> term()).									
+client_tile_definition(#tiledef{x=X, y=Y, images=Images, properties=Properties}) ->
 	{struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}.
 
 -spec(client_area_definition(#area{}) -> string()).
@@ -248,7 +253,7 @@ client_area_definition(#area{name=Name,
 							 height=Height, 
 							 defaulttile=DefaultTile, 
 							 bordertile=BorderTile, 
-							 tiles=Tiles}) ->
+							 tiledefs=Tiledefs}) ->
 	hlp:create_reply(
 	  "area", 
 	  [{"Name", atom_to_list(Name)}, 
@@ -256,7 +261,7 @@ client_area_definition(#area{name=Name,
 	   {"Height", Height}, 
 	   {"DefaultTile", client_tile_definition(DefaultTile)}, 
 	   {"BorderTile", client_tile_definition(BorderTile)}, 
-	   {"Tiles", {array, [ client_tile_definition(T) || T <- Tiles ]}}]).
+	   {"Tiles", {array, [ client_tile_definition(T) || T <- Tiledefs ]}}]).
 
 add_player(PlayerName, PlayerPid, State) ->
 	case proplists:is_defined(PlayerName, State#area.playerpids) of
@@ -296,3 +301,27 @@ pid_of(Area) when is_pid(Area) ->
 	Area;
 pid_of(Area) ->
 	world:get_area_pid(Area).
+
+%% tile helper functions
+
+-spec(make_tile_dict_from_tile_defs([#tiledef{}]) -> dict()).
+make_tile_dict_from_tile_defs(TileDefs) ->
+	L = lists:map(fun(#tiledef{x=X, y=Y}) -> { {X,Y}, #tileprops{} } end,
+				  TileDefs),
+	dict:from_list(L).
+
+%% this desperately needs unit tests!
+-spec(get_player_pos(string(), dict()) -> tuple()).
+get_player_pos(PlayerName, Tiles) ->
+	PlayerTiles = dict:to_list(
+					dict:filter(fun(_Key, Value) ->
+										PlayerName == Value#tileprops.player end,
+								Tiles)),
+	case PlayerTiles of
+		[] -> {error, no_player};
+		_ -> {{X,Y}, _} = hd(PlayerTiles),
+			 {X,Y}
+	end.
+
+set_player_pos(PlayerName, {X,Y}, #area{tiles=Tiles}=State) ->
+	ok.

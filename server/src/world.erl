@@ -20,7 +20,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
 		 terminate/2, code_change/3]).
 
--define(SERVER, ?MODULE). 
+-define(SERVER, ?MODULE).
 %% this AREAPATH really needs to be changed.
 %% maybe define some good PATH variable in musq.hrl
 
