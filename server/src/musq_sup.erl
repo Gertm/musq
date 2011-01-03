@@ -56,14 +56,14 @@ init([]) ->
 
 	SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
-	Restart = permanent,
-	Shutdown = 2000,
+	Restart = transient,
+	Shutdown = infinity,
 	Type = worker,
 
 	World = {'World', {world, start_link, []},
 			  Restart, Shutdown, Type, [world]},
 	AreaSup = {'AreaSup', {'area_sup', start_link,[]},
-					permanent, 2000, supervisor, ['area_sup']},
+					transient, infinity, supervisor, ['area_sup']},
 	{ok, {SupFlags, [World, AreaSup]}}.
 
 %%%===================================================================
