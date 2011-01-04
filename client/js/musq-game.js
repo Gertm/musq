@@ -433,7 +433,7 @@ function handleTalkJson(json) {
     setTimeout(function () { clearTalkMessage(json.Params.Name); }, timeout);
 }
 
-function handleQuitJson(json) {
+function handleVanishJson(json) {
     delete game.entities[json.Params.Name];
 }
 

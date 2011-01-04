@@ -107,8 +107,8 @@ function onWebSocketMessage(evt) {
         handleVisualJson(json);
         return;
     }
-    if (json.Function === "quit") {
-        handleQuitJson(json);
+    if (json.Function === "vanish") {
+        handleVanishJson(json);
         return;
     }
     if (json.Function === "chatHistory") {
