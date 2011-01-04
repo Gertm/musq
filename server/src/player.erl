@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 -include("musq.hrl").
 -compile(export_all).
--compile(export_all).
+
 %% API
 -export([start_link/1]).
 
@@ -83,6 +83,11 @@ handle_cast({talk, _From, Params}, State) ->
 handle_cast({chatHistory, _From, _}, State) ->
 	area:chat_history(State#plr.area, State#plr.wspid),
   	{noreply, State};
+handle_cast({move, _From, Params}, State) ->
+	X = proplists:get_value("X", Params),
+	Y = proplists:get_value("Y", Params),
+	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
+	{noreply, State};
 handle_cast(Any, State) ->
 	?InfoMsg("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.

@@ -117,6 +117,12 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	io:format("Removing ~s from ~p~n",[PlayerName, State#area.name]),
 	%% send vanish request to clients
 	{reply, ok, NewState};
+handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
+	NewTiles = set_player_pos(PlayerName, {X, Y}, State#area.tiles),
+	NewState = State#area{tiles=NewTiles},
+	Jreq = jump_request(PlayerName, NewState),
+	broadcast_to_players(Jreq, NewState),
+	{reply, ok, NewState};
 handle_call(chatHistory, _From, State) ->
 	{reply, State#area.chatlines, State};
 handle_call(_Request, _From, State) ->
@@ -204,12 +210,16 @@ talk(Area, PlayerName, Message) ->
 chat_history(Area, WsPid) ->
 	AreaPid = pid_of(Area),
 	Lines = gen_server:call(AreaPid, chatHistory),
-	ReplyLines = [ {struct, [{"From", From}, {"Msg", Msg}]} || {From, Msg} <- Lines ],
+	ReplyLines = lists:reverse([ {struct, [{"From", From}, {"Msg", Msg}]} 
+								 || {From, Msg} <- Lines ]),
 	io:format("Area ~p Chat History Lines: ~p~n",[AreaPid, ReplyLines]),
 	WsPid ! {reply, 
 			 self(), 
 			 hlp:create_reply("chatHistory", [{"Lines", {array, ReplyLines}}])}.
 
+player_move(Area, PlayerPid, PlayerName, X, Y) ->
+	AreaPid = pid_of(Area),
+	gen_server:call(AreaPid, {player_move, PlayerPid, PlayerName, X, Y}).
 
 %%%===================================================================
 %%% internal functions
@@ -270,7 +280,10 @@ add_player(PlayerName, PlayerPid, State) ->
 			State;
 		false ->
 			PP = State#area.playerpids,
-			State#area{playerpids=[{PlayerName, PlayerPid} | PP]}
+			Tiles = State#area.tiles,
+			%% this will need to be reworked so it looks for the closest empty tile.
+			NewTiles = dict:store({0, 0}, #tileprops{player=PlayerName}, Tiles),
+			State#area{playerpids=[{PlayerName, PlayerPid} | PP], tiles=NewTiles}
 	end.
 
 remove_player(PlayerName, _PlayerPid, State) ->
@@ -288,8 +301,12 @@ remove_player(PlayerName, _PlayerPid, State) ->
 jump_request(PlayerName, {X,Y}, #area{name=AreaName}=_Area) ->
 	hlp:create_reply("jump",[{"X",X},{"Y",Y},{"Name",PlayerName},{"Area",AreaName}]).
 
+jump_request(PlayerName, #area{tiles=TileProps}=Area) ->
+	{X,Y} = get_player_pos(PlayerName, TileProps),
+	jump_request(PlayerName, {X,Y}, Area).
+
 jump_req_of_all(#area{playerpids=PlayerPids}=State) ->
-	[ jump_request(Name, {0,0}, State) || {Name, _Pid} <- PlayerPids ].
+	[ jump_request(Name, State) || {Name, _Pid} <- PlayerPids ].
 
 visual_of_all(PlayerPids) ->
 	[ player:get_visual_request(Pid) || {_Name, Pid} <- PlayerPids ].
@@ -303,12 +320,15 @@ pid_of(Area) when is_pid(Area) ->
 pid_of(Area) ->
 	world:get_area_pid(Area).
 
+%%----------------------------------------------
 %% tile helper functions
+%%----------------------------------------------
 
 -spec(make_tile_dict_from_tile_defs([#tiledef{}]) -> dict()).
 make_tile_dict_from_tile_defs(TileDefs) ->
 	L = lists:map(fun(#tiledef{x=X, y=Y}) -> { {X,Y}, #tileprops{} } end,
 				  TileDefs),
+	io:format("Making dict from list: ~p~n",[L]),
 	dict:from_list(L).
 
 is_tile_available({X,Y}, Tiles) ->
@@ -340,7 +360,6 @@ get_player_pos(PlayerName, Tiles) ->
 
 set_player_pos(PlayerName, {X,Y}, Tiles) ->
 	{X1, Y1} = get_player_pos(PlayerName, Tiles),
-	CurrentTileProps = dict:fetch({X1, Y1}, Tiles),
 	case is_tile_available({X,Y}, Tiles) of
 		{false, _} ->
 			Tiles;
@@ -349,8 +368,8 @@ set_player_pos(PlayerName, {X,Y}, Tiles) ->
 						 {error, no_player} ->
 							 Tiles;
 						 {X2, Y2} ->
+							 CurrentTileProps = dict:fetch({X1, Y1}, Tiles),
 							 dict:store({X2 ,Y2}, CurrentTileProps#tileprops{player=undefined}, Tiles)
 					 end,
-			NewTiles = dict:store({X, Y}, Destination#tileprops{player=PlayerName},Tiles2),
-			NewTiles
+			dict:store({X, Y}, Destination#tileprops{player=PlayerName},Tiles2)
 	end.

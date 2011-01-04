@@ -11,3 +11,4 @@ glob:server/priv/musq.conf
 glob:erlang/*.dump
 glob:*.log
 glob:*.access
+glob:server/src/*.dump
