@@ -32,11 +32,10 @@ get_account_record(RequestParams) ->
 			
 get_visual_from_account(#account{}=Acc) ->
 	ViList = [ hlp:visual_image_to_struct(X) || X <- Acc#account.images ],
-	hlp:create_reply("visual",
-					[{"Name",Acc#account.username},
-					 {"Images",{array,ViList}}]).
+	{"Visual", {struct,[{"Name", Acc#account.username},
+						{"Images", {array, ViList}}]}}.
 
-visual_request(AccountName) ->
+visual_part(AccountName) ->
 	get_visual_from_account(db:dirty_read_account(AccountName)).
 
 create_account_nx(RequestParams) ->

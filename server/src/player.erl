@@ -42,8 +42,8 @@ handle_call({change_area, AreaAtom}, _From, State) ->
 	{reply, ok, State#plr{area=AreaAtom}};
 handle_call({set_name, PlayerName}, _From, State) ->
 	{reply, ok, State#plr{name=PlayerName}};
-handle_call(get_visual_request, _From, State) ->
-	{reply, account:visual_request(State#plr.name), State};
+handle_call(get_visual_part, _From, State) ->
+	{reply, account:visual_part(State#plr.name), State};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	?InfoMsg("Got handle_call request I don't know: ~p~n",[_Request]),
@@ -122,8 +122,8 @@ change_area(PlayerPid, AreaAtom) ->
 set_name(PlayerPid, PlayerName) ->
 	gen_server:call(PlayerPid, {set_name, PlayerName}).
 
-get_visual_request(PlayerPid) ->
-	gen_server:call(PlayerPid, get_visual_request).
+get_visual_part(PlayerPid) ->
+	gen_server:call(PlayerPid, get_visual_part).
 
 %%%===================================================================
 %%% Internal functions

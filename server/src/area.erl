@@ -76,6 +76,7 @@ handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	[ player:relay(PlayerPid, J) || J <- jump_req_of_all(State) ],
 	%% update player db to reflect being in this area
 	NewState = add_player(PlayerName, PlayerPid, State),
+	%% change this to enter_request
 	VisualRequest = player:get_visual_request(PlayerPid),
 	broadcast_to_players(VisualRequest, NewState),
 	
@@ -267,6 +268,11 @@ pid_of(Area) ->
 vanish_request(PlayerName, #area{name=AreaName}) ->
 	hlp:create_reply("vanish",[{"Name", PlayerName}, {"Area", AreaName}]).
 
+%% 
+
+enter_request(PlayerName, #area{}=Area) ->
+	
+
 
 %%----------------------------------------------
 %% tile helper functions
@@ -350,7 +356,4 @@ set_player_pos(PlayerName, {X,Y}, #area{tiles=Tiles}=Area) ->
 	end.
 
 %% TODO:
-%% - vanish when player leaves
-%% - remove player from tiles on leaving
-%% - check walls
 %% - implement heart for player so we can use 'move' instead of 'jump'
