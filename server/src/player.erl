@@ -34,6 +34,7 @@ start_link(WsPid) ->
 %%%===================================================================
 
 init([WsPid]) ->
+	
 	{ok, #plr{logged_in=false, wspid=WsPid}}.
 
 %%--- HANDLE_CALL ---
@@ -84,8 +85,8 @@ handle_cast({chatHistory, _From, _}, State) ->
 	area:chat_history(State#plr.area, State#plr.wspid),
   	{noreply, State};
 handle_cast({move, _From, Params}, State) ->
-	X = proplists:get_value("X", Params),
-	Y = proplists:get_value("Y", Params),
+	{X, _} = string:to_integer(proplists:get_value("X", Params)),
+	{Y, _} = string:to_integer(proplists:get_value("Y", Params)),
 	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
 	{noreply, State};
 handle_cast(Any, State) ->

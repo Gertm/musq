@@ -46,11 +46,7 @@
 %%%===================================================================
 
 %%--------------------------------------------------------------------
-%% @doc
 %% Starts the server
-%%
-%% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
-%% @end
 %%--------------------------------------------------------------------
 start_link(AreaFileName) ->
 	gen_server:start_link(?MODULE, [AreaFileName], []).
@@ -60,35 +56,16 @@ start_link(AreaFileName) ->
 %%%===================================================================
 
 %%--------------------------------------------------------------------
-%% @private
-%% @doc
 %% Initializes the server
-%%
-%% @spec init(Args) -> {ok, State} |
-%%                     {ok, State, Timeout} |
-%%                     ignore |
-%%                     {stop, Reason}
-%% @end
 %%--------------------------------------------------------------------
 init([AreaFilename]) ->
 	?InfoMsg("Area ~s starting up~n",[AreaFilename]),
-	AreaState = parse_json(hlp:load_json(AreaFilename)), 
+	AreaState = parse_json(hlp:load_json(AreaFilename)),
 	{ok, AreaState}.
 
 
 %%--------------------------------------------------------------------
-%% @private
-%% @doc
 %% Handling call messages
-%%
-%% @spec handle_call(Request, From, State) ->
-%%                                   {reply, Reply, State} |
-%%                                   {reply, Reply, State, Timeout} |
-%%                                   {noreply, State} |
-%%                                   {noreply, State, Timeout} |
-%%                                   {stop, Reason, Reply, State} |
-%%                                   {stop, Reason, State}
-%% @end
 %%--------------------------------------------------------------------
 handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	%% send the area definition file
@@ -119,7 +96,7 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	broadcast_to_players(vanish_request(PlayerName, NewState), NewState),
 	{reply, ok, NewState};
 handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
-	NewTiles = set_player_pos(PlayerName, {X, Y}, State#area.tiles),
+	NewTiles = set_player_pos(PlayerName, {X, Y}, State),
 	NewState = State#area{tiles=NewTiles},
 	Jreq = jump_request(PlayerName, NewState),
 	broadcast_to_players(Jreq, NewState),
@@ -132,14 +109,7 @@ handle_call(_Request, _From, State) ->
 	{reply, Reply, State}.
 
 %%--------------------------------------------------------------------
-%% @private
-%% @doc
 %% Handling cast messages
-%%
-%% @spec handle_cast(Msg, State) -> {noreply, State} |
-%%                                  {noreply, State, Timeout} |
-%%                                  {stop, Reason, State}
-%% @end
 %%--------------------------------------------------------------------
 handle_cast({talk, PlayerName, Message}, State) ->
 	ChatLine = {PlayerName, Message},
@@ -153,41 +123,13 @@ handle_cast(_Msg, State) ->
 	io:format("WTF IS THIS AREAMSG? -> ~p~n",[_Msg]),
 	{noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Handling all non call/cast messages
-%%
-%% @spec handle_info(Info, State) -> {noreply, State} |
-%%                                   {noreply, State, Timeout} |
-%%                                   {stop, Reason, State}
-%% @end
-%%--------------------------------------------------------------------
-handle_info(_Info, State) ->
+handle_info(Info, State) ->
+	io:format("UNEXPECTED INFO MSG: ~p~n",[Info]),
 	{noreply, State}.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% This function is called by a gen_server when it is about to
-%% terminate. It should be the opposite of Module:init/1 and do any
-%% necessary cleaning up. When it returns, the gen_server terminates
-%% with Reason. The return value is ignored.
-%%
-%% @spec terminate(Reason, State) -> void()
-%% @end
-%%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
 	ok.
 
-%%--------------------------------------------------------------------
-%% @private
-%% @doc
-%% Convert process state when code is changed
-%%
-%% @spec code_change(OldVsn, State, Extra) -> {ok, NewState}
-%% @end
-%%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
 	{ok, State}.
 
@@ -239,25 +181,26 @@ parse_json(Json) ->
 			 {"BorderTile", BorderTile}, 
 			 {"Tiles", {array, Tiledefs}}]} = Json, 
 	T = [ get_tile_def(Tile) || Tile <- Tiledefs ], 
+	DefTileRecord = get_tile_def(DefaultTile),
 	#area{name=list_to_atom(string:to_lower(Name)), 
 		  width=Width, 
 		  height=Height, 
-		  defaulttile=get_tile_def(DefaultTile), 
+		  defaulttile=DefTileRecord, 
 		  bordertile=get_tile_def(BorderTile), 
 		  tiledefs=T, 
 		  playerpids=[], 
 		  chatlines=[],
-		  tiles=make_tile_dict_from_tile_defs(T),
+		  tiles=make_tile_dict_from_tile_defs(T, DefTileRecord),
 		  world = nil}.
 
-get_tile_def({struct, [{"Images", Images}, {"Properties", Properties}]}) ->
+get_tile_def({struct, [{"Images", Images}, {"Properties", {struct, Properties}}]}) ->
 	#tiledef{x=0, y=0, images=Images, properties=Properties};
-get_tile_def({struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}) ->
+get_tile_def({struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", {struct, Properties}}]}) ->
 	#tiledef{x=X, y=Y, images=Images, properties=Properties}.
 
 -spec(client_tile_definition(#tiledef{}) -> term()).									
 client_tile_definition(#tiledef{x=X, y=Y, images=Images, properties=Properties}) ->
-	{struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", Properties}]}.
+	{struct, [{"X", X}, {"Y", Y}, {"Images", Images}, {"Properties", {struct, Properties}}]}.
 
 -spec(client_area_definition(#area{}) -> string()).
 client_area_definition(#area{name=Name, 
@@ -329,26 +272,53 @@ vanish_request(PlayerName, #area{name=AreaName}) ->
 %% tile helper functions
 %%----------------------------------------------
 
--spec(make_tile_dict_from_tile_defs([#tiledef{}]) -> dict()).
-make_tile_dict_from_tile_defs(TileDefs) ->
-	L = lists:map(fun(#tiledef{x=X, y=Y}) -> { {X,Y}, #tileprops{} } end,
+-spec(make_tile_dict_from_tile_defs([#tiledef{}], #tiledef{}) -> dict()).
+make_tile_dict_from_tile_defs(TileDefs, DefaultTile) ->
+	L = lists:map(fun(#tiledef{x=X, y=Y, properties=P}) -> 
+						  { {X,Y}, 
+							#tileprops{
+							  walkingspeed=get_walking_speed_from_proplist(P, DefaultTile)
+							 } } end,
 				  TileDefs),
-	io:format("Making dict from list: ~p~n",[L]),
+	%%io:format("Making dict from list: ~p~n",[L]),
 	dict:from_list(L).
 
-is_tile_available({X,Y}, Tiles) ->
-	case dict:find({X,Y}, Tiles) of
-		error -> {true, #tileprops{}};
-		{ok, Value} ->
-			case Value#tileprops.player of
-				undefined ->
-					case Value#tileprops.walkingspeed of
-						0 -> {false, unwalkable};
-						_ -> {true, Value}
-					end;
-				_ -> {false, occupied}
-			end
-	end.		
+get_walking_speed_from_proplist(Props,#tiledef{properties=DP}=_DefaultTile) ->
+	case proplists:lookup("WalkingSpeed", Props) of
+		none ->
+			get_walking_speed_from_proplist(DP,#tiledef{});
+		{"WalkingSpeed", SpeedStr} ->
+			{S, _} = string:to_integer(SpeedStr),
+			S
+	end.
+
+is_tile_available({X,Y}, #area{tiles=Tiles}=Area) ->
+	{Av, Reason} = 
+		case dict:find({X,Y}, Tiles) of
+			error -> {true, #tileprops{}};
+			{ok, Value} ->
+				case Value#tileprops.player of
+					undefined ->
+						case Value#tileprops.walkingspeed of
+							0 -> 
+								%%io:format("Tile is unwalkable! {~p,~p}~n",[X,Y]),
+								{false, unwalkable};
+							_ -> {true, Value}
+						end;
+					_ -> {false, occupied}
+				end
+		end,
+	B = is_tile_in_area({X, Y}, Area),
+	%%io:format("is_tile_avail: (~p) and (~p) ~p~n",[Av, B, {Av and B, Reason}]),
+	{Av and B, Reason}.
+	
+is_tile_in_area({X,Y}, #area{width=Width, height=Height}) ->
+	%%io:format("Width: ~p Height: ~p ~n",[Width, Height]),
+	IsPositive = (X >= 0) and (Y >= 0),
+	IsInside = (X < Width) and (Y < Height),
+	%%io:format("is_tile_in_area: X: ~p Y: ~p~nW: ~p, H: ~p~nIsPositive (~p) and IsInside (~p)~n",
+	%%		  [X, Y, Width, Height, IsPositive, IsInside]),
+	IsPositive and IsInside.
 
 %% this desperately needs unit tests!
 -spec(get_player_pos(string(), dict()) -> tuple()).
@@ -363,9 +333,9 @@ get_player_pos(PlayerName, Tiles) ->
 			 {X,Y}
 	end.
 
-set_player_pos(PlayerName, {X,Y}, Tiles) ->
+set_player_pos(PlayerName, {X,Y}, #area{tiles=Tiles}=Area) ->
 	{X1, Y1} = get_player_pos(PlayerName, Tiles),
-	case is_tile_available({X,Y}, Tiles) of
+	case is_tile_available({X,Y}, Area) of
 		{false, _} ->
 			Tiles;
 		{true, Destination} ->

@@ -10,6 +10,7 @@
 			  area ::atom(),
 			  pid ::pid(),
 			  wspid ::pid(),
+			  heartbeat ::term(),
 			  logged_in ::boolean()}).
 
 -record(visualImage, {url   ::string(),
