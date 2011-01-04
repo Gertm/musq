@@ -116,6 +116,7 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	NewState = remove_player(PlayerName, PlayerPid, State),
 	io:format("Removing ~s from ~p~n",[PlayerName, State#area.name]),
 	%% send vanish request to clients
+	broadcast_to_players(vanish_request(PlayerName, NewState), NewState),
 	{reply, ok, NewState};
 handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
 	NewTiles = set_player_pos(PlayerName, {X, Y}, State#area.tiles),
@@ -320,6 +321,10 @@ pid_of(Area) when is_pid(Area) ->
 pid_of(Area) ->
 	world:get_area_pid(Area).
 
+vanish_request(PlayerName, #area{name=AreaName}) ->
+	hlp:create_reply("vanish",[{"Name", PlayerName}, {"Area", AreaName}]).
+
+
 %%----------------------------------------------
 %% tile helper functions
 %%----------------------------------------------
@@ -373,3 +378,9 @@ set_player_pos(PlayerName, {X,Y}, Tiles) ->
 					 end,
 			dict:store({X, Y}, Destination#tileprops{player=PlayerName},Tiles2)
 	end.
+
+%% TODO:
+%% - vanish when player leaves
+%% - remove player from tiles on leaving
+%% - check walls
+%% - implement heart for player so we can use 'move' instead of 'jump'

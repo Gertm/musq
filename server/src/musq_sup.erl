@@ -57,7 +57,7 @@ init([]) ->
 	SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
 
 	Restart = transient,
-	Shutdown = infinity,
+	Shutdown = 2000,
 	Type = worker,
 
 	World = {'World', {world, start_link, []},
