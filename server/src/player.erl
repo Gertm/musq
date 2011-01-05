@@ -34,7 +34,7 @@ start_link(WsPid) ->
 %%%===================================================================
 
 init([WsPid]) ->
-	{ok, #plr{logged_in=false, wspid=WsPid}}.
+	{ok, #plr{logged_in=false, wspid=WsPid, rqueue=queue:new()}}.
 
 %%--- HANDLE_CALL ---
 handle_call({change_area, AreaAtom}, _From, State) ->
@@ -90,6 +90,9 @@ handle_cast({move, _From, Params}, State) ->
 	{Y, _} = string:to_integer(proplists:get_value("Y", Params)),
 	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
 	{noreply, State};
+handle_cast({queue, Req}, #plr{rqueue=Queue}=State) ->
+	?show("Queuing: ~p~n",[Req]),
+	{noreply, State#plr{rqueue=[Req | Queue]}};
 handle_cast(Any, State) ->
 	?show("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.
@@ -128,4 +131,18 @@ get_visual_part(PlayerPid) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+
+queue_request({Fn, From, Params}, #plr{rqueue=Q}=State) ->
+	NewQ = queue:in({Fn, From, Params}, Q),
+	State#plr{rqueue=NewQ}.
+
+next_request(#plr{rqueue=Q}=State) ->
+	{V, NewQ} = queue:out(Q),
+	case V of
+		empty ->
+			{none, State#plr{rqueue=NewQ}};
+		_ -> 
+			{V, State#plr{rqueue=NewQ}}
+	end.
+
 
