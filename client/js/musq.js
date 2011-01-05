@@ -84,31 +84,8 @@ function onWebSocketMessage(evt) {
         log("JSON has unexpected format.");
         return;
     }
-    if (json.Function === "login") {
-        handleLoginJson(json);
-        return;
-    }
-    if (json.Function === "jump") {
-        handleJumpJson(json);
-        return;
-    }
-    if (json.Function === "keepalive") {
-        return;
-    }
-    if (json.Function === "move") {
-        handleMoveJson(json);
-        return;
-    }
-    if (json.Function === "talk") {
-        handleTalkJson(json);
-        return;
-    }
-    if (json.Function === "visual") {
-        handleVisualJson(json);
-        return;
-    }
-    if (json.Function === "vanish") {
-        handleVanishJson(json);
+    if (json.Function === "area") {
+        handleAreaJson(json);
         return;
     }
     if (json.Function === "chatHistory") {
@@ -119,12 +96,35 @@ function onWebSocketMessage(evt) {
         handleCreateAccountJson(json);
         return;
     }
+    if (json.Function === "enter") {
+        handleEnterJson(json);
+        return;
+    }
     if (json.Function === "getFiles") {
         handleGetFilesJson(json);
         return;
     }
-    if (json.Function === "area") {
-        handleAreaJson(json);
+    if (json.Function === "jump") {
+        handleJumpJson(json);
+        return;
+    }
+    if (json.Function === "keepalive") {
+        return;
+    }
+    if (json.Function === "leave") {
+        handleLeaveJson(json);
+        return;
+    }
+    if (json.Function === "login") {
+        handleLoginJson(json);
+        return;
+    }
+    if (json.Function === "move") {
+        handleMoveJson(json);
+        return;
+    }
+    if (json.Function === "talk") {
+        handleTalkJson(json);
         return;
     }
 }

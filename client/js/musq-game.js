@@ -391,57 +391,6 @@ function limitTalkHistory() {
     }
 }
 
-function handleVisualJson(json) {
-    var player = new gameEntity();
-    player.image = convertSvgs(json.Params.Images);
-    game.entities[json.Params.Name] = player;
-}
-
-function handleJumpJson(json) {
-    var player = game.entities[json.Params.Name];
-    if (!player) {
-        return;
-    }
-    var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-    player.moveAnimation.initialize(pos);
-    if (json.Params.Name === data.playerName) {
-        game.viewPortCenter.initialize(pos);
-    }
-}
-
-function handleMoveJson(json) {
-    var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
-    var player = game.entities[json.Params.Name];
-    if (!player) {
-        return;
-    }
-    player.moveAnimation.setDestination(newDestination, 1.0);
-    if (json.Params.Name === data.playerName) {
-        ensurePlayerIsWithinViewPort();
-    }
-}
-
-function handleTalkJson(json) {
-    game.talkhistory.push({ From: json.Params.Name, Msg: json.Params.Message });
-    limitTalkHistory();
-    var player = game.entities[json.Params.Name];
-    if (!player) {
-        return;
-    }
-    player.messages.push(json.Params.Message);
-    var timeout = 4000 + json.Params.Message.length * 100;
-    setTimeout(function () { clearTalkMessage(json.Params.Name); }, timeout);
-}
-
-function handleVanishJson(json) {
-    delete game.entities[json.Params.Name];
-}
-
-function handleChatHistoryJson(json) {
-    game.talkhistory = json.Params.Lines;
-    limitTalkHistory();
-}
-
 function handleAreaJson(json) {
     game.area = {};
     game.area.width = json.Params.Width;
@@ -469,6 +418,64 @@ function handleAreaJson(json) {
         var tile = jsonTileToTile(jsontile);
         game.area.tiles[toTileIndex(jsontile.X, jsontile.Y)] = tile;
     }
+    // [Randy 05/01/2011] REMARK: New 'enter' messages will be sent.
+    game.entities = {};
+}
+
+function handleEnterJson(json) {
+    var player = new gameEntity();
+    player.image = convertSvgs(json.Params.Images);
+    game.entities[json.Params.Name] = player;
+    var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+    player.moveAnimation.initialize(pos);
+    if (json.Params.Name === data.playerName) {
+        game.viewPortCenter.initialize(pos);
+    }
+}
+
+function handleLeaveJson(json) {
+    delete game.entities[json.Params.Name];
+}
+
+function handleJumpJson(json) {
+    var player = game.entities[json.Params.Name];
+    if (!player) {
+        return;
+    }
+    var pos = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+    player.moveAnimation.initialize(pos);
+    if (json.Params.Name === data.playerName) {
+        ensurePlayerIsWithinViewPort();
+    }
+}
+
+function handleMoveJson(json) {
+    var newDestination = new vecMath.vector2d(parseInt(json.Params.X, 10), parseInt(json.Params.Y, 10));
+    var player = game.entities[json.Params.Name];
+    if (!player) {
+        return;
+    }
+    player.moveAnimation.setDestination(newDestination, 1.0);
+    if (json.Params.Name === data.playerName) {
+        ensurePlayerIsWithinViewPort();
+    }
+}
+
+function handleTalkJson(json) {
+    game.talkhistory.push({ From: json.Params.Name, Msg: json.Params.Message });
+    limitTalkHistory();
+    var player = game.entities[json.Params.Name];
+    if (!player) {
+        return;
+    }
+    player.messages.push(json.Params.Message);
+    var timeout = 4000 + json.Params.Message.length * 100;
+    setTimeout(function () { clearTalkMessage(json.Params.Name); }, timeout);
+}
+
+function handleChatHistoryJson(json) {
+    game.talkhistory = json.Params.Lines;
+    limitTalkHistory();
 }
 
 //## message handlers ##########################################################################
