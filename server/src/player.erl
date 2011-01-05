@@ -51,48 +51,12 @@ handle_call(_Request, _From, State) ->
 	{reply, Reply, State}.
 
 %%--- HANDLE_CAST ---
-handle_cast({logout, _WsPid, _Params}, State) ->
-	area:player_leave(State#plr.area, self(), State#plr.name),
-	gen_server:call(world,{remove_player, State#plr.name}),
-	%% gen_server still needs to shut down or it will linger (memleak)
-	{stop, normal, State#plr{logged_in = false}};
-handle_cast({getFiles, From, Params},State) ->
-	case Params of
-		[] -> ok;
-		_ -> R = hlp:getFiles(Params),
-			 From ! {reply, self(), R}
-	end,
-	{noreply, State};
-handle_cast({createAccount, From, Params}, State) ->
-	%% when the player is logged in, this shouldn't work.
-	?show("handling createaccount~n",[]),
-	R = gen_server:call(world, {createAccount, Params}),
-	From ! {reply, self(), R},
-	{noreply, State};
-handle_cast({keepalive, From, []},State) ->
-	From ! {reply, self(), hlp:create_reply("keepalive",[])},
-	{noreply, State};
 handle_cast({relay, Reply}, State) ->
 	%% ?show("[player] Relaying ~p~n to ~p~n",[Reply, State#plr.wspid]),
 	State#plr.wspid ! {reply, self(), Reply},	
 	{noreply, State};
-handle_cast({talk, _From, Params}, State) ->
-	%% ?show("Handling talk with params ~p~n",[Params]),
-	Message = proplists:get_value("Message", Params),
-	Name = State#plr.name,
-	area:talk(State#plr.area, Name, Message),
-	{noreply, State};
-handle_cast({chatHistory, _From, _}, State) ->
-	area:chat_history(State#plr.area, State#plr.wspid),
-  	{noreply, State};
-handle_cast({move, _From, Params}, State) ->
-	{X, _} = string:to_integer(proplists:get_value("X", Params)),
-	{Y, _} = string:to_integer(proplists:get_value("Y", Params)),
-	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
-	{noreply, State};
-handle_cast({queue, Req}, #plr{rqueue=Queue}=State) ->
-	?show("Queuing: ~p~n",[Req]),
-	{noreply, State#plr{rqueue=[Req | Queue]}};
+handle_cast({Fn, From, Params}, State) ->
+	handle_request({Fn, From, Params}, State);
 handle_cast(Any, State) ->
 	?show("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.
@@ -117,6 +81,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% to the wshandle process of the player.
 %% @end
 relay(PlayerPid, Reply) ->
+	%% ?show("~p Calling relay function ~p ~p~n",[self(), PlayerPid, Reply]),
 	gen_server:cast(PlayerPid, {relay, Reply}).
 
 change_area(PlayerPid, AreaAtom) ->
@@ -146,9 +111,9 @@ next_request(#plr{rqueue=Q}=State) ->
 	end.
 
 
-handle_request({Fn, From, Params}, #plr{}=State) ->
+handle_request({Fn, _From, Params}, #plr{}=State) ->
 	%% all these functions need to return 
-	%% gen_server:call return values
+	%% gen_server:cast return values
 	case Fn of
 		logout -> handle_logout(Params, State);
 		getFiles -> handle_getFiles(Params, State);
@@ -157,7 +122,9 @@ handle_request({Fn, From, Params}, #plr{}=State) ->
 		talk -> handle_talk(Params, State);
 		chatHistory -> handle_chatHistory(Params, State);
 		move -> handle_move(Params, State);
-		Any -> ?show("Don't know this function: ~p~n",[Any])
+		_ -> 
+			?show("Don't know this function: ~p(~p)~n", [Fn, Params]),
+			{noreply, State}
 	end.
 
 handle_logout(_Params, State) ->
@@ -170,29 +137,29 @@ handle_createAccount(Params, State) ->
 	%% when the player is logged in, this shouldn't work.
 	?show("handling createaccount~n",[]),
 	R = gen_server:call(world, {createAccount, Params}),
-	%% State#plr.wspid ! {reply, self(), R},
-	{reply, R, State}.
+	State#plr.wspid ! {reply, self(), R},
+	{noreply, State}.
 
 handle_keepalive(_Params, State) ->
-	%%From ! {reply, self(), hlp:create_reply("keepalive",[])},
-	{reply, hlp:create_reply("keepalive",[]), State}.
+	State#plr.wspid ! {reply, self(), hlp:create_reply("keepalive",[])},
+	{noreply, State}.
 
 handle_talk(Params, State) ->
 	%% ?show("Handling talk with params ~p~n",[Params]),
 	Message = proplists:get_value("Message", Params),
 	Name = State#plr.name,
 	area:talk(State#plr.area, Name, Message),
-	{reply, ok, State}.
+	{noreply, State}.
 
-handle_chatHistory(Params, State) ->
+handle_chatHistory(_Params, State) ->
 	area:chat_history(State#plr.area, State#plr.wspid),
-  	{reply, ok, State}.
+  	{noreply, State}.
 
 handle_move(Params, State) ->
 	{X, _} = string:to_integer(proplists:get_value("X", Params)),
 	{Y, _} = string:to_integer(proplists:get_value("Y", Params)),
 	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
-	{reply, ok, State}.
+	{noreply, State}.
 
 handle_getFiles(Params, State) ->
 	case Params of
@@ -200,4 +167,4 @@ handle_getFiles(Params, State) ->
 		_ -> R = hlp:getFiles(Params),
 			 State#plr.wspid ! {reply, self(), R}
 	end,
-	{reply, ok, State}.
+	{noreply, State}.

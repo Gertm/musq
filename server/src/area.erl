@@ -92,6 +92,8 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	{reply, ok, NewState};
 handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
 	NewTiles = set_player_pos(PlayerName, {X, Y}, State),
+	Players = State#area.playerpids,
+	?show("Players in area: ~p~n",[Players]),
 	NewState = State#area{tiles=NewTiles},
 	Jreq = jump_request(PlayerName, NewState),
 	broadcast_to_players(Jreq, NewState),
