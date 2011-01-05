@@ -9,6 +9,10 @@
 -include("musq.hrl").
 -compile(export_all).
 
+initialize() ->
+	mnesia:delete_table(account),
+	mnesia:delete_table(plr),
+	prepare_database().
 
 get_transaction_result({atomic, R}) ->
 	case R of

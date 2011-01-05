@@ -34,19 +34,20 @@ start_link(WsPid) ->
 %%%===================================================================
 
 init([WsPid]) ->
-	
 	{ok, #plr{logged_in=false, wspid=WsPid}}.
 
 %%--- HANDLE_CALL ---
 handle_call({change_area, AreaAtom}, _From, State) ->
 	{reply, ok, State#plr{area=AreaAtom}};
 handle_call({set_name, PlayerName}, _From, State) ->
+	%% ?show("Setting player name to: ~p~n",[PlayerName]),
 	{reply, ok, State#plr{name=PlayerName}};
 handle_call(get_visual_part, _From, State) ->
+	%% ?show("to account: Player name = ~p~nWith state: ~p~n", [State#plr.name,State]),
 	{reply, account:visual_part(State#plr.name), State};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
-	?InfoMsg("Got handle_call request I don't know: ~p~n",[_Request]),
+	?show("Got handle_call request I don't know: ~p~n",[_Request]),
 	{reply, Reply, State}.
 
 %%--- HANDLE_CAST ---
@@ -64,7 +65,7 @@ handle_cast({getFiles, From, Params},State) ->
 	{noreply, State};
 handle_cast({createAccount, From, Params}, State) ->
 	%% when the player is logged in, this shouldn't work.
-	?InfoMsg("handling createaccount~n",[]),
+	?show("handling createaccount~n",[]),
 	R = gen_server:call(world, {createAccount, Params}),
 	From ! {reply, self(), R},
 	{noreply, State};
@@ -72,11 +73,11 @@ handle_cast({keepalive, From, []},State) ->
 	From ! {reply, self(), hlp:create_reply("keepalive",[])},
 	{noreply, State};
 handle_cast({relay, Reply}, State) ->
-	%% io:format("[player] Relaying ~p~n to ~p~n",[Reply, State#plr.wspid]),
+	%% ?show("[player] Relaying ~p~n to ~p~n",[Reply, State#plr.wspid]),
 	State#plr.wspid ! {reply, self(), Reply},	
 	{noreply, State};
 handle_cast({talk, _From, Params}, State) ->
-	%% io:format("Handling talk with params ~p~n",[Params]),
+	%% ?show("Handling talk with params ~p~n",[Params]),
 	Message = proplists:get_value("Message", Params),
 	Name = State#plr.name,
 	area:talk(State#plr.area, Name, Message),
@@ -90,10 +91,9 @@ handle_cast({move, _From, Params}, State) ->
 	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
 	{noreply, State};
 handle_cast(Any, State) ->
-	?InfoMsg("no idea what this is: ~p~n",[Any]),
+	?show("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.
  
-
 %%--- HANDLE_INFO ---
 handle_info(_Info, State) ->
 	{noreply, State}.

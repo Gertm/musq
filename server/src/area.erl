@@ -59,7 +59,7 @@ start_link(AreaFileName) ->
 %% Initializes the server
 %%--------------------------------------------------------------------
 init([AreaFilename]) ->
-	?InfoMsg("Area ~s starting up~n",[AreaFilename]),
+	?show("Area ~s starting up~n",[AreaFilename]),
 	AreaState = parse_json(hlp:load_json(AreaFilename)),
 	{ok, AreaState}.
 
@@ -69,30 +69,24 @@ init([AreaFilename]) ->
 %%--------------------------------------------------------------------
 handle_call({player_enter, PlayerPid, PlayerName}, _From, State) ->
 	%% send the area definition file
+	?show("Doing handle_call({player_enter, ~p, ~p}, _From, State)~n",
+			  [PlayerPid, PlayerName]),
 	player:change_area(PlayerPid, State#area.name),
 	Adef = client_area_definition(State),
 	player:relay(PlayerPid, Adef),
-	[ player:relay(PlayerPid, V) || V <- visual_of_all(State#area.playerpids) ],
-	[ player:relay(PlayerPid, J) || J <- jump_req_of_all(State) ],
+	[ player:relay(PlayerPid, E) || E <- enter_req_of_all(State) ],
 	%% update player db to reflect being in this area
 	NewState = add_player(PlayerName, PlayerPid, State),
-	%% change this to enter_request
-	VisualRequest = player:get_visual_request(PlayerPid),
-	broadcast_to_players(VisualRequest, NewState),
-	
-	%% this client specifically needs the visual requests and
-	%% jump requests of the other clients.
-	
+	EnterRequest = enter_request(PlayerName, NewState),
+	broadcast_to_players(EnterRequest, NewState),
 	%% check the entrance if there is nobody there, if there is,
 	%% take an adjacent tile and put the player there.
-	JumpRequest = jump_request(PlayerName, {0, 0}, NewState),
-	broadcast_to_players(JumpRequest, NewState),
 	{reply, ok, NewState};
 handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	%% PlayerPid and _From are usually going to be the same. 
 	%% maybe clean this up so it just uses 'From'?
 	NewState = remove_player(PlayerName, PlayerPid, State),
-	io:format("Removing ~s from ~p~n",[PlayerName, State#area.name]),
+	?show("Removing ~s from ~p~n",[PlayerName, State#area.name]),
 	%% send vanish request to clients
 	broadcast_to_players(vanish_request(PlayerName, NewState), NewState),
 	{reply, ok, NewState};
@@ -105,7 +99,7 @@ handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
 handle_call(chatHistory, _From, State) ->
 	{reply, State#area.chatlines, State};
 handle_call(_Request, _From, State) ->
-	io:format("AREA CALL UNKNOWN: ~p~n",[_Request]),
+	?show("AREA CALL UNKNOWN: ~p~n",[_Request]),
 	Reply = ok, 
 	{reply, Reply, State}.
 
@@ -114,18 +108,18 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 handle_cast({talk, PlayerName, Message}, State) ->
 	ChatLine = {PlayerName, Message},
-	io:format("In handle_cast talk: ~p~n",[ChatLine]),
+	%% ?show("In handle_cast talk: ~p~n",[ChatLine]),
 	broadcast_to_players(
 	  hlp:create_reply("talk",
 					   [{"Name",PlayerName},
 						{"Message",Message}]),State),
 	{noreply, State#area{chatlines=[ChatLine | State#area.chatlines]}};
 handle_cast(_Msg, State) ->
-	io:format("WTF IS THIS AREAMSG? -> ~p~n",[_Msg]),
+	?show("WTF IS THIS AREAMSG? -> ~p~n",[_Msg]),
 	{noreply, State}.
 
 handle_info(Info, State) ->
-	io:format("UNEXPECTED INFO MSG: ~p~n",[Info]),
+	?show("UNEXPECTED INFO MSG: ~p~n",[Info]),
 	{noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -156,7 +150,7 @@ chat_history(Area, WsPid) ->
 	Lines = gen_server:call(AreaPid, chatHistory),
 	ReplyLines = lists:reverse([ {struct, [{"From", From}, {"Msg", Msg}]} 
 								 || {From, Msg} <- Lines ]),
-	io:format("Area ~p Chat History Lines: ~p~n",[AreaPid, ReplyLines]),
+	%% io:format("Area ~p Chat History Lines: ~p~n",[AreaPid, ReplyLines]),
 	WsPid ! {reply, 
 			 self(), 
 			 hlp:create_reply("chatHistory", [{"Lines", {array, ReplyLines}}])}.
@@ -250,12 +244,6 @@ jump_request(PlayerName, #area{tiles=TileProps}=Area) ->
 	{X,Y} = get_player_pos(PlayerName, TileProps),
 	jump_request(PlayerName, {X,Y}, Area).
 
-jump_req_of_all(#area{playerpids=PlayerPids}=State) ->
-	[ jump_request(Name, State) || {Name, _Pid} <- PlayerPids ].
-
-visual_of_all(PlayerPids) ->
-	[ player:get_visual_request(Pid) || {_Name, Pid} <- PlayerPids ].
-
 chatline(Name, Message) ->
 	{H, M, S} = erlang:time(),
 	io_lib:format("~s:~s:~s <~s> ~s",[H,M,S,Name,Message]).
@@ -268,11 +256,22 @@ pid_of(Area) ->
 vanish_request(PlayerName, #area{name=AreaName}) ->
 	hlp:create_reply("vanish",[{"Name", PlayerName}, {"Area", AreaName}]).
 
-%% 
+enter_req_of_all(#area{playerpids=PlayerPids}=Area) ->
+	%% ?("Playerpids: ~p~n",[PlayerPids]),
+	[ enter_request(PlayerName, Area) || {PlayerName, _PlayerPid} <- PlayerPids ].
 
-enter_request(PlayerName, #area{}=Area) ->
-	
+enter_request(PlayerName, {X, Y}, #area{name=AreaName}=_Area) ->
+	hlp:create_reply(
+	  "enter",
+	  [{"Name", PlayerName},
+	   {"Area", AreaName},
+	   {"X", X},
+	   {"Y", Y},
+	   {"Images", account:visual_part(PlayerName)}]).
 
+enter_request(PlayerName, #area{tiles=TileProps}=Area) ->
+	{X, Y} = get_player_pos(PlayerName, TileProps),
+	enter_request(PlayerName, {X, Y}, Area).
 
 %%----------------------------------------------
 %% tile helper functions

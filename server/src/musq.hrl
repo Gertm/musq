@@ -23,6 +23,8 @@
 
 -define(InfoMsg(Msg,Format), io:format(Msg,Format)).
 
+-define(show(Msg, Format), io:format(Msg, Format)).
+
 -record(account, {username ::string(),
 				  password ::string(),
 				  email    ::string(),

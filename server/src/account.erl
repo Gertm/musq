@@ -32,8 +32,7 @@ get_account_record(RequestParams) ->
 			
 get_visual_from_account(#account{}=Acc) ->
 	ViList = [ hlp:visual_image_to_struct(X) || X <- Acc#account.images ],
-	{"Visual", {struct,[{"Name", Acc#account.username},
-						{"Images", {array, ViList}}]}}.
+	{array, ViList}.
 
 visual_part(AccountName) ->
 	get_visual_from_account(db:dirty_read_account(AccountName)).
@@ -60,23 +59,5 @@ create_account_nx(RequestParams) ->
 %%   {
 %%         "Success": "true/false",
 %%         "Reason": "why creating your account failed"
-%%   }
-%% }
-
-%% {
-%%   "Functions": "visual",
-%%   "Params":
-%%   {
-%%     "Name": "name",
-%%     "Images":
-%%       [
-%%         {
-%%           "Url": "images/faces/..."
-%%         },
-%%         {
-%%           "Url": "images/faces/...",
-%%           "Color": "#..."
-%%         },
-%%       ]
 %%   }
 %% }
