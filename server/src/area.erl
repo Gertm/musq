@@ -251,14 +251,20 @@ add_player(PlayerName, PlayerPid, State) ->
 			State#area{playerpids=[{PlayerName, PlayerPid} | PP], tiles=NewTiles}
 	end.
 
-remove_player(PlayerName, _PlayerPid, State) ->
-	case proplists:is_defined(PlayerName, State#area.playerpids) of
-		true ->
-			PP = proplists:delete(PlayerName,State#area.playerpids),
-			State#area{playerpids=PP};
-		false ->
-			State
-	end.
+remove_player(PlayerName, _PlayerPid, 
+			  #area{playerpids=PlayerPids, tiles=Tiles}=State) ->
+	NewState = 
+		case proplists:is_defined(PlayerName, PlayerPids) of
+			true ->
+				PP = proplists:delete(PlayerName, PlayerPids),
+				State#area{playerpids=PP};
+			false ->
+				State
+		end,
+	{X1, Y1} = get_player_pos(PlayerName, Tiles),
+	CurrentTileProps = dict:fetch({X1, Y1}, Tiles),
+	NewTiles = dict:store({X1 ,Y1}, CurrentTileProps#tileprops{player=undefined}, Tiles),
+	NewState#area{tiles=NewTiles}.
 
 %% jump_request should really get the last known location of the player
 %% from the database, not just take X and Y as parameters.
