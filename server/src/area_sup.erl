@@ -101,3 +101,12 @@ is_area_filename(FileName) ->
 
 area_name_from_filename(FileName) ->
 	filename:basename(FileName,".area").
+
+get_area_pids() ->
+	Children = supervisor:which_children(area_sup),
+	lists:map(fun({AreaName, Pid, _, _}) ->
+					  {AreaName, Pid} end, 
+			  Children).
+
+get_area_pid(AreaName) ->
+	proplists:get_value(AreaName, get_area_pids()).

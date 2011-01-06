@@ -124,7 +124,7 @@ handle_cast({login, PlayerPid, Params}, State) ->
 												 {Other, P#plr.position}
 										 end,
 					player:set_name(PlayerPid, PlayerName),
-					area:player_enter(get_area_pid(AreaName), PlayerPid, PlayerName)
+					area:player_enter(area_sup:get_area_pid(AreaName), PlayerPid, PlayerName)
 			end;
 		error ->
 			ok
@@ -184,12 +184,4 @@ player_child_spec(WsPid) ->
 	 ['player']}.
 	 
 
-get_area_pids() ->
-	Children = supervisor:which_children(area_sup),
-	lists:map(fun({AreaName, Pid, _, _}) ->
-					  {AreaName, Pid} end, 
-			  Children).
-
-get_area_pid(AreaName) ->
-	proplists:get_value(AreaName, get_area_pids()).
 

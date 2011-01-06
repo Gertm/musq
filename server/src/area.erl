@@ -60,9 +60,11 @@ start_link(AreaFileName) ->
 %%--------------------------------------------------------------------
 init([AreaFilename]) ->
 	?show("Area ~s starting up~n",[AreaFilename]),
-	AreaState = parse_json(hlp:load_json(AreaFilename)),
+	AreaState = get_area_state(AreaFilename),
 	{ok, AreaState}.
 
+get_area_state(AreaFilename) ->
+	parse_json(hlp:load_json(AreaFilename)).
 
 %%--------------------------------------------------------------------
 %% Handling call messages
@@ -260,7 +262,7 @@ chatline(Name, Message) ->
 pid_of(Area) when is_pid(Area) ->
 	Area;
 pid_of(Area) ->
-	world:get_area_pid(Area).
+	area_sup:get_area_pid(Area).
 
 vanish_request(PlayerName, #area{name=AreaName}) ->
 	hlp:create_reply("vanish",[{"Name", PlayerName}, {"Area", AreaName}]).
@@ -325,6 +327,10 @@ is_tile_available({X,Y}, #area{tiles=Tiles}=Area) ->
 	B = is_tile_in_area({X, Y}, Area),
 	%%io:format("is_tile_avail: (~p) and (~p) ~p~n",[Av, B, {Av and B, Reason}]),
 	{Av and B, Reason}.
+
+short_tile_avail({X,Y}, #area{}=Area) ->
+	{TF, _} = is_tile_available({X,Y}, Area),
+	TF.
 	
 is_tile_in_area({X,Y}, #area{width=Width, height=Height}) ->
 	%%io:format("Width: ~p Height: ~p ~n",[Width, Height]),
@@ -363,5 +369,31 @@ set_player_pos(PlayerName, {X,Y}, #area{tiles=Tiles}=Area) ->
 			dict:store({X, Y}, Destination#tileprops{player=PlayerName},Tiles2)
 	end.
 
-%% TODO:
-%% - implement heart for player so we can use 'move' instead of 'jump'
+
+available_neighbour_tiles({X, Y}, #area{}=AreaState) ->
+	Adj = [ {X+A, Y+B} || 
+				A <- lists:seq(-1,1),
+				B <- lists:seq(-1,1),
+				{X+A, Y+B} =/= {X,Y} ],
+	lists:filter(
+	  fun({I,J}) -> short_tile_avail({I,J}, AreaState) end,
+	  Adj).
+
+tile_distance({X1, Y1}, {X2, Y2}) ->
+	abs(X2-X1) + abs(Y2-Y1).
+
+select_lowest_scoring_tile(CoordList, {Xdest, Ydest}) ->
+	lists:foldl(
+	  fun({X1, Y1}, {X2, Y2}) ->
+			  Dist1 = tile_distance({X1, Y1}, {Xdest, Ydest}),
+			  Dist2 = tile_distance({X2, Y2}, {Xdest, Ydest}),
+			  if
+				  Dist1 < Dist2 ->
+					  {X1, Y1};
+				  true ->
+					  {X2, Y2}
+			  end
+	  end,
+	  {9999,9999},
+	  CoordList).
+
