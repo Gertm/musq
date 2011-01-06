@@ -75,7 +75,10 @@ get_func_and_params(BinData) ->
 send_function_and_params(PlayerPid, Data) ->
     {Fn, Params} = get_func_and_params(Data), 
     %% filter login and createaccount here!
-	io:format("<= ~s(~p)~n",[Fn,Params]),
+	case Fn of
+		"keepalive" -> ok;
+		_ -> io:format("<= ~s(~p)~n",[Fn,Params])
+	end,
     case list_to_atom(Fn) of
         login ->
             gen_server:cast(world, {login, PlayerPid, Params});

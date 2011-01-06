@@ -38,6 +38,8 @@ init([WsPid]) ->
 									  gen_server, 
 									  cast, 
 									  [self(), {beat, self(), []}]),
+	link(WsPid),
+	process_flag(trap_exit, true),
 	{ok, #plr{logged_in=false, wspid=WsPid, heartbeat=Tref}}.
 
 %%--- HANDLE_CALL ---
@@ -66,6 +68,13 @@ handle_cast(Any, State) ->
 	{noreply, State}.
  
 %%--- HANDLE_INFO ---
+handle_info({'EXIT', Pid, Reason}, State) ->
+	if
+		Pid == State#plr.wspid ->
+			{stop, Reason, State};
+		true ->
+			{noreply, State}
+	end;
 handle_info(_Info, State) ->
 	{noreply, State}.
 
