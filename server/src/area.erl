@@ -261,9 +261,7 @@ remove_player(PlayerName, _PlayerPid,
 			false ->
 				State
 		end,
-	{X1, Y1} = get_player_pos(PlayerName, Tiles),
-	CurrentTileProps = dict:fetch({X1, Y1}, Tiles),
-	NewTiles = dict:store({X1 ,Y1}, CurrentTileProps#tileprops{player=undefined}, Tiles),
+	NewTiles = del_player_from_tiles(PlayerName, Tiles),
 	NewState#area{tiles=NewTiles}.
 
 %% jump_request should really get the last known location of the player
@@ -425,14 +423,23 @@ set_player_pos(PlayerName, PlayerPid, {X,Y}, #area{tiles=Tiles, name=FromArea}=A
 							 dict:store({X2 ,Y2}, CurrentTileProps#tileprops{player=undefined}, Tiles)
 					 end,
 			case is_tile_area_exit({X, Y}, Area) of
-				false -> 
-					dict:store({X, Y}, Destination#tileprops{player=PlayerName},Tiles2);
+				false ->
+					dict:store({X, Y}, Destination#tileprops{player=PlayerName}, Tiles2);
 				{true, ToArea, _Xdest, _Ydest} ->
 					switch_area(PlayerName, PlayerPid, FromArea, ToArea),
 					Tiles2
 			end
 	end.
 
+del_player_from_tiles(PlayerName, Tiles) ->
+	{X1, Y1} = get_player_pos(PlayerName, Tiles),
+	case {X1, Y1} of
+		{error, no_player} ->
+			Tiles;
+		{X2, Y2} ->
+			CurrentTileProps = dict:fetch({X2, Y2}, Tiles),
+			dict:store({X2 ,Y2}, CurrentTileProps#tileprops{player=undefined}, Tiles)
+	end.	
 
 available_neighbour_tiles({X, Y}, #area{}=AreaState) ->
 	Adj = [ {X+A, Y+B} || 
