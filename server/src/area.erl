@@ -102,7 +102,7 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	NewState = remove_player(PlayerName, PlayerPid, State),
 	?show("Removing ~s from ~p~n",[PlayerName, State#area.name]),
 	%% send vanish request to clients
-	broadcast_to_players(vanish_request(PlayerName, NewState), NewState),
+	broadcast_to_players(leave_request(PlayerName, NewState), NewState),
 	{reply, ok, NewState};
 handle_call({player_move, PlayerPid, PlayerName, X, Y}, _From, #area{tiles=Tiles}=AreaState) ->
 	PlayerPos = get_player_pos(PlayerName, Tiles),
@@ -281,8 +281,8 @@ chatline(Name, Message) ->
 	{H, M, S} = erlang:time(),
 	io_lib:format("~s:~s:~s <~s> ~s",[H,M,S,Name,Message]).
 
-vanish_request(PlayerName, #area{name=AreaName}) ->
-	hlp:create_reply("vanish",[{"Name", PlayerName}, {"Area", AreaName}]).
+leave_request(PlayerName, #area{name=AreaName}) ->
+	hlp:create_reply("leave",[{"Name", PlayerName}, {"Area", AreaName}]).
 
 enter_req_of_all(#area{playerpids=PlayerPids}=Area) ->
 	%% ?("Playerpids: ~p~n",[PlayerPids]),
