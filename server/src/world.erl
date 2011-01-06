@@ -81,7 +81,7 @@ handle_call({add_player, PlayerName}, From, State) ->
 	NewDict = dict:append(PlayerName, From, State#worldstate.players), 
 	NewState = State#worldstate{players=NewDict}, 
 	{reply, ok, NewState};
-handle_call({remove_player, PlayerName}, From, State) ->
+handle_call({remove_player, PlayerName}, _From, State) ->
 	NewDict = dict:erase(PlayerName, State#worldstate.players), 
 	{reply, ok, State#worldstate{players=NewDict}};
 handle_call({spawn_player, WsPid}, _Pid, State) ->
@@ -115,7 +115,8 @@ handle_cast({login, PlayerPid, Params}, State) ->
 		ok ->
 			P = db:read_player(PlayerName),
 			case P of
-				[] -> ?InfoMsg("Woops, no player record!!",[]);
+				[] -> 
+					?InfoMsg("Woops, no player record!!",[]);
 				_ ->
 					{AreaName, {X, Y}} = case P#plr.area of
 											 undefined ->
@@ -123,6 +124,7 @@ handle_cast({login, PlayerPid, Params}, State) ->
 											 Other ->
 												 {Other, P#plr.position}
 										 end,
+					?show("Area: ~p X: ~p Y: ~p ~n",[AreaName, X, Y]),
 					player:set_name(PlayerPid, PlayerName),
 					area:player_enter(area_sup:get_area_pid(AreaName), PlayerPid, PlayerName)
 			end;

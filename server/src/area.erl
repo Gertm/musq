@@ -92,13 +92,13 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 	%% send vanish request to clients
 	broadcast_to_players(vanish_request(PlayerName, NewState), NewState),
 	{reply, ok, NewState};
-handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
-	NewTiles = set_player_pos(PlayerName, {X, Y}, State),
-	Players = State#area.playerpids,
-	?show("Players in area: ~p~n",[Players]),
-	NewState = State#area{tiles=NewTiles},
-	Jreq = jump_request(PlayerName, NewState),
-	broadcast_to_players(Jreq, NewState),
+handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, #area{tiles=Tiles}=AreaState) ->
+	PlayerPos = get_player_pos(PlayerName, Tiles),
+	NewPosition = best_tile_from_to(PlayerPos, {X, Y}, AreaState),
+	NewTiles = set_player_pos(PlayerName, NewPosition, AreaState),
+	NewState = AreaState#area{tiles=NewTiles},
+	MoveReq = move_request(PlayerName, NewPosition, AreaState),
+	broadcast_to_players(MoveReq, NewState),
 	{reply, ok, NewState};
 handle_call(chatHistory, _From, State) ->
 	{reply, State#area.chatlines, State};
@@ -255,14 +255,16 @@ jump_request(PlayerName, #area{tiles=TileProps}=Area) ->
 	{X,Y} = get_player_pos(PlayerName, TileProps),
 	jump_request(PlayerName, {X,Y}, Area).
 
+move_request(PlayerName, {X, Y}, #area{name=AreaName}) ->
+	hlp:create_reply("move",
+					 [{"Name", PlayerName},
+					  {"Area", atom_to_list(AreaName)},
+					  {"X", X},
+					  {"Y", Y}]).
+
 chatline(Name, Message) ->
 	{H, M, S} = erlang:time(),
 	io_lib:format("~s:~s:~s <~s> ~s",[H,M,S,Name,Message]).
-
-pid_of(Area) when is_pid(Area) ->
-	Area;
-pid_of(Area) ->
-	area_sup:get_area_pid(Area).
 
 vanish_request(PlayerName, #area{name=AreaName}) ->
 	hlp:create_reply("vanish",[{"Name", PlayerName}, {"Area", AreaName}]).
@@ -283,6 +285,15 @@ enter_request(PlayerName, {X, Y}, #area{name=AreaName}=_Area) ->
 enter_request(PlayerName, #area{tiles=TileProps}=Area) ->
 	{X, Y} = get_player_pos(PlayerName, TileProps),
 	enter_request(PlayerName, {X, Y}, Area).
+
+%%----------------------------------------------
+%% Pid helper functions
+%%----------------------------------------------
+
+pid_of(Area) when is_pid(Area) ->
+	Area;
+pid_of(Area) ->
+	area_sup:get_area_pid(Area).
 
 %%----------------------------------------------
 %% tile helper functions
@@ -396,4 +407,8 @@ select_lowest_scoring_tile(CoordList, {Xdest, Ydest}) ->
 	  end,
 	  {9999,9999},
 	  CoordList).
+
+best_tile_from_to({Xorigin, Yorigin}, {X, Y}, #area{}=AreaState) ->
+	AdjTiles = available_neighbour_tiles({Xorigin, Yorigin}, AreaState),
+	select_lowest_scoring_tile(AdjTiles, {X, Y}).
 
