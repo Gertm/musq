@@ -34,7 +34,11 @@ start_link(WsPid) ->
 %%%===================================================================
 
 init([WsPid]) ->
-	{ok, #plr{logged_in=false, wspid=WsPid, rqueue=queue:new()}}.
+	{ok, Tref} = timer:apply_interval(1000, 
+									  gen_server, 
+									  cast, 
+									  [self(), {beat, self(), []}]),
+	{ok, #plr{logged_in=false, wspid=WsPid, heartbeat=Tref}}.
 
 %%--- HANDLE_CALL ---
 handle_call({change_area, AreaAtom}, _From, State) ->
@@ -66,7 +70,8 @@ handle_info(_Info, State) ->
 	{noreply, State}.
 
 %%--- TERMINATE & CODE_CHANGE ---
-terminate(_Reason, _State) ->
+terminate(_Reason, State) ->
+	timer:cancel(State#plr.heartbeat),
 	ok.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -121,6 +126,7 @@ handle_request({Fn, _From, Params}, #plr{}=State) ->
 		keepalive -> handle_keepalive(Params, State);
 		talk -> handle_talk(Params, State);
 		chatHistory -> handle_chatHistory(Params, State);
+		beat -> handle_beat(Params, State);
 		move -> handle_move(Params, State);
 		_ -> 
 			?show("Don't know this function: ~p(~p)~n", [Fn, Params]),
@@ -158,8 +164,8 @@ handle_chatHistory(_Params, State) ->
 handle_move(Params, State) ->
 	{X, _} = string:to_integer(proplists:get_value("X", Params)),
 	{Y, _} = string:to_integer(proplists:get_value("Y", Params)),
-	area:player_move(State#plr.area, self(), State#plr.name, X, Y),
-	{noreply, State}.
+	NewState = State#plr{destination={X,Y}},
+	{noreply, NewState}.
 
 handle_getFiles(Params, State) ->
 	case Params of
@@ -168,3 +174,19 @@ handle_getFiles(Params, State) ->
 			 State#plr.wspid ! {reply, self(), R}
 	end,
 	{noreply, State}.
+
+handle_beat(_Params, #plr{destination=Dest, name=Name, area=Area}=State) ->
+	%% for now, all this does is move the player.
+	case Dest of
+		undefined ->
+			{noreply, State};
+		{Xdest, Ydest} ->
+			{X, Y} = area:player_pos(Area, Name),
+			case hlp:is_same_pos({Xdest, Ydest}, {X, Y}) of
+				true ->
+					{noreply, State};
+				false ->
+					area:player_move(Area, self(), Name, Xdest, Ydest),	
+					{noreply, State}
+			end
+	end.

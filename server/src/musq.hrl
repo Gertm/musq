@@ -10,7 +10,9 @@
 			  area ::atom(),
 			  pid ::pid(),
 			  wspid ::pid(),
-			  rqueue ::queue(),
+			  rqueue=queue:new() ::queue(),
+			  destination ::tuple(),
+			  heartbeat ::term(),
 			  logged_in ::boolean()}).
 
 -record(visualImage, {url   ::string(),

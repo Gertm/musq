@@ -55,3 +55,8 @@ get_all_lines(Device, Accum) ->
 visual_image_to_struct(#visualImage{}=V) ->
 	{struct, [{"Url",V#visualImage.url},
 			  {"Color", V#visualImage.color}]}.
+
+-spec(is_same_pos({X1 ::integer(), Y1 ::integer()}, {X2 ::integer(), Y2 ::integer()}) -> boolean()).
+is_same_pos({X1, Y1}, {X2, Y2}) ->
+	(X1 == X2) and (Y1 == Y2).
+	

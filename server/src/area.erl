@@ -100,6 +100,9 @@ handle_call({player_move, _PlayerPid, PlayerName, X, Y}, _From, State) ->
 	{reply, ok, NewState};
 handle_call(chatHistory, _From, State) ->
 	{reply, State#area.chatlines, State};
+handle_call({get_player_pos, PlayerName}, _From, State) ->
+	{X, Y} = get_player_pos(PlayerName, State#area.tiles),
+	{reply, {X, Y}, State};
 handle_call(_Request, _From, State) ->
 	?show("AREA CALL UNKNOWN: ~p~n",[_Request]),
 	Reply = ok, 
@@ -160,6 +163,10 @@ chat_history(Area, WsPid) ->
 player_move(Area, PlayerPid, PlayerName, X, Y) ->
 	AreaPid = pid_of(Area),
 	gen_server:call(AreaPid, {player_move, PlayerPid, PlayerName, X, Y}).
+
+player_pos(Area, PlayerName) ->
+	AreaPid = pid_of(Area),
+	gen_server:call(AreaPid, {get_player_pos, PlayerName}).
 
 %%%===================================================================
 %%% internal functions
