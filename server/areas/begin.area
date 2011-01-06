@@ -132,7 +132,7 @@
 			"Properties": {
                 "WalkingSpeed": "1",
                 "Damage": "0",
-                "ExitTo": "Begin_Down"
+                "ExitTo": "Begin_Bottom"
 			}
 		}
 	]

@@ -132,7 +132,17 @@ handle_cast({login, PlayerPid, Params}, State) ->
 			ok
 	end, 
 	{noreply, State};
+handle_cast({switch_area, PlayerName, PlayerPid, FromArea, ToArea}, State) ->
+	?show("FromArea: ~p  ToArea: ~p ~n",[FromArea, ToArea]),
+	?show("PlayerName ~p PlayerPid ~p ~n", [PlayerName, PlayerPid]),
+	FromAreaPid = area_sup:pid_of(FromArea),
+	ToAreaPid = area_sup:pid_of(ToArea),
+	?show("FromAreaPid: ~p ToAreaPid ~p~n", [FromAreaPid, ToAreaPid]),
+	gen_server:call(FromAreaPid, {player_leave, PlayerPid, PlayerName}),
+	gen_server:call(ToAreaPid, {player_enter, PlayerPid, PlayerName}),
+	{noreply, State};
 handle_cast(_Msg, State) ->
+	?show("World got unknown CAST: ~p ~n",[_Msg]),
 	{noreply, State}.
 
 %%--------------------------------------------------------------------

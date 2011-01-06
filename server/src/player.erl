@@ -51,6 +51,8 @@ handle_call({set_name, PlayerName}, _From, State) ->
 handle_call(get_visual_part, _From, State) ->
 	%% ?show("to account: Player name = ~p~nWith state: ~p~n", [State#plr.name,State]),
 	{reply, account:visual_part(State#plr.name), State};
+handle_call({set_destination, {X, Y}}, _From, State) ->
+	{reply, ok, State#plr{destination={X, Y}}};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	?show("Got handle_call request I don't know: ~p~n",[_Request]),
@@ -106,6 +108,9 @@ set_name(PlayerPid, PlayerName) ->
 
 get_visual_part(PlayerPid) ->
 	gen_server:call(PlayerPid, get_visual_part).
+
+set_destination(PlayerPid, {X, Y}) ->
+	gen_server:call(PlayerPid, {set_destination, {X, Y}}).
 
 %%%===================================================================
 %%% Internal functions

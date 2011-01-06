@@ -102,6 +102,16 @@ is_area_filename(FileName) ->
 area_name_from_filename(FileName) ->
 	filename:basename(FileName,".area").
 
+
+%%----------------------------------------------
+%% Pid helper functions
+%%----------------------------------------------
+
+pid_of(Area) when is_pid(Area) ->
+	Area;
+pid_of(Area) ->
+	area_sup:get_area_pid(Area).
+
 get_area_pids() ->
 	Children = supervisor:which_children(area_sup),
 	lists:map(fun({AreaName, Pid, _, _}) ->
