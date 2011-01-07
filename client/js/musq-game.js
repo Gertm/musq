@@ -420,6 +420,7 @@ function handleAreaJson(json) {
     }
     // [Randy 05/01/2011] REMARK: New 'enter' messages will be sent.
     game.entities = {};
+    requestTalkHistory();
 }
 
 function handleEnterJson(json) {
