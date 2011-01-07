@@ -56,7 +56,6 @@ function handleLoginJson(json) {
         login.password.style.backgroundColor = "#FFFFFF";
         game.entities = {};
         setStateToGame();
-        requestTalkHistory();
     } else {
         setLoginIncorrect();
     }
