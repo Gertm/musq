@@ -107,6 +107,11 @@ handle_call({player_leave, PlayerPid, PlayerName}, _From, State) ->
 handle_call({player_move, PlayerPid, PlayerName, X, Y}, _From, #area{tiles=Tiles}=AreaState) ->
 	PlayerPos = get_player_pos(PlayerName, Tiles),
 	NewPosition = best_tile_from_to(PlayerPos, {X, Y}, AreaState),
+	if
+		NewPosition == PlayerPos ->
+			player:set_destination(PlayerPid, PlayerPos);
+		true -> ok
+	end,
 	NewTiles = set_player_pos(PlayerName, PlayerPid, NewPosition, AreaState),
 	NewState = AreaState#area{tiles=NewTiles},
 	MoveReq = move_request(PlayerName, NewPosition, AreaState),
@@ -472,8 +477,19 @@ select_lowest_scoring_tile(CoordList, {Xdest, Ydest}) ->
 
 best_tile_from_to({Xorigin, Yorigin}, {X, Y}, #area{}=AreaState) ->
 	AdjTiles = available_neighbour_tiles({Xorigin, Yorigin}, AreaState),
-	?show("AdjTiles: ~p~n",[AdjTiles]),
-    select_lowest_scoring_tile(AdjTiles, {X, Y}).
+	%% ?show("AdjTiles: ~p~n",[AdjTiles]),
+    NewTile = select_lowest_scoring_tile(AdjTiles, {X, Y}),
+	NewToDest = tile_distance(NewTile, {X, Y}),
+	OrigToDest = tile_distance({Xorigin, Yorigin}, {X, Y}),
+	%% ?show("NewToDest = ~p, OrigToDest = ~p~n",[NewToDest, OrigToDest]),
+	if
+		NewToDest >= OrigToDest ->
+			%% ?show("returning original tile~n",[]),
+			{Xorigin, Yorigin};
+		true ->
+			%% ?show("returning new tile~n",[]),
+			NewTile
+	end.
 
 
 switch_area(PlayerName, PlayerPid, FromArea, ToArea) ->

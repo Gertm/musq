@@ -9,9 +9,10 @@
 -include("musq.hrl").
 -compile(export_all).
 
+
 initialize() ->
 	mnesia:delete_table(account),
-	mnesia:delete_table(plr),
+	mnesia:delete_table(player),
 	prepare_database().
 
 get_transaction_result({atomic, R}) ->
@@ -23,22 +24,22 @@ get_transaction_result({atomic, R}) ->
 
 %% PLAYER stuff
 read_player(Pid) when is_pid(Pid) ->
-	R = mnesia:transaction(fun() -> mnesia:index_read(plr, Pid, #plr.pid) end), 
+	R = mnesia:transaction(fun() -> mnesia:index_read(player, Pid, #player.pid) end), 
 	get_transaction_result(R);
 read_player(PlayerName) ->
-	R = mnesia:transaction(fun() -> mnesia:read(plr, PlayerName) end), 
+	R = mnesia:transaction(fun() -> mnesia:read(player, PlayerName) end), 
 	get_transaction_result(R).
 
 dirty_read_player(Pid) when is_pid(Pid) ->
-	mnesia:dirty_index_read(plr, Pid, #plr.pid);
+	mnesia:dirty_index_read(player, Pid, #player.pid);
 dirty_read_player(PlayerName) ->
-    mnesia:dirty_read({plr, PlayerName}).
+    mnesia:dirty_read({player, PlayerName}).
 
 create_player_record(PlayerName, PlayerPid) -> 
 	P = dirty_read_player(PlayerName), 
 	case P of
 		[] -> 
-			Player = #plr{name=PlayerName, pid=PlayerPid},
+			Player = #player{name=PlayerName, pid=PlayerPid},
 			mnesia:transaction(fun() -> mnesia:write(Player) end),
 			?InfoMsg("Writing to mnesia: ~p~n",[Player]);
 		_ -> ok
@@ -47,10 +48,10 @@ create_player_record(PlayerName, PlayerPid) ->
 
 prepare_database() ->
 	create_account_table(), 
-	mnesia:create_table(plr, [{disc_copies, [node()]}, 
-							  {type, set}, 
-							  {attributes, record_info(fields, plr)}, 
-							  {index, [position, area, pid]}]).
+	mnesia:create_table(player, [{disc_copies, [node()]}, 
+								 {type, set}, 
+								 {attributes, record_info(fields, player)}, 
+								 {index, [position, area, pid]}]).
 
 %% ACCOUNT stuff
 create_account_table() ->
@@ -87,6 +88,6 @@ account_exists(AccountName) ->
 %% LOGIN stuf
 
 log_in_out(PlayerName, TrueFalse) ->
-	F = fun() -> {atomic, #plr{}=Player} = mnesia:read(player, PlayerName), 
-				 mnesia:write(player, Player#plr{logged_in = TrueFalse}) end, 	
+	F = fun() -> {atomic, #player{}=Player} = mnesia:read(player, PlayerName), 
+				 mnesia:write(player, Player#player{logged_in = TrueFalse}) end, 	
 	mnesia:transaction(F).

@@ -15,6 +15,14 @@
 			  heartbeat ::term(),
 			  logged_in ::boolean()}).
 
+%% this one is for mnesia
+-record(player, {name ::string(),
+				 position ::tuple(),
+				 area ::atom(),
+				 pid ::pid(),
+				 logged_in ::boolean()}).
+
+
 -record(visualImage, {url   ::string(),
 					  color ::string()}).
 

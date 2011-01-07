@@ -14,8 +14,8 @@ is_logged_in(PlayerName) ->
 	case Loggedin of
 		[] ->
 			false;
-		#plr{}=P ->
-			case P#plr.logged_in of
+		#player{}=P ->
+			case P#player.logged_in of
 				undefined ->
 					false;
 				Smth -> Smth

@@ -118,11 +118,11 @@ handle_cast({login, PlayerPid, Params}, State) ->
 				[] -> 
 					?InfoMsg("Woops, no player record!!",[]);
 				_ ->
-					{AreaName, {X, Y}} = case P#plr.area of
+					{AreaName, {X, Y}} = case P#player.area of
 											 undefined ->
 												 {'begin', {0, 0}};
 											 Other ->
-												 {Other, P#plr.position}
+												 {Other, P#player.position}
 										 end,
 					?show("Area: ~p X: ~p Y: ~p ~n",[AreaName, X, Y]),
 					player:set_name(PlayerPid, PlayerName),

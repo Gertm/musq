@@ -51,8 +51,6 @@ handle_call({set_name, PlayerName}, _From, State) ->
 handle_call(get_visual_part, _From, State) ->
 	%% ?show("to account: Player name = ~p~nWith state: ~p~n", [State#plr.name,State]),
 	{reply, account:visual_part(State#plr.name), State};
-handle_call({set_destination, {X, Y}}, _From, State) ->
-	{reply, ok, State#plr{destination={X, Y}}};
 handle_call(_Request, _From, State) ->
 	Reply = ok,
 	?show("Got handle_call request I don't know: ~p~n",[_Request]),
@@ -65,6 +63,8 @@ handle_cast({relay, Reply}, State) ->
 	{noreply, State};
 handle_cast({Fn, From, Params}, State) ->
 	handle_request({Fn, From, Params}, State);
+handle_cast({set_destination, {X, Y}}, State) ->
+	{noreply, State#plr{destination={X, Y}}};
 handle_cast(Any, State) ->
 	?show("no idea what this is: ~p~n",[Any]),
 	{noreply, State}.
@@ -110,7 +110,7 @@ get_visual_part(PlayerPid) ->
 	gen_server:call(PlayerPid, get_visual_part).
 
 set_destination(PlayerPid, {X, Y}) ->
-	gen_server:call(PlayerPid, {set_destination, {X, Y}}).
+	gen_server:cast(PlayerPid, {set_destination, {X, Y}}).
 
 %%%===================================================================
 %%% Internal functions
@@ -145,7 +145,11 @@ handle_request({Fn, _From, Params}, #plr{}=State) ->
 		_ -> 
 			?show("Don't know this function: ~p(~p)~n", [Fn, Params]),
 			{noreply, State}
-	end.
+	end;
+handle_request(none, State) ->
+	?show("handling none ~n",[]),
+	{noreply, State}.
+
 
 handle_logout(_Params, State) ->
 	area:player_leave(State#plr.area, self(), State#plr.name),
@@ -191,11 +195,14 @@ handle_getFiles(Params, State) ->
 
 handle_beat(_Params, #plr{destination=Dest, name=Name, area=Area}=State) ->
 	%% for now, all this does is move the player.
+	%% ?show("beat ",[]),
 	case Dest of
 		undefined ->
 			{noreply, State};
 		{Xdest, Ydest} ->
+%%			?show("Going to ~p,~p~n",[Xdest, Ydest]),
 			{X, Y} = area:player_pos(Area, Name),
+%%			?show("Now at ~p,~p~n",[X,Y]),
 			case hlp:is_same_pos({Xdest, Ydest}, {X, Y}) of
 				true ->
 					{noreply, State};
