@@ -184,8 +184,7 @@ function onWindowResize() {
         return;
     }
     layoutPage();
-    layoutGameHud();
-    drawGameCanvas();
+    gameOnWindowResize();
 }
 
 //## testing ###################################################################################
@@ -210,6 +209,8 @@ var testing = function () {
         test("ptInRc1", (ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 60, y: 60 })));
         test("ptInRc2", (!ptInRc({ x: 50, y: 50, width: 50, height: 50 }, { x: 40, y: 60 })));
         test("pushFront", function () { var a = []; pushFront(a, 0); pushFront(a, 1); pushFront(a, 2); return a === [2, 1, 0]; });
+        test("sum", sum([1,2,3,4]) === 10);
+        alert("finished tests");
     }
 
     return {
@@ -220,11 +221,9 @@ var testing = function () {
 
 //##################################################################################################
 
+window.onload = onWindowLoad;
+window.onresize = onWindowResize;
 var runtests = false;
-if (!runtests) {
-    window.onload = onWindowLoad;
-    window.onresize = onWindowResize;
-}
-else {
+if (runtests) {
     window.onload = testing.runTests;
 }

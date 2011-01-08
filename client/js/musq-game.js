@@ -189,16 +189,18 @@ function drawGameMoveTarget(cxt) {
 }
 
 function drawTalk(cxt, entityPtLogic, message) {
+    var textLineHeight = 15;
+    var text = wrap(message, 30);
     var entityPtUi = logicalToVisual(entityPtLogic);
     var txtoffset = { x: game.logicalToVisualFactor * 0.3, y: -game.logicalToVisualFactor * 0.4 };
     var txtpt = vecMath.add(entityPtUi, txtoffset);
-    var txtwidth = cxt.measureText(message).width;
-    var textLineHeight = 15;
+    txtpt.y -= textLineHeight * (text.length - 1);
+    var txtwidth = foldl(text, 0, function (acc, e) { return Math.max(acc, cxt.measureText(e).width); });
     var txtrc = {
         x: txtpt.x,
         y: txtpt.y - textLineHeight,
         width: txtwidth,
-        height: textLineHeight
+        height: textLineHeight * text.length
     };
     var backrc = expandRc(txtrc, 5, 8);
     var drawBackPath = function () {
@@ -233,7 +235,12 @@ function drawTalk(cxt, entityPtLogic, message) {
     cxt.textAlign = "left";
     cxt.textBaseline = "bottom";
     cxt.fillStyle = "#000000";
-    cxt.fillText(message, txtpt.x, txtpt.y);
+    var yline = txtpt.y;
+    var drawLine = function (e, ie, a) {
+        cxt.fillText(e, txtpt.x, yline);
+        yline += textLineHeight;
+    };
+    foreach(text, drawLine);
 }
 
 function drawGameEntities(cxt) {
@@ -252,6 +259,15 @@ function drawTalkHistory(cxt) {
     if (!game.showtalkhistory) {
         return;
     }
+    var wrapEntry = function (e, ie, a) {
+        if (e.WrappedMsg) {
+            return;
+        }
+        // [Randy 08/11/2011] TODO: Determine maxchars based on the width of the screen.
+        e.WrappedMsg = wrap(e.Msg, 50);
+    };
+    foreach(game.talkhistory, wrapEntry);
+    var totallinesoftext = sum(game.talkhistory, 0, function (e) { return e.WrappedMsg.length; });
     var canvasrc = { x: 0, y: 0, width: game.canvas.width, height: game.canvas.height };
     var rc = expandRc(canvasrc, -50, -50);
     cxt.save();
@@ -260,7 +276,7 @@ function drawTalkHistory(cxt) {
     var textlineheight = 12;
     var textseparator = 5;
     var textfulllineheight = textlineheight + textseparator;
-    var textfullheight = textfulllineheight * game.talkhistory.length;
+    var textfullheight = textfulllineheight * totallinesoftext;
     var ylimitmin = rc.y + 10;
     var ylimitmax = rc.y + rc.height - 10;
     cxt.font = textlineheight + "px SmackAttackBB";
@@ -270,13 +286,20 @@ function drawTalkHistory(cxt) {
     if (yoffset + textfullheight > ylimitmax) {
         yoffset = ylimitmax - textfullheight;
     }
-    game.talkhistory.forEach(function (e, ei, a) {
-                                 cxt.fillStyle = "#ffffff";
-                                 if (yoffset >= ylimitmin) {
-                                     cxt.fillText(e.From + ": " + e.Msg, rc.x + 10, yoffset);
-                                 }
-                                 yoffset += textfulllineheight;
-                             });
+    var drawEntry = function (e, ie, a) {
+        if (yoffset < ylimitmin) {
+            return;
+        }
+        cxt.fillStyle = "#ffffff";
+        var drawLine = function (el, iel, al) {
+            if (yoffset >= ylimitmin) {
+                cxt.fillText(e.From + ": " + el, rc.x + 10, yoffset);
+            }
+            yoffset += textfulllineheight;
+        };
+        foreach(e.WrappedMsg, drawLine);
+    };
+    foreach(game.talkhistory, drawEntry);
     cxt.restore();
 }
 
@@ -390,6 +413,14 @@ function limitTalkHistory() {
         game.talkhistory = game.talkhistory.slice(game.talkhistory.length - 20);
     }
 }
+
+function clearTalkHistoryWrap() {
+    game.talkhistory.forEach(function (e, ei, a) {
+                                 delete e.WrappedMsg;
+                             });
+}
+
+//## JSON message handlers #########################################################################
 
 function handleAreaJson(json) {
     game.area = {};
@@ -565,6 +596,14 @@ function layoutGameHud() {
     game.hudelements.talk.y = 20;
     game.hudelements.talkhistory.x = 20;
     game.hudelements.talkhistory.y = 50;
+}
+
+function gameOnWindowResize() {
+    layoutGameHud();
+    if (data.state === "game") {
+        drawGameCanvas();
+        clearTalkHistoryWrap();
+    }
 }
 
 //## initialization ############################################################################

@@ -157,6 +157,60 @@ function convertSvg(url, color, scale) {
     return convertSvgs([{"Url": url, "Color": color}], scale);
 }
 
+function wrap(text, maxchars) {
+    var words = [];
+    var word = "";
+    for (var ic = 0; ic < text.length; ++ic) {
+        var c = text[ic];
+        if (c === " ") {
+            words.push(word);
+            word = "";
+        } else {
+            word += c;
+        }
+    }
+    if (word.length !== 0) {
+        words.push(word);
+    }
+    var lines = [""];
+    for (var iword = 0; iword < words.length; ++iword) {
+        word = words[iword];
+        var line = lines[lines.length - 1];
+        if (line.length + word.length > maxchars) {
+            lines.push("");
+            line = lines[lines.length - 1];
+        }
+        if (line.length !== 0) {
+            line += " ";
+        }
+        line += word;
+        lines[lines.length - 1] = line;
+    }
+    for (var iline = 0; iline < lines.length; ++iline) {
+        var line = lines[iline];
+    }
+    return lines;
+}
+
+function foldl(array, startvalue, lambda) {
+    var acc = startvalue;
+    for (var i = 0; i < array.length; ++i) {
+        acc = lambda(acc, array[i]);
+    }
+    return acc;
+}
+
+function sum(array, startvalue, lambda) {
+    return foldl(array, (startvalue ? startvalue : 0), function (acc, e) { return acc + (lambda ? lambda(e) : e); });
+}
+
+// [Randy 08/11/2011] PATCH: You can't use the normal foreach when iterating arrays with additional 'members'.
+function foreach(array, lambda) {
+    for (var i = 0; i < array.length; ++i) {
+        lambda(array[i], i, array);
+    }
+}
+
 //## 2D vector math utilities ##################################################################
 
 var vecMath = function () {
