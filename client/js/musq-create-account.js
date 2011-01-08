@@ -9,59 +9,66 @@ createaccount.faces.human.male = {};
 createaccount.faces.human.male.ears = {};
 createaccount.faces.human.male.ears.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.ears.wildcard = "ears*.svg";
-createaccount.faces.human.male.ears.colors = ["#fff0c1", "#fbc38d", "#a76f38", "#785d42", "#f8f7a1"];
+createaccount.faces.human.male.ears.colors = {};
+createaccount.faces.human.male.ears.colors.choices = ["#fff0c1", "#fbc38d", "#a76f38", "#785d42", "#f8f7a1"];
 createaccount.faces.buffers.push(createaccount.faces.human.male.ears);
 
 createaccount.faces.human.male.faces = {};
 createaccount.faces.human.male.faces.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.faces.wildcard = "face*.svg";
-createaccount.faces.human.male.faces.colors = createaccount.faces.human.male.ears.colors;
+createaccount.faces.human.male.faces.colors = {};
+createaccount.faces.human.male.faces.colors.choices = createaccount.faces.human.male.ears.colors.choices;
 createaccount.faces.buffers.push(createaccount.faces.human.male.faces);
 
 createaccount.faces.human.male.eyes = {};
 createaccount.faces.human.male.eyes.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.eyes.wildcard = "eyes*.svg";
-createaccount.faces.human.male.eyes.colors = ["#000000", "#000044", "#005dac", "#116600"];
+createaccount.faces.human.male.eyes.colors = {};
+createaccount.faces.human.male.eyes.colors.choices = ["#000000", "#000044", "#005dac", "#116600"];
 createaccount.faces.buffers.push(createaccount.faces.human.male.eyes);
 
 createaccount.faces.human.male.mouths = {};
 createaccount.faces.human.male.mouths.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.mouths.wildcard = "mouth*.svg";
-createaccount.faces.human.male.mouths.colors = [];
 createaccount.faces.buffers.push(createaccount.faces.human.male.mouths);
 
 createaccount.faces.human.male.noses = {};
 createaccount.faces.human.male.noses.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.noses.wildcard = "nose*.svg";
-createaccount.faces.human.male.noses.colors = [];
 createaccount.faces.buffers.push(createaccount.faces.human.male.noses);
 
 createaccount.faces.human.scars = {};
 createaccount.faces.human.scars.baseurl = "images/faces/human/";
 createaccount.faces.human.scars.wildcard = "scar*.svg";
-createaccount.faces.human.scars.urls = [undefined];
-createaccount.faces.human.scars.colors = ["#8c846a", "#362a1e"];
+createaccount.faces.human.scars.urls = {};
+createaccount.faces.human.scars.urls.choices = [undefined];
+createaccount.faces.human.scars.colors = {};
+createaccount.faces.human.scars.colors.choices = ["#8c846a", "#362a1e"];
 createaccount.faces.buffers.push(createaccount.faces.human.scars);
 
 createaccount.faces.human.glasses = {};
 createaccount.faces.human.glasses.baseurl = "images/faces/human/";
 createaccount.faces.human.glasses.wildcard = "glasses*.svg";
-createaccount.faces.human.glasses.urls = [undefined];
-createaccount.faces.human.glasses.colors = [];
+createaccount.faces.human.glasses.urls = {};
+createaccount.faces.human.glasses.urls.choices = [undefined];
 createaccount.faces.buffers.push(createaccount.faces.human.glasses);
 
 createaccount.faces.human.male.hairs = {};
 createaccount.faces.human.male.hairs.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.hairs.wildcard = "hair*.svg";
-createaccount.faces.human.male.hairs.urls = [undefined];
-createaccount.faces.human.male.hairs.colors = ["#140d00", "#5c2110", "#ed2713", "#ede249"];
+createaccount.faces.human.male.hairs.urls = {};
+createaccount.faces.human.male.hairs.urls.choices = [undefined];
+createaccount.faces.human.male.hairs.colors = {};
+createaccount.faces.human.male.hairs.colors.choices = ["#140d00", "#5c2110", "#ed2713", "#ede249"];
 createaccount.faces.buffers.push(createaccount.faces.human.male.hairs);
 
 createaccount.faces.human.male.beards = {};
 createaccount.faces.human.male.beards.baseurl = "images/faces/human/male/";
 createaccount.faces.human.male.beards.wildcard = "beard*.svg";
-createaccount.faces.human.male.beards.urls = [undefined];
-createaccount.faces.human.male.beards.colors = createaccount.faces.human.male.hairs.colors;
+createaccount.faces.human.male.beards.urls = {};
+createaccount.faces.human.male.beards.urls.choices = [undefined];
+createaccount.faces.human.male.beards.colors = {};
+createaccount.faces.human.male.beards.colors.choices = createaccount.faces.human.male.hairs.colors;
 createaccount.faces.buffers.push(createaccount.faces.human.male.beards);
 
 createaccount.faces.requestQueue = [];
@@ -78,13 +85,6 @@ function requestImageUrls(baseurl, wildcard, targetarray) {
                    "WildCard": wildcard
                }
            });
-}
-
-function toVisualPart(buffer) {
-    if (buffer.color && buffer.color.value) {
-        return { "Url": buffer.url.value, "Color": buffer.color.value };
-    }
-    return { "Url": buffer.url.value };
 }
 
 //## drawing ###################################################################################
@@ -116,25 +116,26 @@ function handleCreateAccountJson(json) {
 }
 
 function createAccountUpdateBufferImage(buffer) {
-    if (buffer.url && buffer.url.value) {
-        if (buffer.color) {
-            buffer.image = convertSvg(buffer.url.value, buffer.color.value, 2.0);
+    if (buffer.urls && buffer.urls.choice && buffer.urls.choice.value) {
+        if (buffer.colors && buffer.colors.choice) {
+            buffer.image = convertSvg(buffer.urls.choice.value, buffer.colors.choice.value, 2.0);
         } else {
-            buffer.image = convertSvg(buffer.url.value, undefined, 2.0);
+            buffer.image = convertSvg(buffer.urls.choice.value, undefined, 2.0);
         }
     } else {
         delete buffer.image;
     }
 }
 
-function createAccountSliderValueChanged(slider, array, value, buffer) {
-    value.index = slider.getValue();
-    value.value = array[value.index];
+function createAccountSliderValueChanged(slider, selection, buffer) {
+    selection.choice = {};
+    selection.choice.index = slider.getValue();
+    selection.choice.value = selection.choices[selection.choice.index];
     createAccountUpdateBufferImage(buffer);
 }
 
-function createAccountAddVisualControlSlider(array, value, buffer) {
-    if (array.length < 2) {
+function createAccountAddVisualControlSlider(selection, buffer) {
+    if (selection.choices.length < 2) {
         return undefined;
     }
     var sliderdiv = document.createElement("div");
@@ -147,29 +148,32 @@ function createAccountAddVisualControlSlider(array, value, buffer) {
     var slider = new Slider(sliderdiv, sliderinput);
     createaccount.sliders.push(slider);
     slider.setMinimum(0);
-    slider.setMaximum(array.length - 1);
-    slider.onchange = function () { createAccountSliderValueChanged(slider, array, value, buffer); };
+    slider.setMaximum(selection.choices.length - 1);
+    slider.onchange = function () { createAccountSliderValueChanged(slider, selection, buffer); };
     return slider;
 }
 
-function createAccountSliderDataToUi(slider, value) {
-    if (!slider || !value) {
+function createAccountSliderDataToUi(slider, selection) {
+    if (!slider || !selection || !selection.choice) {
         return;
     }
-    slider.setValue(value.index);
+    slider.setValue(selection.choice.index);
 }
 
 function createAccountVisualRandomHelper(buffer) {
-    var canvas = createaccount.canvas;
     if (buffer.urls) {
-        buffer.url = randomElement(buffer.urls);
-    } else {
-        delete buffer.url;
+        if (buffer.urls.choices) {
+            buffer.urls.choice = randomElement(buffer.urls.choices);
+        } else {
+            delete buffer.urls.choice;
+        }
     }
     if (buffer.colors) {
-        buffer.color = randomElement(buffer.colors);
-    } else {
-        delete buffer.color;
+        if (buffer.colors.choices) {
+            buffer.colors.choice = randomElement(buffer.colors.choices);
+        } else {
+            delete buffer.colors.choice;
+        }
     }
     createAccountUpdateBufferImage(buffer);
 }
@@ -181,16 +185,17 @@ function handleGetFilesJson(json) {
     }
     var buffer = createaccount.faces.requestQueue[0];
     if (!buffer.urls) {
-        buffer.urls = [];
+        buffer.urls = {};
+        buffer.urls.choices = [];
     }
-    buffer.urls = buffer.urls.concat(json.Params.Images);
+    buffer.urls.choices = buffer.urls.choices.concat(json.Params.Images);
     createAccountVisualRandomHelper(buffer);
     createaccount.faces.requestQueue = createaccount.faces.requestQueue.slice(1);
-    buffer.urlslider = createAccountAddVisualControlSlider(buffer.urls, buffer.url, buffer);
-    createAccountSliderDataToUi(buffer.urlslider, buffer.url);
+    buffer.urlslider = createAccountAddVisualControlSlider(buffer.urls, buffer);
+    createAccountSliderDataToUi(buffer.urlslider, buffer.urls);
     if (buffer.colors) {
-        buffer.colorslider = createAccountAddVisualControlSlider(buffer.colors, buffer.color, buffer);
-        createAccountSliderDataToUi(buffer.colorslider, buffer.color);
+        buffer.colorslider = createAccountAddVisualControlSlider(buffer.colors, buffer);
+        createAccountSliderDataToUi(buffer.colorslider, buffer.colors);
     }
 }
 
@@ -201,7 +206,15 @@ function onCreateAccountButton() {
         alert("Passwords don't match!");
         return;
     }
-    var validpart = function (buffer) { return buffer.url && buffer.url.value; };
+    var validpart = function (buffer) {
+        return buffer.urls && buffer.urls.choice && buffer.urls.choice.value;
+    };
+    var toVisualPart = function (buffer) {
+        if (buffer.colors && buffer.colors.choice && buffer.colors.choice.value) {
+            return { "Url": buffer.urls.choice.value, "Color": buffer.colors.choice.value };
+        }
+        return { "Url": buffer.urls.choice.value };
+    };
     wsSend({
                "Function": "createAccount",
                "Params": {
@@ -217,8 +230,8 @@ function onCreateAccountVisualRandom() {
     for (var bufferI in createaccount.faces.buffers) {
         var buffer = createaccount.faces.buffers[bufferI];
         createAccountVisualRandomHelper(buffer);
-        createAccountSliderDataToUi(buffer.urlslider, buffer.url);
-        createAccountSliderDataToUi(buffer.colorslider, buffer.color);
+        createAccountSliderDataToUi(buffer.urlslider, buffer.urls);
+        createAccountSliderDataToUi(buffer.colorslider, buffer.colors);
     }
 }
 
