@@ -137,7 +137,8 @@ handle_cast({talk, PlayerName, Message}, State) ->
 	  hlp:create_reply("talk",
 					   [{"Name",PlayerName},
 						{"Message",Message}]),State),
-	{noreply, State#area{chatlines=[ChatLine | State#area.chatlines]}};
+	ChatLines = lists:sublist(State#area.chatlines, 50),
+	{noreply, State#area{chatlines=[ChatLine | ChatLines]}};
 handle_cast(_Msg, State) ->
 	?show("WTF IS THIS AREAMSG? -> ~p~n",[_Msg]),
 	{noreply, State}.
